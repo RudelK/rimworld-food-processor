@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <ThingDef ParentName="BuildingBase" Name="FPS_PipeBase" Abstract="True">
+    <thingClass>FoodPrinterSystem.Building_Pipe</thingClass>
+    <category>Building</category>
+    <noRightClickDraftAttack>true</noRightClickDraftAttack>
+    <graphicData>
+      <texPath>Things/Building/Linked/PowerConduit_Atlas</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <linkType>Transmitter</linkType>
+      <linkFlags>
+        <li>Custom1</li>
+      </linkFlags>
+      <color>(180,230,194)</color>
+      <damageData>
+        <rect>(0,0.35,1,0.3)</rect>
+      </damageData>
+    </graphicData>
+    <uiIconPath>Things/Building/Linked/PowerConduit_MenuIcon</uiIconPath>
+    <uiIconScale>0.7</uiIconScale>
+    <building>
+      <ai_chillDestination>false</ai_chillDestination>
+      <isInert>true</isInert>
+      <isEdifice>false</isEdifice>
+      <canLandGravshipOn>true</canLandGravshipOn>
+      <blueprintGraphicData>
+        <texPath>Things/Building/Linked/PowerConduit_Blueprint_Atlas</texPath>
+      </blueprintGraphicData>
+      <canConstructInCorner>true</canConstructInCorner>
+    </building>
+    <drawerType>MapMeshOnly</drawerType>
+    <altitudeLayer>FloorEmplacement</altitudeLayer>
+    <passability>Standable</passability>
+    <leaveResourcesWhenKilled>false</leaveResourcesWhenKilled>
+    <resourcesFractionWhenDeconstructed>0</resourcesFractionWhenDeconstructed>
+    <statBases>
+      <MaxHitPoints>80</MaxHitPoints>
+      <WorkToBuild>35</WorkToBuild>
+      <Flammability>0.4</Flammability>
+      <Beauty>-1</Beauty>
+    </statBases>
+    <drawStyleCategory>Conduits</drawStyleCategory>
+    <rotatable>false</rotatable>
+    <selectable>true</selectable>
+    <neverMultiSelect>true</neverMultiSelect>
+    <soundImpactDefault>BulletImpact_Metal</soundImpactDefault>
+    <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
+    <constructEffect>ConstructMetal</constructEffect>
+    <clearBuildingArea>false</clearBuildingArea>
+    <replaceTags>
+      <li>FoodPrinterSystemPipe</li>
+    </replaceTags>
+  </ThingDef>
+
+  <ThingDef ParentName="FPS_PipeBase">
+    <defName>FPS_Pipe</defName>
+    <label>food pipe</label>
+    <description>Transfers liquid toner between food system buildings. Connectivity matters, not flow rate.</description>
+    <costList>
+      <Steel>1</Steel>
+    </costList>
+    <designationCategory>FPS_FoodProcessingCategory</designationCategory>
+    <uiOrder>2010</uiOrder>
+    <designationHotKey>Misc1</designationHotKey>
+    <researchPrerequisites>
+      <li>FPS_FoodProcessing</li>
+    </researchPrerequisites>
+  </ThingDef>
+
+  <ThingDef ParentName="FPS_PipeBase">
+    <defName>FPS_HiddenPipe</defName>
+    <label>underground food pipe</label>
+    <description>Hidden underground piping for routing toner beneath walls and machines.</description>
+    <graphicData>
+      <color>(0,0,0,0)</color>
+      <shaderType>Transparent</shaderType>
+    </graphicData>
+    <costList>
+      <Steel>2</Steel>
+    </costList>
+    <designationCategory>FPS_FoodProcessingCategory</designationCategory>
+    <uiOrder>2011</uiOrder>
+    <designationHotKey>Misc9</designationHotKey>
+    <constructEffect>ConstructDirt</constructEffect>
+    <building>
+      <ai_neverTrashThis>true</ai_neverTrashThis>
+      <isTargetable>false</isTargetable>
+      <expandHomeArea>false</expandHomeArea>
+      <canBeDamagedByAttacks>false</canBeDamagedByAttacks>
+    </building>
+    <researchPrerequisites>
+      <li>FPS_FoodProcessing</li>
+    </researchPrerequisites>
+  </ThingDef>
+
+  <ThingDef ParentName="BuildingBase">
+    <defName>FPS_FoodDisintegrator</defName>
+    <label>food disintegrator</label>
+    <description>Breaks down adjacent food items and transfers their nutrition into the connected toner network. Processes one item every 250 ticks.</description>
+    <thingClass>FoodPrinterSystem.Building_FoodDisintegrator</thingClass>
+    <tickerType>Rare</tickerType>
+    <graphicData>
+      <texPath>Things/Building/foodsystem/disintegrater/disintegrater</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <shaderType>CutoutComplex</shaderType>
+      <drawSize>(2,2)</drawSize>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>Impassable</passability>
+    <fillPercent>1</fillPercent>
+    <blockWind>true</blockWind>
+    <statBases>
+      <WorkToBuild>900</WorkToBuild>
+      <MaxHitPoints>180</MaxHitPoints>
+      <Flammability>0.2</Flammability>
+      <Beauty>-2</Beauty>
+    </statBases>
+    <building>
+      <buildingTags>
+        <li>Production</li>
+      </buildingTags>
+      <destroySound>BuildingDestroyed_Metal_Small</destroySound>
+    </building>
+    <comps>
+      <li Class="CompProperties_Power">
+        <compClass>CompPowerTrader</compClass>
+        <basePowerConsumption>500</basePowerConsumption>
+        <idlePowerDraw>50</idlePowerDraw>
+        <transmitsPower>true</transmitsPower>
+      </li>
+      <li Class="CompProperties_Flickable"/>
+      <li Class="CompProperties_Breakdownable"/>
+      <li Class="FoodPrinterSystem.CompProperties_TonerNode"/>
+    </comps>
+    <size>(2,2)</size>
+    <costList>
+      <Steel>50</Steel>
+    </costList>
+    <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
+    <designationCategory>FPS_FoodProcessingCategory</designationCategory>
+    <uiOrder>2140</uiOrder>
+    <constructEffect>ConstructMetal</constructEffect>
+    <researchPrerequisites>
+      <li>FPS_FoodProcessing</li>
+    </researchPrerequisites>
+  </ThingDef>
+
+  <ThingDef Name="FPS_TonerTankBase" ParentName="BuildingBase" Abstract="True">
+    <thingClass>Building</thingClass>
+    <tickerType>Rare</tickerType>
+    <building>
+      <buildingTags>
+        <li>Production</li>
+      </buildingTags>
+      <destroySound>BuildingDestroyed_Metal_Small</destroySound>
+    </building>
+    <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
+    <designationCategory>FPS_FoodProcessingCategory</designationCategory>
+    <constructEffect>ConstructMetal</constructEffect>
+    <researchPrerequisites>
+      <li>FPS_FoodProcessing</li>
+    </researchPrerequisites>
+  </ThingDef>
+
+  <ThingDef ParentName="FPS_TonerTankBase">
+    <defName>FPS_TonerTankSmall</defName>
+    <label>small toner tank</label>
+    <description>Stores liquid toner for the food printer system. If left unpowered for 80,000 ticks, all stored toner spoils.</description>
+    <graphicData>
+      <texPath>Things/Building/foodsystem/toner/small/toner_small</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <shaderType>CutoutComplex</shaderType>
+      <drawSize>(1,1)</drawSize>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>Impassable</passability>
+    <blockWind>true</blockWind>
+    <fillPercent>1</fillPercent>
+    <statBases>
+      <WorkToBuild>350</WorkToBuild>
+      <MaxHitPoints>120</MaxHitPoints>
+      <Flammability>0.1</Flammability>
+    </statBases>
+    <comps>
+      <li Class="CompProperties_Power">
+        <compClass>CompPowerTrader</compClass>
+        <basePowerConsumption>200</basePowerConsumption>
+        <transmitsPower>true</transmitsPower>
+      </li>
+      <li Class="CompProperties_Flickable"/>
+      <li Class="FoodPrinterSystem.CompProperties_TonerNode"/>
+      <li Class="FoodPrinterSystem.CompProperties_TonerTank">
+        <capacity>500</capacity>
+      </li>
+    </comps>
+    <size>(1,1)</size>
+    <costList>
+      <Steel>50</Steel>
+    </costList>
+    <uiOrder>2145</uiOrder>
+  </ThingDef>
+
+  <ThingDef ParentName="FPS_TonerTankBase">
+    <defName>FPS_TonerTankMedium</defName>
+    <label>medium toner tank</label>
+    <description>Stores liquid toner for the food printer system. If left unpowered for 80,000 ticks, all stored toner spoils.</description>
+    <graphicData>
+      <texPath>Things/Building/foodsystem/toner/medium/toner_medium</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <shaderType>CutoutComplex</shaderType>
+      <drawSize>(2,2)</drawSize>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>Impassable</passability>
+    <blockWind>true</blockWind>
+    <fillPercent>1</fillPercent>
+    <statBases>
+      <WorkToBuild>900</WorkToBuild>
+      <MaxHitPoints>240</MaxHitPoints>
+      <Flammability>0.1</Flammability>
+    </statBases>
+    <comps>
+      <li Class="CompProperties_Power">
+        <compClass>CompPowerTrader</compClass>
+        <basePowerConsumption>700</basePowerConsumption>
+        <transmitsPower>true</transmitsPower>
+      </li>
+      <li Class="CompProperties_Flickable"/>
+      <li Class="FoodPrinterSystem.CompProperties_TonerNode"/>
+      <li Class="FoodPrinterSystem.CompProperties_TonerTank">
+        <capacity>1900</capacity>
+      </li>
+    </comps>
+    <size>(2,2)</size>
+    <costList>
+      <Steel>240</Steel>
+    </costList>
+    <uiOrder>2146</uiOrder>
+  </ThingDef>
+
+  <ThingDef ParentName="FPS_TonerTankBase">
+    <defName>FPS_TonerTankLarge</defName>
+    <label>large toner tank</label>
+    <description>Stores liquid toner for the food printer system. If left unpowered for 80,000 ticks, all stored toner spoils.</description>
+    <graphicData>
+      <texPath>Things/Building/foodsystem/toner/big/toner_big</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <shaderType>CutoutComplex</shaderType>
+      <drawSize>(3,3)</drawSize>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>Impassable</passability>
+    <blockWind>true</blockWind>
+    <fillPercent>1</fillPercent>
+    <statBases>
+      <WorkToBuild>1800</WorkToBuild>
+      <MaxHitPoints>360</MaxHitPoints>
+      <Flammability>0.1</Flammability>
+    </statBases>
+    <comps>
+      <li Class="CompProperties_Power">
+        <compClass>CompPowerTrader</compClass>
+        <basePowerConsumption>1500</basePowerConsumption>
+        <transmitsPower>true</transmitsPower>
+      </li>
+      <li Class="CompProperties_Flickable"/>
+      <li Class="FoodPrinterSystem.CompProperties_TonerNode"/>
+      <li Class="FoodPrinterSystem.CompProperties_TonerTank">
+        <capacity>4300</capacity>
+      </li>
+    </comps>
+    <size>(3,3)</size>
+    <costList>
+      <Steel>500</Steel>
+    </costList>
+    <uiOrder>2147</uiOrder>
+  </ThingDef>
+
+  <ThingDef ParentName="BuildingBase">
+    <defName>FPS_FoodPrinter</defName>
+    <label>food printer</label>
+    <description>Dispenses printed food directly from connected toner tanks. It can auto-select the highest researched allowed food category or be locked to a manual category.</description>
+    <thingClass>FoodPrinterSystem.Building_FoodPrinter</thingClass>
+    <tickerType>Normal</tickerType>
+    <graphicData>
+      <texPath>Things/Building/foodsystem/printer/printer</texPath>
+      <graphicClass>Graphic_Multi</graphicClass>
+      <shaderType>CutoutComplex</shaderType>
+      <drawSize>(3,1)</drawSize>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>Impassable</passability>
+    <blockWind>true</blockWind>
+    <fillPercent>1</fillPercent>
+    <statBases>
+      <WorkToBuild>950</WorkToBuild>
+      <MaxHitPoints>180</MaxHitPoints>
+      <Flammability>0.2</Flammability>
+      <Beauty>-1</Beauty>
+    </statBases>
+    <building>
+      <isMealSource>true</isMealSource>
+      <wantsHopperAdjacent>false</wantsHopperAdjacent>
+      <nutritionCostPerDispense>0.3</nutritionCostPerDispense>
+      <soundDispense>DispensePaste</soundDispense>
+      <forceShowRoomStats>true</forceShowRoomStats>
+      <buildingTags>
+        <li>Production</li>
+      </buildingTags>
+      <destroySound>BuildingDestroyed_Metal_Small</destroySound>
+    </building>
+    <comps>
+      <li Class="CompProperties_Power">
+        <compClass>CompPowerTrader</compClass>
+        <basePowerConsumption>200</basePowerConsumption>
+        <transmitsPower>true</transmitsPower>
+      </li>
+      <li Class="CompProperties_Flickable"/>
+      <li Class="CompProperties_Breakdownable"/>
+      <li Class="FoodPrinterSystem.CompProperties_TonerNode"/>
+      <li Class="FoodPrinterSystem.CompProperties_FoodPrinter">
+        <defaultMealDefs>
+          <li>MealNutrientPaste</li>
+          <li>MealSimple</li>
+          <li>MealFine</li>
+          <li>MealFine_Veg</li>
+          <li>MealFine_Meat</li>
+          <li>MealLavish</li>
+          <li>MealLavish_Veg</li>
+          <li>MealLavish_Meat</li>
+        </defaultMealDefs>
+      </li>
+    </comps>
+    <size>(3,1)</size>
+    <costList>
+      <Steel>50</Steel>
+    </costList>
+    <socialPropernessMatters>true</socialPropernessMatters>
+    <hasInteractionCell>true</hasInteractionCell>
+    <interactionCellOffset>(0,0,-1)</interactionCellOffset>
+    <placeWorkers>
+      <li>PlaceWorker_PreventInteractionSpotOverlap</li>
+    </placeWorkers>
+    <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
+    <designationCategory>FPS_FoodProcessingCategory</designationCategory>
+    <uiOrder>2150</uiOrder>
+    <constructEffect>ConstructMetal</constructEffect>
+    <researchPrerequisites>
+      <li>FPS_FoodProcessing</li>
+    </researchPrerequisites>
+  </ThingDef>
+
+  <ThingDef ParentName="BuildingBase">
+    <defName>FPS_AnimalFeeder</defName>
+    <label>animal feeder</label>
+    <description>Prints kibble from the connected toner network directly into its own kibble storage every 250 ticks.</description>
+    <thingClass>FoodPrinterSystem.Building_AnimalFeeder</thingClass>
+    <tickerType>Rare</tickerType>
+    <graphicData>
+      <texPath>Things/Building/foodsystem/feeder/feeder</texPath>
+      <graphicClass>Graphic_Multi</graphicClass>
+      <shaderType>CutoutComplex</shaderType>
+      <drawSize>(2,1)</drawSize>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>PassThroughOnly</passability>
+    <fillPercent>0.45</fillPercent>
+    <pathCost>42</pathCost>
+    <blockWind>true</blockWind>
+    <surfaceType>Item</surfaceType>
+    <canOverlapZones>false</canOverlapZones>
+    <statBases>
+      <WorkToBuild>700</WorkToBuild>
+      <MaxHitPoints>140</MaxHitPoints>
+      <Flammability>0.2</Flammability>
+      <Beauty>-1</Beauty>
+    </statBases>
+    <building>
+      <preventDeteriorationOnTop>true</preventDeteriorationOnTop>
+      <ignoreStoredThingsBeauty>true</ignoreStoredThingsBeauty>
+      <maxItemsInCell>1</maxItemsInCell>
+      <blueprintClass>Blueprint_Storage</blueprintClass>
+      <storageGroupTag>AnimalFeeder</storageGroupTag>
+      <fixedStorageSettings>
+        <filter>
+          <disallowNotEverStorable>true</disallowNotEverStorable>
+          <thingDefs>
+            <li>Kibble</li>
+          </thingDefs>
+        </filter>
+      </fixedStorageSettings>
+      <defaultStorageSettings>
+        <priority>Important</priority>
+        <filter>
+          <thingDefs>
+            <li>Kibble</li>
+          </thingDefs>
+        </filter>
+      </defaultStorageSettings>
+      <buildingTags>
+        <li>Production</li>
+      </buildingTags>
+      <destroySound>BuildingDestroyed_Metal_Small</destroySound>
+    </building>
+    <inspectorTabs>
+      <li>ITab_Storage</li>
+    </inspectorTabs>
+    <comps>
+      <li Class="CompProperties_Power">
+        <compClass>CompPowerTrader</compClass>
+        <basePowerConsumption>100</basePowerConsumption>
+        <transmitsPower>true</transmitsPower>
+      </li>
+      <li Class="CompProperties_Flickable"/>
+      <li Class="CompProperties_Breakdownable"/>
+      <li Class="FoodPrinterSystem.CompProperties_TonerNode"/>
+    </comps>
+    <size>(2,1)</size>
+    <costList>
+      <Steel>50</Steel>
+    </costList>
+    <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
+    <designationCategory>FPS_FoodProcessingCategory</designationCategory>
+    <uiOrder>2151</uiOrder>
+    <constructEffect>ConstructMetal</constructEffect>
+    <researchPrerequisites>
+      <li>FPS_FoodProcessing</li>
+    </researchPrerequisites>
+  </ThingDef>
+</Defs>

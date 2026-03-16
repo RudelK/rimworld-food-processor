@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <ResearchProjectDef>
+    <defName>FPS_FoodProcessing</defName>
+    <label>Food Process</label>
+    <description>Develop industrial food disintegration, liquid toner storage, nutrient paste synthesis, and printed food distribution systems.</description>
+    <baseCost>1600</baseCost>
+    <techLevel>Industrial</techLevel>
+    <prerequisites>
+      <li>Electricity</li>
+    </prerequisites>
+    <requiredResearchBuilding>HiTechResearchBench</requiredResearchBuilding>
+    <researchViewX>11.00</researchViewX>
+    <researchViewY>2.40</researchViewY>
+  </ResearchProjectDef>
+
+  <ResearchProjectDef>
+    <defName>FPS_SimpleMealPrinting</defName>
+    <label>Simple Meal Printing</label>
+    <description>Teach food printers to shape stored toner into stable simple meals.</description>
+    <baseCost>800</baseCost>
+    <techLevel>Industrial</techLevel>
+    <prerequisites>
+      <li>FPS_FoodProcessing</li>
+      <li>Electricity</li>
+    </prerequisites>
+    <requiredResearchBuilding>HiTechResearchBench</requiredResearchBuilding>
+    <researchViewX>12.00</researchViewX>
+    <researchViewY>2.40</researchViewY>
+  </ResearchProjectDef>
+
+  <ResearchProjectDef>
+    <defName>FPS_FineMealPrinting</defName>
+    <label>Fine Meal Printing</label>
+    <description>Upgrade food printers to synthesize refined fine meals, including standard, vegetarian, and carnivore variants.</description>
+    <baseCost>1200</baseCost>
+    <techLevel>Industrial</techLevel>
+    <prerequisites>
+      <li>FPS_FoodProcessing</li>
+      <li>MicroelectronicsBasics</li>
+    </prerequisites>
+    <requiredResearchBuilding>HiTechResearchBench</requiredResearchBuilding>
+    <researchViewX>13.00</researchViewX>
+    <researchViewY>2.40</researchViewY>
+  </ResearchProjectDef>
+
+  <ResearchProjectDef>
+    <defName>FPS_LavishMealPrinting</defName>
+    <label>Lavish Meal Printing</label>
+    <description>Upgrade food printers to synthesize lavish meals and their specialized variants for the finest printed dining.</description>
+    <baseCost>1800</baseCost>
+    <techLevel>Industrial</techLevel>
+    <prerequisites>
+      <li>FPS_FineMealPrinting</li>
+      <li>MultiAnalyzer</li>
+    </prerequisites>
+    <requiredResearchBuilding>HiTechResearchBench</requiredResearchBuilding>
+    <researchViewX>14.00</researchViewX>
+    <researchViewY>2.40</researchViewY>
+  </ResearchProjectDef>
+</Defs>

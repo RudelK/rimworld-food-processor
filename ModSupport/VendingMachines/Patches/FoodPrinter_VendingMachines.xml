@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <Operation Class="PatchOperationAdd">
+    <xpath>Defs/ThingDef[defName="FPS_FoodPrinter"]/building</xpath>
+    <value>
+      <joyKind>Shopping</joyKind>
+    </value>
+  </Operation>
+  <Operation Class="PatchOperationAdd">
+    <xpath>Defs/ThingDef[defName="FPS_FoodPrinter"]/comps</xpath>
+    <value>
+      <li Class="VendingMachines.CompProperties_VendingMachine">
+        <compClass>VendingMachines.CompVendingMachine</compClass>
+        <noToggle>true</noToggle>
+      </li>
+    </value>
+  </Operation>
+</Patch>

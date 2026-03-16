@@ -1,0 +1,24 @@
+# Local .NET CLI state
+.dotnet/
+
+# Build outputs
+**/bin/
+**/obj/
+1.6/Assemblies/*.pdb
+
+# Visual Studio / IDE files
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.csproj.user
+
+# Misc caches
+*.cache
+
+# OS files
+Thumbs.db
+.DS_Store

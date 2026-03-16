@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <FPS_TonerStored>Stored toner: {0}</FPS_TonerStored>
+  <FPS_TonerCapacity>Capacity: {0}</FPS_TonerCapacity>
+  <FPS_TonerNetwork>Network toner: {0} / {1}</FPS_TonerNetwork>
+  <FPS_TonerRemainingPowerLoss>Power-loss expiration timer: {0} h</FPS_TonerRemainingPowerLoss>
+  <FPS_TankSpoiled>{0} spoiled and lost all stored toner.</FPS_TankSpoiled>
+  <FPS_DisintegratorNoStorage>No connected toner storage available.</FPS_DisintegratorNoStorage>
+  <FPS_PrinterSettings>Printer settings</FPS_PrinterSettings>
+  <FPS_PrinterSettingsDesc>Choose which food categories this printer may produce.</FPS_PrinterSettingsDesc>
+  <FPS_PrinterMode>Mode: {0}</FPS_PrinterMode>
+  <FPS_PrinterModeAuto>Auto highest-tier</FPS_PrinterModeAuto>
+  <FPS_PrinterModeManual>Manual selection</FPS_PrinterModeManual>
+  <FPS_PrinterWindowTitle>Food printer settings</FPS_PrinterWindowTitle>
+  <FPS_PrinterColumnMeal>Meal tier</FPS_PrinterColumnMeal>
+  <FPS_PrinterColumnNutrition>Toner cost</FPS_PrinterColumnNutrition>
+  <FPS_PrinterColumnStatus>Status</FPS_PrinterColumnStatus>
+  <FPS_PrinterManualSelection>Manual category: {0}</FPS_PrinterManualSelection>
+  <FPS_PrinterManualButton>Set manual</FPS_PrinterManualButton>
+  <FPS_PrinterManualSelected>Manual</FPS_PrinterManualSelected>
+  <FPS_PrinterAvailableOutput>Will dispense: {0}</FPS_PrinterAvailableOutput>
+  <FPS_PrinterUnavailableOutput>No printable meal is currently available.</FPS_PrinterUnavailableOutput>
+  <FPS_PrinterProcessing>Processing: {0} ({1}%)</FPS_PrinterProcessing>
+  <FPS_PrinterCategoryPaste>Nutrient paste</FPS_PrinterCategoryPaste>
+  <FPS_PrinterCategorySimple>Simple meals</FPS_PrinterCategorySimple>
+  <FPS_PrinterCategoryFine>Fine meals</FPS_PrinterCategoryFine>
+  <FPS_PrinterCategoryLavish>Lavish meals</FPS_PrinterCategoryLavish>
+  <FPS_PrinterCategoryRequires>Requires: {0}</FPS_PrinterCategoryRequires>
+  <FPS_PrinterCategoryUnlockedRecipes>Unlocked ({0} variants)</FPS_PrinterCategoryUnlockedRecipes>
+  <FPS_PrinterTooltipOutputs>Possible outputs: {0}</FPS_PrinterTooltipOutputs>
+  <FPS_SettingsSectionConsumption>Consumption Rates</FPS_SettingsSectionConsumption>
+  <FPS_SettingsSectionFeeder>Animal Feeder</FPS_SettingsSectionFeeder>
+  <FPS_SettingsSectionStorage>Tank Capacities</FPS_SettingsSectionStorage>
+  <FPS_SettingsSectionPower>Power Requirements</FPS_SettingsSectionPower>
+  <FPS_SettingsSectionPrinter>Printer Options</FPS_SettingsSectionPrinter>
+  <FPS_SettingsPasteCost>Nutrient paste cost</FPS_SettingsPasteCost>
+  <FPS_SettingsSimpleCost>Simple meal cost</FPS_SettingsSimpleCost>
+  <FPS_SettingsFineCost>Fine meal cost</FPS_SettingsFineCost>
+  <FPS_SettingsLavishCost>Lavish meal cost</FPS_SettingsLavishCost>
+  <FPS_SettingsFeederOutput>Feeder output limit</FPS_SettingsFeederOutput>
+  <FPS_SettingsSmallTankCapacity>Small tank capacity</FPS_SettingsSmallTankCapacity>
+  <FPS_SettingsMediumTankCapacity>Medium tank capacity</FPS_SettingsMediumTankCapacity>
+  <FPS_SettingsLargeTankCapacity>Large tank capacity</FPS_SettingsLargeTankCapacity>
+  <FPS_SettingsDisintegratorIdlePower>Disintegrator idle power (W)</FPS_SettingsDisintegratorIdlePower>
+  <FPS_SettingsDisintegratorActivePower>Disintegrator active power (W)</FPS_SettingsDisintegratorActivePower>
+  <FPS_SettingsSmallTankPower>Small tank power (W)</FPS_SettingsSmallTankPower>
+  <FPS_SettingsMediumTankPower>Medium tank power (W)</FPS_SettingsMediumTankPower>
+  <FPS_SettingsLargeTankPower>Large tank power (W)</FPS_SettingsLargeTankPower>
+  <FPS_SettingsPrinterPower>Food printer power (W)</FPS_SettingsPrinterPower>
+  <FPS_SettingsFeederPower>Animal feeder power (W)</FPS_SettingsFeederPower>
+  <FPS_SettingsRandomization>Enable random meal selection</FPS_SettingsRandomization>
+</LanguageData>
