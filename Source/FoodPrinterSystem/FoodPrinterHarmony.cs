@@ -230,7 +230,7 @@ namespace FoodPrinterSystem
                         && actor.jobs.curDriver.ticksLeftThisToil <= 0;
                     if (!completedNaturally)
                     {
-                        comp.CancelProcessing(currentPrinter, actor, false);
+                        comp.CancelProcessing(currentPrinter, actor);
                         return;
                     }
 

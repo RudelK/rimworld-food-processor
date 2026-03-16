@@ -48,14 +48,6 @@ namespace FoodPrinterSystem
             }
         }
 
-        public int SpaceLeft
-        {
-            get
-            {
-                ClampStoredTonerToCapacity();
-                return storedToner >= Capacity ? 0 : Capacity - storedToner;
-            }
-        }
 
         public bool PowerOn
         {
@@ -106,31 +98,6 @@ namespace FoodPrinterSystem
             DrawStorageBar();
         }
 
-        public int AddToner(int amount)
-        {
-            ClampStoredTonerToCapacity();
-            if (amount <= 0 || SpaceLeft <= 0)
-            {
-                return 0;
-            }
-
-            int added = amount > SpaceLeft ? SpaceLeft : amount;
-            storedToner += added;
-            return added;
-        }
-
-        public int DrawToner(int amount)
-        {
-            ClampStoredTonerToCapacity();
-            if (amount <= 0 || storedToner <= 0)
-            {
-                return 0;
-            }
-
-            int drawn = amount > storedToner ? storedToner : amount;
-            storedToner -= drawn;
-            return drawn;
-        }
 
         public void SetStoredToner(int amount)
         {

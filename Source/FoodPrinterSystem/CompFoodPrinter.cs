@@ -39,7 +39,6 @@ namespace FoodPrinterSystem
         private string processingMealDefName;
         private int processingTicksRemaining;
         private int processingTonerCost;
-        private int lastProcessingTick = -1;
         private Pawn currentProcessingPawn;
 
         public CompProperties_FoodPrinter Props
@@ -93,10 +92,6 @@ namespace FoodPrinterSystem
             get { return processingTonerCost; }
         }
 
-        public bool IsClaimed
-        {
-            get { return currentProcessingPawn != null; }
-        }
 
         public float ProcessingProgress
         {
@@ -130,10 +125,6 @@ namespace FoodPrinterSystem
             ApplyPowerSetting();
         }
 
-        public override void CompTick()
-        {
-            base.CompTick();
-        }
 
         public override void PostDraw()
         {
@@ -151,7 +142,6 @@ namespace FoodPrinterSystem
             Scribe_Values.Look(ref processingMealDefName, "processingMealDefName");
             Scribe_Values.Look(ref processingTicksRemaining, "processingTicksRemaining", 0);
             Scribe_Values.Look(ref processingTonerCost, "processingTonerCost", 0);
-            Scribe_Values.Look(ref lastProcessingTick, "lastProcessingTick", -1);
             Scribe_References.Look(ref currentProcessingPawn, "currentProcessingPawn");
             if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
@@ -452,7 +442,6 @@ namespace FoodPrinterSystem
             processingMealDefName = mealDef.defName;
             processingTonerCost = tonerCost;
             processingTicksRemaining = FoodPrinterSystemUtility.PrintingDelayTicks;
-            lastProcessingTick = Find.TickManager == null ? -1 : Find.TickManager.TicksGame;
             return true;
         }
 
@@ -464,7 +453,6 @@ namespace FoodPrinterSystem
             }
 
             processingTicksRemaining = Mathf.Clamp(ticksRemaining, 0, FoodPrinterSystemUtility.PrintingDelayTicks);
-            lastProcessingTick = Find.TickManager == null ? -1 : Find.TickManager.TicksGame;
         }
 
         public Thing CompleteProcessing(Building printer, Pawn pawn)
@@ -499,7 +487,7 @@ namespace FoodPrinterSystem
             return meal;
         }
 
-        public void CancelProcessing(Building printer, Pawn pawn, bool refundToner)
+        public void CancelProcessing(Building printer, Pawn pawn)
         {
             if (!IsProcessing)
             {
@@ -852,7 +840,6 @@ namespace FoodPrinterSystem
             processingMealDefName = null;
             processingTicksRemaining = 0;
             processingTonerCost = 0;
-            lastProcessingTick = -1;
             currentProcessingPawn = null;
         }
 
