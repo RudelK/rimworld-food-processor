@@ -1,3 +1,4 @@
+using FoodSystemPipe;
 using Verse;
 
 namespace FoodPrinterSystem
@@ -19,24 +20,14 @@ namespace FoodPrinterSystem
             return TonerPipeNetManager.GetConnectedTonerNet((Thing)this);
         }
 
-        public override void SpawnSetup(Map map, bool respawningAfterLoad)
+        public override void Print(SectionLayer layer)
         {
-            base.SpawnSetup(map, respawningAfterLoad);
-            TonerPipeNetManager.MarkDirty(map);
-        }
+            if (layer is SectionLayer_Pipes || layer is SectionLayer_Things || layer is SectionLayer_ThingsGeneral)
+            {
+                return;
+            }
 
-        public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
-        {
-            Map previousMap = Map;
-            base.DeSpawn(mode);
-            TonerPipeNetManager.MarkDirty(previousMap);
-        }
-
-        public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
-        {
-            Map previousMap = Map;
-            base.Destroy(mode);
-            TonerPipeNetManager.MarkDirty(previousMap);
+            base.Print(layer);
         }
     }
 }

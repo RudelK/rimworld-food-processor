@@ -75,10 +75,35 @@
     <Compile Include="Building_FoodDisintegrator.cs" />
     <Compile Include="Building_FoodPrinter.cs" />
     <Compile Include="Building_Pipe.cs" />
+    <Compile Include="CompPipe.cs" />
     <Compile Include="CompFoodPrinter.cs" />
     <Compile Include="CompTonerNode.cs" />
     <Compile Include="TonerPipeNetManager.cs" />
     <Compile Include="CompTonerTank.cs" />
+    <Compile Include="IEmbeddedPipeNode.cs" />
+    <Compile Include="Building_EmbeddedPipeMachine.cs" />
+    <Compile Include="PipeVisualNodeResolver.cs" />
+    <Compile Include="PipeVisualCellProvider.cs" />
+    <Compile Include="PipeCellQueryUtility.cs" />
+    <Compile Include="PipeGraphicKey.cs" />
+    <Compile Include="PipeAtlasUtility.cs" />
+    <Compile Include="PipeGraphicResolver.cs" />
+    <Compile Include="PipeGraphicCache.cs" />
+    <Compile Include="PipePieceUtility.cs" />
+    <Compile Include="PipeVisualRenderer.cs" />
+    <Compile Include="PipeMaskUtility.cs" />
+    <Compile Include="PipeVisualConnectionUtility.cs" />
+    <Compile Include="PipeOverlayDrawer.cs" />
+    <Compile Include="PipeOverlayGraphicKey.cs" />
+    <Compile Include="PipeOverlayGraphicCache.cs" />
+    <Compile Include="PipeOverlayMapComponent.cs" />
+    <Compile Include="PipeOverlaySelectionUtility.cs" />
+    <Compile Include="PipeOverlayState.cs" />
+    <Compile Include="PipeRenderMapComponent.cs" />
+    <Compile Include="PipePlacementValidationUtility.cs" />
+    <Compile Include="PipeVisualMapComponent.cs" />
+    <Compile Include="SectionLayer_Pipes.cs" />
+    <Compile Include="PlaceWorker_EmbeddedPipePreview.cs" />
     <Compile Include="Dialog_FoodPrinterSettings.cs" />
     <Compile Include="FoodPrinterAlertHarmony.cs" />
     <Compile Include="FoodPrinterHarmony.cs" />
@@ -87,7 +112,11 @@
     <Compile Include="FoodPrinterSystemMod.cs" />
     <Compile Include="FoodPrinterSystemUtility.cs" />
     <Compile Include="MapComponent_TonerNetwork.cs" />
+    <Compile Include="PipeMapComponent.cs" />
+    <Compile Include="PipeNet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PipeOverlayVisibilityUtility.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
+

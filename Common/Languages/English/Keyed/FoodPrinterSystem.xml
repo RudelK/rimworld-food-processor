@@ -49,4 +49,7 @@
   <FPS_SettingsPrinterPower>Food printer power (W)</FPS_SettingsPrinterPower>
   <FPS_SettingsFeederPower>Animal feeder power (W)</FPS_SettingsFeederPower>
   <FPS_SettingsRandomization>Enable random meal selection</FPS_SettingsRandomization>
+  <FPS_PipeDuplicatePlacementBlocked>Pipe infrastructure already exists here: {0}.</FPS_PipeDuplicatePlacementBlocked>
+  <FPS_PipeDuplicateSpawnBlocked>{0} could not be installed because {1} already provides pipe infrastructure there.</FPS_PipeDuplicateSpawnBlocked>
 </LanguageData>
+

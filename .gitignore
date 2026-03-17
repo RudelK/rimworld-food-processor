@@ -22,3 +22,5 @@
 # OS files
 Thumbs.db
 .DS_Store
+build.ps1
+CODEX_SESSION_HANDOFF.md

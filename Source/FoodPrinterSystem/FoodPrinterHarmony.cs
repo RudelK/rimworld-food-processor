@@ -1,4 +1,5 @@
 using System;
+using FoodSystemPipe;
 using HarmonyLib;
 using RimWorld;
 using Verse;
@@ -114,7 +115,12 @@ namespace FoodPrinterSystem
                 validator = delegate(Thing thing)
                 {
                     Building_FoodPrinter printer = thing as Building_FoodPrinter;
-                    return printer != null ? IsPrinterValidFoodSource(printer) : originalValidator(thing);
+                    if (printer != null)
+                    {
+                        return IsPrinterValidFoodSource(printer);
+                    }
+
+                    return originalValidator == null || originalValidator(thing);
                 };
             }
         }
@@ -306,6 +312,19 @@ namespace FoodPrinterSystem
             }
         }
 
+        [HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionOverlays))]
+        public static class Patch_DrawSelectionOverlays
+        {
+            public static void Postfix()
+            {
+                Map map = Find.CurrentMap;
+                if (map != null)
+                {
+                    PipeOverlayDrawer.DrawActiveOverlay(map);
+                }
+            }
+        }
+
         private static bool IsPrinterValidFoodSource(Building_FoodPrinter printer)
         {
             Pawn getter = currentFoodGetter;
@@ -356,3 +375,4 @@ namespace FoodPrinterSystem
         }
     }
 }
+

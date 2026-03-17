@@ -132,6 +132,14 @@ namespace FoodPrinterSystem
                 return null;
             }
 
+            // Only inspect building-held containers. Looking inside arbitrary
+            // thing holders lets the disintegrator consume food from pawns and
+            // other unintended holders standing next to it.
+            if (!(thing is Building))
+            {
+                return null;
+            }
+
             IThingHolder thingHolder = thing as IThingHolder;
             if (thingHolder != null)
             {
