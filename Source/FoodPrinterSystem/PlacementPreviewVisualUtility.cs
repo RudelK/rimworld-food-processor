@@ -64,7 +64,7 @@ namespace FoodSystemPipe
 
             for (int i = 0; i < thingDef.placeWorkers.Count; i++)
             {
-                if (thingDef.placeWorkers[i] == typeof(PlaceWorker_EmbeddedPipePreview))
+                if (typeof(PlaceWorker_EmbeddedPipePreview).IsAssignableFrom(thingDef.placeWorkers[i]))
                 {
                     return true;
                 }

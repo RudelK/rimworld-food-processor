@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Building_AnimalFeeder.cs" />
+    <Compile Include="Building_BedsideFeeder.cs" />
     <Compile Include="Building_FoodDisintegrator.cs" />
     <Compile Include="Building_FoodPrinter.cs" />
     <Compile Include="Building_Pipe.cs" />

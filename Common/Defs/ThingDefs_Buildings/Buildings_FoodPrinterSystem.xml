@@ -62,6 +62,7 @@
     <defName>FPS_Pipe</defName>
     <label>food pipe</label>
     <description>Transfers liquid toner between food system buildings. Connectivity matters, not flow rate.</description>
+    <uiIconScale>0.7</uiIconScale>
     <costList>
       <Steel>1</Steel>
     </costList>
@@ -77,6 +78,7 @@
     <defName>FPS_HiddenPipe</defName>
     <label>underground food pipe</label>
     <description>Hidden underground piping for routing toner beneath walls and machines.</description>
+    <uiIconScale>0.7</uiIconScale>
     <graphicData>
       <color>(0,0,0,0)</color>
       <shaderType>Transparent</shaderType>
@@ -111,6 +113,8 @@
       <shaderType>CutoutComplex</shaderType>
       <drawSize>(2,2)</drawSize>
     </graphicData>
+    <uiIconPath>Things/Building/foodsystem/disintegrater/disintegrater</uiIconPath>
+    <uiIconScale>0.85</uiIconScale>
     <altitudeLayer>Building</altitudeLayer>
     <passability>Impassable</passability>
     <fillPercent>1</fillPercent>
@@ -181,8 +185,10 @@
       <texPath>Things/Building/foodsystem/toner/toner_tank</texPath>
       <graphicClass>Graphic_Single</graphicClass>
       <shaderType>CutoutComplex</shaderType>
-      <drawSize>(3,3)</drawSize>
+      <drawSize>(1,1)</drawSize>
     </graphicData>
+    <uiIconPath>Things/Building/foodsystem/toner/toner_tank</uiIconPath>
+    <uiIconScale>0.85</uiIconScale>
     <altitudeLayer>Building</altitudeLayer>
     <passability>Impassable</passability>
     <blockWind>true</blockWind>
@@ -218,8 +224,10 @@
       <texPath>Things/Building/foodsystem/toner/toner_tank</texPath>
       <graphicClass>Graphic_Single</graphicClass>
       <shaderType>CutoutComplex</shaderType>
-      <drawSize>(3,3)</drawSize>
+      <drawSize>(2,2)</drawSize>
     </graphicData>
+    <uiIconPath>Things/Building/foodsystem/toner/toner_tank</uiIconPath>
+    <uiIconScale>0.85</uiIconScale>
     <altitudeLayer>Building</altitudeLayer>
     <passability>Impassable</passability>
     <blockWind>true</blockWind>
@@ -257,6 +265,8 @@
       <shaderType>CutoutComplex</shaderType>
       <drawSize>(3,3)</drawSize>
     </graphicData>
+    <uiIconPath>Things/Building/foodsystem/toner/toner_tank</uiIconPath>
+    <uiIconScale>0.85</uiIconScale>
     <altitudeLayer>Building</altitudeLayer>
     <passability>Impassable</passability>
     <blockWind>true</blockWind>
@@ -296,6 +306,8 @@
       <shaderType>CutoutComplex</shaderType>
       <drawSize>(4,2)</drawSize>
     </graphicData>
+    <uiIconPath>Things/Building/foodsystem/printer/printer_south</uiIconPath>
+    <uiIconScale>0.8</uiIconScale>
     <altitudeLayer>Building</altitudeLayer>
     <passability>Impassable</passability>
     <blockWind>true</blockWind>
@@ -370,6 +382,8 @@
       <shaderType>CutoutComplex</shaderType>
       <drawSize>(1,1)</drawSize>
     </graphicData>
+    <uiIconPath>Things/Building/foodsystem/feeder/feeder</uiIconPath>
+    <uiIconScale>0.85</uiIconScale>
     <altitudeLayer>Building</altitudeLayer>
     <passability>PassThroughOnly</passability>
     <fillPercent>0.45</fillPercent>
@@ -432,6 +446,66 @@
     <constructEffect>ConstructMetal</constructEffect>
     <placeWorkers>
       <li>FoodSystemPipe.PlaceWorker_EmbeddedPipePreview</li>
+    </placeWorkers>
+    <researchPrerequisites>
+      <li>FPS_FoodProcessing</li>
+    </researchPrerequisites>
+  </ThingDef>
+
+  <ThingDef ParentName="BuildingBase">
+    <defName>FPS_BedsideFeeder</defName>
+    <label>bedside feeder</label>
+    <description>Automatically feeds the occupant of a linked bed using nutrition from the connected toner network. Must be placed exactly at the head of a bed.</description>
+    <thingClass>FoodPrinterSystem.Building_BedsideFeeder</thingClass>
+    <tickerType>Rare</tickerType>
+    <graphicData>
+      <texPath>Things/Building/foodsystem/bedfeeder/bedfeeder</texPath>
+      <graphicClass>Graphic_Multi</graphicClass>
+      <shaderType>CutoutComplex</shaderType>
+      <drawSize>(1, 1)</drawSize>
+      <shadowData>
+        <volume>(0.3, 0.3, 0.3)</volume>
+      </shadowData>
+    </graphicData>
+    <uiIconPath>Things/Building/foodsystem/bedfeeder/bedfeeder_south</uiIconPath>
+    <uiIconScale>0.6</uiIconScale>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>PassThroughOnly</passability>
+    <fillPercent>0.45</fillPercent>
+    <pathCost>42</pathCost>
+    <blockWind>false</blockWind>
+    <statBases>
+      <WorkToBuild>600</WorkToBuild>
+      <MaxHitPoints>100</MaxHitPoints>
+      <Flammability>0.2</Flammability>
+      <Beauty>-1</Beauty>
+    </statBases>
+    <building>
+      <buildingTags>
+        <li>Production</li>
+      </buildingTags>
+      <destroySound>BuildingDestroyed_Metal_Small</destroySound>
+    </building>
+    <comps>
+      <li Class="CompProperties_Power">
+        <compClass>CompPowerTrader</compClass>
+        <basePowerConsumption>50</basePowerConsumption>
+      </li>
+      <li Class="CompProperties_Flickable"/>
+      <li Class="CompProperties_Breakdownable"/>
+      <li Class="FoodPrinterSystem.CompProperties_TonerNode"/>
+    </comps>
+    <size>(1,1)</size>
+    <costList>
+      <Steel>30</Steel>
+      <ComponentIndustrial>1</ComponentIndustrial>
+    </costList>
+    <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
+    <designationCategory>FPS_FoodProcessingCategory</designationCategory>
+    <uiOrder>2152</uiOrder>
+    <constructEffect>ConstructMetal</constructEffect>
+    <placeWorkers>
+      <li>FoodSystemPipe.PlaceWorker_BedsideFeeder</li>
     </placeWorkers>
     <researchPrerequisites>
       <li>FPS_FoodProcessing</li>

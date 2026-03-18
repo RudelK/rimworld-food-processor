@@ -21,6 +21,7 @@ namespace FoodPrinterSystem
         public int largeTankPower = 1500;
         public int foodPrinterPower = 200;
         public int animalFeederPower = 100;
+        public float bedsideFeederTonerCost = 3.0f;
         public bool randomMealSelection = true;
 
         public bool RandomMealSelection
@@ -49,6 +50,7 @@ namespace FoodPrinterSystem
             Scribe_Values.Look(ref largeTankPower, "largeTankPower", 1500);
             Scribe_Values.Look(ref foodPrinterPower, "foodPrinterPower", 200);
             Scribe_Values.Look(ref animalFeederPower, "animalFeederPower", 100);
+            Scribe_Values.Look(ref bedsideFeederTonerCost, "bedsideFeederTonerCost", 3.0f);
             Scribe_Values.Look(ref randomMealSelection, "randomMealSelection", true);
 
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
@@ -79,6 +81,7 @@ namespace FoodPrinterSystem
             largeTankPower = Mathf.Clamp(largeTankPower, 0, 10000);
             foodPrinterPower = Mathf.Clamp(foodPrinterPower, 0, 10000);
             animalFeederPower = Mathf.Clamp(animalFeederPower, 0, 10000);
+            bedsideFeederTonerCost = Mathf.Clamp(bedsideFeederTonerCost, 0.1f, 50f);
         }
     }
 
@@ -131,6 +134,7 @@ namespace FoodPrinterSystem
             listing.GapLine();
             listing.Label("FPS_SettingsSectionFeeder".Translate());
             Settings.feederOutputLimit = DrawIntField(listing, "FPS_SettingsFeederOutput".Translate().ToString(), Settings.feederOutputLimit, ref feederOutputLimitBuffer, 0, 10000);
+            Settings.bedsideFeederTonerCost = DrawFloatSlider(listing, "FPS_SettingsBedsideFeederCost".Translate().ToString(), Settings.bedsideFeederTonerCost, 0.1f, 20f);
 
             listing.GapLine();
             listing.Label("FPS_SettingsSectionStorage".Translate());
@@ -225,6 +229,16 @@ namespace FoodPrinterSystem
             Widgets.Label(labelRect, label);
             float sliderValue = Widgets.HorizontalSlider(sliderRect, value, min, max, true, value.ToString(), min.ToString(), max.ToString(), 1f);
             return Mathf.RoundToInt(sliderValue);
+        }
+
+        private static float DrawFloatSlider(Listing_Standard listing, string label, float value, float min, float max)
+        {
+            Rect rect = listing.GetRect(34f);
+            Rect labelRect = new Rect(rect.x, rect.y, rect.width * 0.42f, rect.height);
+            Rect sliderRect = new Rect(rect.x + rect.width * 0.44f, rect.y, rect.width * 0.56f, rect.height);
+            Widgets.Label(labelRect, label);
+            float sliderValue = Widgets.HorizontalSlider(sliderRect, value, min, max, true, value.ToString("0.0"), min.ToString("0.0"), max.ToString("0.0"), 0.1f);
+            return sliderValue;
         }
 
         private static int DrawIntField(Listing_Standard listing, string label, int value, ref string buffer, int min, int max)
