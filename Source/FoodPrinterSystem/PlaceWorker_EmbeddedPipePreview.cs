@@ -19,9 +19,9 @@ namespace FoodSystemPipe
 
         public override void DrawGhost(ThingDef def, IntVec3 center, Rot4 rot, Color ghostCol, Thing thing = null)
         {
+            Map map = Find.CurrentMap;
             base.DrawGhost(def, center, rot, ghostCol, thing);
 
-            Map map = Find.CurrentMap;
             if (map == null)
             {
                 return;

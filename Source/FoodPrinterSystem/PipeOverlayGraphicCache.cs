@@ -18,12 +18,17 @@ namespace FoodSystemPipe
 
         public static Material GetOverlayMaterial(PipeGraphicKey baseGraphicKey, PipeOverlayStyle style, bool buildingCell)
         {
+            return GetOverlayMaterial(baseGraphicKey, ResolveTint(style, buildingCell));
+        }
+
+        public static Material GetOverlayMaterial(PipeGraphicKey baseGraphicKey, Color tint)
+        {
             if (!baseGraphicKey.IsValid)
             {
                 return null;
             }
 
-            PipeOverlayGraphicKey key = new PipeOverlayGraphicKey(baseGraphicKey, style, buildingCell);
+            PipeOverlayGraphicKey key = new PipeOverlayGraphicKey(baseGraphicKey, tint);
             if (!OverlayMaterials.TryGetValue(key, out Material material) || material == null)
             {
                 material = BuildOverlayMaterial(key, baseGraphicKey);
@@ -44,10 +49,15 @@ namespace FoodSystemPipe
             Material material = new Material(baseMaterial)
             {
                 shader = ShaderDatabase.MetaOverlay,
-                color = key.BuildingCell ? GetBuildingTint(key.Style) : GetPipeTint(key.Style),
+                color = (Color)key.Tint,
                 name = key.AtlasPath + "_PipeOverlay"
             };
             return material;
+        }
+
+        private static Color ResolveTint(PipeOverlayStyle style, bool buildingCell)
+        {
+            return buildingCell ? GetBuildingTint(style) : GetPipeTint(style);
         }
 
         private static Color GetPipeTint(PipeOverlayStyle style)

@@ -2,6 +2,7 @@ using System;
 using FoodSystemPipe;
 using HarmonyLib;
 using RimWorld;
+using UnityEngine;
 using Verse;
 using Verse.AI;
 
@@ -10,6 +11,7 @@ namespace FoodPrinterSystem
     [StaticConstructorOnStartup]
     public static class FoodPrinterHarmony
     {
+        private static readonly AccessTools.FieldRef<Designator_Place, Rot4> DesignatorPlacePlacingRot = AccessTools.FieldRefAccess<Designator_Place, Rot4>("placingRot");
         private static bool bestFoodSourceOnMap;
         private static Pawn currentFoodGetter;
         private static Pawn currentFoodEater;
@@ -321,6 +323,31 @@ namespace FoodPrinterSystem
                 if (map != null)
                 {
                     PipeOverlayDrawer.DrawActiveOverlay(map);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Designator_Place), "DrawGhost")]
+        public static class Patch_DesignatorBuild_DrawGhost
+        {
+            public static void Prefix(Designator_Place __instance, ref Color ghostCol)
+            {
+                ThingDef thingDef = __instance.PlacingDef as ThingDef;
+                Map map = Find.CurrentMap;
+                if (thingDef == null || map == null)
+                {
+                    return;
+                }
+
+                IntVec3 center = UI.MouseCell();
+                if (!center.IsValid)
+                {
+                    return;
+                }
+
+                if (PlacementPreviewVisualUtility.TryGetBuildingGhostColor(thingDef, center, DesignatorPlacePlacingRot(__instance), map, out Color previewColor))
+                {
+                    ghostCol = previewColor;
                 }
             }
         }

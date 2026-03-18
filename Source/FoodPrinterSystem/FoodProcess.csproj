@@ -101,6 +101,7 @@
     <Compile Include="PipeOverlayState.cs" />
     <Compile Include="PipeRenderMapComponent.cs" />
     <Compile Include="PipePlacementValidationUtility.cs" />
+    <Compile Include="PlacementPreviewVisualUtility.cs" />
     <Compile Include="PipeVisualMapComponent.cs" />
     <Compile Include="SectionLayer_Pipes.cs" />
     <Compile Include="PlaceWorker_EmbeddedPipePreview.cs" />
@@ -119,4 +120,5 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
+
 
