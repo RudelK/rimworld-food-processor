@@ -195,6 +195,12 @@ namespace FoodPrinterSystem
                 + "\n"
                 + "FPS_TonerCapacity".Translate(FoodPrinterSystemUtility.FormatToner(Capacity));
 
+            TonerNetworkSummary summary = TonerNetworkUtility.GetSummary(parent);
+            if (summary.HasNetwork)
+            {
+                text += "\n" + FoodPrinterSystemUtility.FormatSummary(summary);
+            }
+
             if (!PowerOn && storedToner > 0)
             {
                 int remainingTicks = PowerLossSpoilTicks - unpoweredTicks;

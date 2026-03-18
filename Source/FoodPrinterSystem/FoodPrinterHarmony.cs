@@ -158,6 +158,8 @@ namespace FoodPrinterSystem
             }
         }
 
+
+
         [HarmonyPatch(typeof(Toils_Ingest), nameof(Toils_Ingest.TakeMealFromDispenser))]
         public static class Patch_TakeMealFromDispenser
         {
@@ -220,7 +222,33 @@ namespace FoodPrinterSystem
                     CompFoodPrinter comp = currentPrinter == null ? null : currentPrinter.FoodPrinterComp;
                     if (processingStarted && comp != null && comp.IsProcessingPawn(actor) && actor.jobs != null && actor.jobs.curDriver != null)
                     {
-                        comp.UpdateProcessingTicksRemaining(Math.Max(0, actor.jobs.curDriver.ticksLeftThisToil));
+                        int ticksLeft = Math.Max(0, actor.jobs.curDriver.ticksLeftThisToil);
+                        comp.UpdateProcessingTicksRemaining(ticksLeft);
+
+                        if (ticksLeft <= 1)
+                        {
+                            comp.UpdateProcessingTicksRemaining(0);
+                            Thing meal = comp.CompleteProcessing(currentPrinter, actor);
+                            if (meal != null)
+                            {
+                                if (actor.carryTracker.TryStartCarry(meal))
+                                {
+                                    actor.CurJob.SetTarget(printerInd, actor.carryTracker.CarriedThing);
+                                }
+                                else
+                                {
+                                    if (!meal.Destroyed && !meal.Spawned && actor.Map != null)
+                                    {
+                                        GenSpawn.Spawn(meal, actor.Position, actor.Map);
+                                    }
+                                    actor.jobs.curDriver.EndJobWith(JobCondition.Incompletable);
+                                }
+                            }
+                            else
+                            {
+                                actor.jobs.curDriver.EndJobWith(JobCondition.Incompletable);
+                            }
+                        }
                     }
                 };
                 toil.AddFinishAction(delegate
@@ -228,56 +256,10 @@ namespace FoodPrinterSystem
                     Pawn actor = toil.actor;
                     Building_FoodPrinter currentPrinter = GetPrinter(actor, printerInd);
                     CompFoodPrinter comp = currentPrinter == null ? null : currentPrinter.FoodPrinterComp;
-                    if (!processingStarted || comp == null || !comp.IsProcessingPawn(actor))
-                    {
-                        return;
-                    }
-
-                    bool completedNaturally = actor.jobs != null
-                        && actor.jobs.curDriver != null
-                        && actor.jobs.curDriver.ticksLeftThisToil <= 0;
-                    if (!completedNaturally)
+                    if (processingStarted && comp != null && comp.IsProcessingPawn(actor))
                     {
                         comp.CancelProcessing(currentPrinter, actor);
-                        return;
                     }
-
-                    comp.UpdateProcessingTicksRemaining(0);
-                    Thing meal = comp.CompleteProcessing(currentPrinter, actor);
-                    if (meal == null)
-                    {
-                        actor.jobs.curDriver.EndJobWith(JobCondition.Incompletable);
-                        return;
-                    }
-
-                    if (actor.Map == null)
-                    {
-                        if (!meal.Destroyed)
-                        {
-                            meal.Destroy(DestroyMode.Vanish);
-                        }
-
-                        actor.jobs.curDriver.EndJobWith(JobCondition.Incompletable);
-                        return;
-                    }
-
-                    if (meal.Spawned)
-                    {
-                        meal.DeSpawn();
-                    }
-
-                    if (!actor.carryTracker.TryStartCarry(meal))
-                    {
-                        if (!meal.Destroyed && !meal.Spawned)
-                        {
-                            GenSpawn.Spawn(meal, actor.Position, actor.Map);
-                        }
-
-                        actor.jobs.curDriver.EndJobWith(JobCondition.Incompletable);
-                        return;
-                    }
-
-                    actor.CurJob.SetTarget(printerInd, actor.carryTracker.CarriedThing);
                 });
                 toil.handlingFacing = true;
                 toil.FailOnDespawnedNullOrForbidden(printerInd);
@@ -402,4 +384,3 @@ namespace FoodPrinterSystem
         }
     }
 }
-
