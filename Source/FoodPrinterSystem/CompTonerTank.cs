@@ -63,6 +63,22 @@ namespace FoodPrinterSystem
             base.PostSpawnSetup(respawningAfterLoad);
             powerComp = parent.TryGetComp<CompPowerTrader>();
             NotifySettingsChanged();
+
+            MapComponent_TonerNetwork netComp = parent.Map.GetComponent<MapComponent_TonerNetwork>();
+            if (netComp != null)
+            {
+                netComp.RegisterTank(this);
+            }
+        }
+
+        public override void PostDeSpawn(Map map, DestroyMode mode)
+        {
+            base.PostDeSpawn(map, mode);
+            MapComponent_TonerNetwork netComp = map.GetComponent<MapComponent_TonerNetwork>();
+            if (netComp != null)
+            {
+                netComp.DeregisterTank(this);
+            }
         }
 
         public override void CompTickRare()
