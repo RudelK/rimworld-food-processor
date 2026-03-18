@@ -48,6 +48,27 @@ namespace FoodPrinterSystem
             }
 
             ConsumeOne(food);
+
+            List<ThingDef> ingredients = new List<ThingDef>();
+            CompIngredients compIng = food.TryGetComp<CompIngredients>();
+            if (compIng != null && compIng.ingredients != null)
+            {
+                ingredients.AddRange(compIng.ingredients);
+            }
+            else if (food.def.ingestible != null)
+            {
+                // If it's a raw ingredient without a comp, save itself or its source
+                if (food.def.ingestible.sourceDef != null)
+                {
+                    ingredients.Add(food.def.ingestible.sourceDef);
+                }
+                else
+                {
+                    ingredients.Add(food.def);
+                }
+            }
+
+            TonerNetworkUtility.DistributeIngredients(this, ingredients);
             activeTicksRemaining = GenTicks.TickRareInterval;
             ApplyPowerSetting();
         }

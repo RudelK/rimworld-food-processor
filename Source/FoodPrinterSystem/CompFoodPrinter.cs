@@ -477,6 +477,29 @@ namespace FoodPrinterSystem
                 return null;
             }
 
+            if (meal != null)
+            {
+                System.Collections.Generic.List<ThingDef> ingredients = TonerNetworkUtility.GetAllIngredients(printer);
+                if (ingredients != null && ingredients.Count > 0)
+                {
+                    CompIngredients compIng = meal.TryGetComp<CompIngredients>();
+                    if (compIng != null)
+                    {
+                        if (compIng.ingredients == null)
+                        {
+                            compIng.ingredients = new System.Collections.Generic.List<ThingDef>();
+                        }
+                        for (int i = 0; i < ingredients.Count; i++)
+                        {
+                            if (!compIng.ingredients.Contains(ingredients[i]))
+                            {
+                                compIng.ingredients.Add(ingredients[i]);
+                            }
+                        }
+                    }
+                }
+            }
+
             ReleasePrinterReservation(printer, pawn);
             ClearProcessingState();
             if (printer != null && printer.def.building != null && printer.def.building.soundDispense != null)

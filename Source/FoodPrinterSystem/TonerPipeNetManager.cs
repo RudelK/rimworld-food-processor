@@ -278,6 +278,41 @@ namespace FoodPrinterSystem
             return TryAddToner(user == null ? null : user.TonerNetworkThing, amount);
         }
 
+        public static void DistributeIngredients(Thing thing, List<ThingDef> ingredients)
+        {
+            if (ingredients == null || ingredients.Count == 0) return;
+            List<Thing> nodes = GetConnectedNodes(thing);
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                CompTonerTank tank = nodes[i].TryGetComp<CompTonerTank>();
+                if (tank != null)
+                {
+                    tank.AddIngredients(ingredients);
+                }
+            }
+        }
+
+        public static List<ThingDef> GetAllIngredients(Thing thing)
+        {
+            List<ThingDef> result = new List<ThingDef>();
+            List<Thing> nodes = GetConnectedNodes(thing);
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                CompTonerTank tank = nodes[i].TryGetComp<CompTonerTank>();
+                if (tank != null && tank.StoredIngredients != null)
+                {
+                    for (int j = 0; j < tank.StoredIngredients.Count; j++)
+                    {
+                        if (!result.Contains(tank.StoredIngredients[j]))
+                        {
+                            result.Add(tank.StoredIngredients[j]);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
         public static void MarkDirty(Map map)
         {
             MapComponent_TonerNetwork component = FoodPrinterSystemUtility.GetNetworkComponent(map);

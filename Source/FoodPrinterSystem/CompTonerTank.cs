@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -24,6 +25,9 @@ namespace FoodPrinterSystem
         private int storedToner;
         private int unpoweredTicks;
         private CompPowerTrader powerComp;
+        private List<ThingDef> storedIngredients = new List<ThingDef>();
+
+        public List<ThingDef> StoredIngredients => storedIngredients;
 
         public CompProperties_TonerTank Props
         {
@@ -85,6 +89,7 @@ namespace FoodPrinterSystem
             }
 
             storedToner = 0;
+            ClearIngredients();
             unpoweredTicks = 0;
             if (parent.MapHeld != null)
             {
@@ -98,11 +103,54 @@ namespace FoodPrinterSystem
             DrawStorageBar();
         }
 
+        public override IEnumerable<Gizmo> CompGetGizmosExtra()
+        {
+            foreach (Gizmo gizmo in base.CompGetGizmosExtra())
+            {
+                yield return gizmo;
+            }
+
+            if (parent.Faction == Faction.OfPlayer)
+            {
+                yield return new Command_Action
+                {
+                    defaultLabel = "FPS_EmptyTank".Translate(),
+                    defaultDesc = "FPS_EmptyTankDesc".Translate(),
+                    icon = ContentFinder<Texture2D>.Get("UI/Designators/Cancel", true),
+                    action = delegate
+                    {
+                        SetStoredToner(0);
+                    }
+                };
+            }
+        }
+
+        public void AddIngredients(List<ThingDef> ingredients)
+        {
+            if (ingredients == null || ingredients.Count == 0) return;
+            for (int i = 0; i < ingredients.Count; i++)
+            {
+                if (!storedIngredients.Contains(ingredients[i]))
+                {
+                    storedIngredients.Add(ingredients[i]);
+                }
+            }
+        }
+
+        public void ClearIngredients()
+        {
+            storedIngredients.Clear();
+        }
 
         public void SetStoredToner(int amount)
         {
             storedToner = amount < 0 ? 0 : amount;
             ClampStoredTonerToCapacity();
+            if (storedToner == 0)
+            {
+                ClearIngredients();
+            }
+            FoodPrinterAlertHarmony.InvalidateAlertCache();
         }
 
         public void NotifySettingsChanged()
@@ -142,6 +190,16 @@ namespace FoodPrinterSystem
                 text += "\n" + "FPS_TonerRemainingPowerLoss".Translate(FoodPrinterSystemUtility.FormatHoursRemaining(remainingTicks));
             }
 
+            if (storedToner > 0 && storedIngredients.Count > 0)
+            {
+                List<string> ingredientLabels = new List<string>();
+                for (int i = 0; i < storedIngredients.Count; i++)
+                {
+                    ingredientLabels.Add(storedIngredients[i].LabelCap);
+                }
+                text += "\n" + "FPS_TankContains".Translate(string.Join(", ", ingredientLabels.ToArray()));
+            }
+
             return text;
         }
 
@@ -149,6 +207,17 @@ namespace FoodPrinterSystem
         {
             base.PostExposeData();
             Scribe_Values.Look(ref storedToner, "storedTonerUnitsV2", 0);
+            Scribe_Collections.Look(ref storedIngredients, "storedIngredients", LookMode.Def);
+            
+            if (Scribe.mode == LoadSaveMode.PostLoadInit)
+            {
+                if (storedIngredients == null)
+                {
+                    storedIngredients = new List<ThingDef>();
+                }
+                storedIngredients.RemoveAll(x => x == null);
+            }
+
             if (Scribe.mode == LoadSaveMode.LoadingVars && storedToner == 0)
             {
                 int legacyStoredTonerUnits = 0;

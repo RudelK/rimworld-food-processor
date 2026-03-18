@@ -2,6 +2,9 @@
 <LanguageData>
   <FPS_TonerStored>Stored toner: {0}</FPS_TonerStored>
   <FPS_TonerCapacity>Capacity: {0}</FPS_TonerCapacity>
+  <FPS_TankContains>Contains: {0}</FPS_TankContains>
+  <FPS_EmptyTank>Empty Tank</FPS_EmptyTank>
+  <FPS_EmptyTankDesc>Completely empty the tank of all toner and ingredients.</FPS_EmptyTankDesc>
   <FPS_TonerNetwork>Network toner: {0} / {1}</FPS_TonerNetwork>
   <FPS_TonerRemainingPowerLoss>Power-loss expiration timer: {0} h</FPS_TonerRemainingPowerLoss>
   <FPS_TankSpoiled>{0} spoiled and lost all stored toner.</FPS_TankSpoiled>

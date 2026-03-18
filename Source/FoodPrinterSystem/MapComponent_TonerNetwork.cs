@@ -25,5 +25,15 @@ namespace FoodPrinterSystem
         {
             return TonerPipeNetManager.TryDrawToner(node, amount);
         }
+
+        public static void DistributeIngredients(Thing node, System.Collections.Generic.List<ThingDef> ingredients)
+        {
+            TonerPipeNetManager.DistributeIngredients(node, ingredients);
+        }
+
+        public static System.Collections.Generic.List<ThingDef> GetAllIngredients(Thing node)
+        {
+            return TonerPipeNetManager.GetAllIngredients(node);
+        }
     }
 }

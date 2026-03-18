@@ -10,6 +10,29 @@ namespace FoodPrinterSystem
     {
         private static readonly float LowFoodNutritionThresholdPerColonist = ResolveLowFoodThreshold();
 
+        private static readonly System.Reflection.FieldInfo AllAlertsFieldInfo = AccessTools.Field(typeof(AlertsReadout), "AllAlerts");
+        private static readonly System.Reflection.MethodInfo AlertRecalculateMethodInfo = AccessTools.Method(typeof(Alert), "Recalculate");
+
+        public static void InvalidateAlertCache()
+        {
+            UIRoot_Play uiRoot = Find.UIRoot as UIRoot_Play;
+            if (uiRoot != null && uiRoot.alerts != null && AllAlertsFieldInfo != null && AlertRecalculateMethodInfo != null)
+            {
+                var allAlertsList = AllAlertsFieldInfo.GetValue(uiRoot.alerts) as System.Collections.IEnumerable;
+                if (allAlertsList != null)
+                {
+                    foreach (Alert alert in allAlertsList)
+                    {
+                        if (alert is Alert_LowFood)
+                        {
+                            AlertRecalculateMethodInfo.Invoke(alert, null);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(Alert_LowFood), "MapWithLowFood")]
         public static class Patch_AlertLowFood_MapWithLowFood
         {
@@ -58,54 +81,11 @@ namespace FoodPrinterSystem
 
         private static float GetEdibleFoodNutrition(Map map)
         {
-            List<Pawn> colonists = map.mapPawns.FreeColonistsSpawned;
-            if (colonists == null || colonists.Count == 0)
+            if (map != null && map.resourceCounter != null)
             {
-                return 0f;
+                return map.resourceCounter.TotalHumanEdibleNutrition;
             }
-
-            List<Thing> allThings = new List<Thing>();
-            ThingOwnerUtility.GetAllThingsRecursively(map, ThingRequest.ForGroup(ThingRequestGroup.Everything), allThings, false, null, true);
-            float totalNutrition = 0f;
-            for (int i = 0; i < allThings.Count; i++)
-            {
-                Thing thing = allThings[i];
-                if (!IsCountedFoodThing(thing))
-                {
-                    continue;
-                }
-
-                if (!CanAnyColonistEat(thing, colonists))
-                {
-                    continue;
-                }
-
-                totalNutrition += thing.GetStatValue(StatDefOf.Nutrition) * thing.stackCount;
-            }
-
-            return totalNutrition;
-        }
-
-        private static bool IsCountedFoodThing(Thing thing)
-        {
-            return thing != null
-                && thing.def != null
-                && thing.def.IsNutritionGivingIngestible
-                && !(thing is Corpse);
-        }
-
-        private static bool CanAnyColonistEat(Thing thing, List<Pawn> colonists)
-        {
-            for (int i = 0; i < colonists.Count; i++)
-            {
-                Pawn colonist = colonists[i];
-                if (colonist != null && FoodUtility.WillEat(colonist, thing, colonist, false, false))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return 0f;
         }
 
         private static float GetStoredTonerNutrition(Map map)
