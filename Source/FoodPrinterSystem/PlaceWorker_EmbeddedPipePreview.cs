@@ -29,12 +29,20 @@ namespace FoodSystemPipe
 
             PipeOverlayDrawer.DrawActiveOverlay(map);
 
-            if (!PipeVisualNodeResolver.HasVisualPipeSupport(def))
+            if (!ShouldDrawLocalPipeGhost(def))
             {
                 return;
             }
 
             PipeOverlayDrawer.DrawGhostOverlay(map, def, center, rot);
+        }
+
+        private static bool ShouldDrawLocalPipeGhost(ThingDef def)
+        {
+            return def != null
+                && PipeVisualNodeResolver.HasVisualPipeSupport(def)
+                && def.thingClass != null
+                && typeof(FoodPrinterSystem.Building_Pipe).IsAssignableFrom(def.thingClass);
         }
     }
 }

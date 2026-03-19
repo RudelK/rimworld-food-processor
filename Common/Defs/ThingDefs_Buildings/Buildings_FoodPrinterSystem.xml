@@ -61,7 +61,8 @@
     <defName>FPS_Pipe</defName>
     <label>food pipe</label>
     <description>Transfers liquid toner between food system buildings. Connectivity matters, not flow rate.</description>
-    <uiIconScale>0.7</uiIconScale>
+    <uiIconPath>UI/foodprocess/UI_PipeBuild</uiIconPath>
+    <uiIconScale>0.85</uiIconScale>
     <costList>
       <Steel>1</Steel>
     </costList>

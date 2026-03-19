@@ -10,7 +10,8 @@ namespace FoodPrinterSystem
         {
             defaultLabel = "FPS_DeconstructPipes".Translate();
             defaultDesc = "FPS_DeconstructPipesDesc".Translate();
-            icon = ContentFinder<Texture2D>.Get("UI/Designators/Deconstruct", true);
+            icon = ContentFinder<Texture2D>.Get("UI/foodprocess/UI_PipeDeconstruct", true);
+            iconDrawScale = 0.85f;
         }
 
         public override AcceptanceReport CanDesignateCell(IntVec3 loc)
