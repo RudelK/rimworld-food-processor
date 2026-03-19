@@ -19,8 +19,8 @@
   <FPS_PrinterColumnNutrition>토너 비용</FPS_PrinterColumnNutrition>
   <FPS_PrinterColumnStatus>상태</FPS_PrinterColumnStatus>
   <FPS_PrinterManualButton>수동으로 설정</FPS_PrinterManualButton>
-  <FPS_PrinterManualSelected>수동</FPS_PrinterManualSelected>
-  <FPS_PrinterAvailableOutput>배출 예정: {0}</FPS_PrinterAvailableOutput>
+  <FPS_PrinterManualSelected>출력중</FPS_PrinterManualSelected>
+  <FPS_PrinterAvailableOutput>출력 설정: {0}</FPS_PrinterAvailableOutput>
   <FPS_PrinterUnavailableOutput>현재 출력 가능한 식사가 없습니다.</FPS_PrinterUnavailableOutput>
   <FPS_PrinterProcessing>처리 중: {0} ({1}%)</FPS_PrinterProcessing>
   <FPS_PrinterCategoryPaste>영양죽</FPS_PrinterCategoryPaste>
