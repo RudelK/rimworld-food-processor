@@ -49,25 +49,7 @@ namespace FoodPrinterSystem
 
             ConsumeOne(food);
 
-            List<ThingDef> ingredients = new List<ThingDef>();
-            CompIngredients compIng = food.TryGetComp<CompIngredients>();
-            if (compIng != null && compIng.ingredients != null)
-            {
-                ingredients.AddRange(compIng.ingredients);
-            }
-            else if (food.def.ingestible != null)
-            {
-                // If it's a raw ingredient without a comp, save itself or its source
-                if (food.def.ingestible.sourceDef != null)
-                {
-                    ingredients.Add(food.def.ingestible.sourceDef);
-                }
-                else
-                {
-                    ingredients.Add(food.def);
-                }
-            }
-
+            List<ThingDef> ingredients = ExtractIngredientProvenanceDefs(food);
             TonerNetworkUtility.DistributeIngredients(this, ingredients);
             activeTicksRemaining = GenTicks.TickRareInterval;
             ApplyPowerSetting();
@@ -184,6 +166,41 @@ namespace FoodPrinterSystem
         {
             Thing oneUnit = food.stackCount > 1 ? food.SplitOff(1) : food;
             oneUnit.Destroy(DestroyMode.Vanish);
+        }
+
+        private static List<ThingDef> ExtractIngredientProvenanceDefs(Thing food)
+        {
+            List<ThingDef> ingredients = new List<ThingDef>();
+            if (food == null)
+            {
+                return ingredients;
+            }
+
+            CompIngredients compIng = food.TryGetComp<CompIngredients>();
+            if (compIng != null && compIng.ingredients != null)
+            {
+                // Toner provenance must preserve the final ingestible ingredient defs
+                // exactly as used by the food. Downstream printer food-type prediction
+                // reads ingredientDef.ingestible.foodType, so muffalo meat must stay
+                // muffalo meat instead of being rewritten to muffalo or another source def.
+                for (int i = 0; i < compIng.ingredients.Count; i++)
+                {
+                    ThingDef ingredientDef = compIng.ingredients[i];
+                    if (ingredientDef != null)
+                    {
+                        ingredients.Add(ingredientDef);
+                    }
+                }
+
+                return ingredients;
+            }
+
+            if (food.def != null && food.def.ingestible != null)
+            {
+                ingredients.Add(food.def);
+            }
+
+            return ingredients;
         }
 
         private void SetPowerDraw(bool active)

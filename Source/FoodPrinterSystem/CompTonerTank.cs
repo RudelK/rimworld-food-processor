@@ -25,6 +25,9 @@ namespace FoodPrinterSystem
         private int storedToner;
         private int unpoweredTicks;
         private CompPowerTrader powerComp;
+        // These must remain the final ingestible ingredient defs actually used by food
+        // (for example muffalo meat, not muffalo) because printer food-type prediction
+        // depends on ingredientDef.ingestible.foodType staying accurate downstream.
         private List<ThingDef> storedIngredients = new List<ThingDef>();
 
         public List<ThingDef> StoredIngredients => storedIngredients;
