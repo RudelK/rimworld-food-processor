@@ -6,16 +6,20 @@ Raw food and meals can be broken down into liquid toner, stored in connected tan
 
 ## Features
 
-- Food Disintegrator that converts adjacent food into toner
-- Toner Tanks for shared network storage
-- Food Printer that produces researched meal tiers from stored toner
+- INGR Disintegrator that converts adjacent food into toner
+- Small, medium, and large Toner Tanks for shared network storage
+- Food Printer that produces researched meal tiers from stored toner without nutrient paste hoppers
 - Animal Feeder that turns toner into kibble
 - Nutrient feeder that directly feeds humanlike bed occupants from the toner network
-- Toner pipes and underground pipes for network routing
+- Toner pipes and underground toner pipes for network routing
+- Pipe-specific build and deconstruct tools
+- Grouped toner tank build menu with size-based research progression
 - In-game mod settings for power use, print costs, tank capacity, and related balance values
 - Harmony-based integration with RimWorld food-search logic and ingest jobs
 - Pawn-aware printer filtering based on connected ingredient provenance
 - Shared floor-level pipe rendering and architect-category overlay previews
+- Persistent right-side warning when toner-consuming buildings are not connected to toner tank storage
+- Live localization for English, Korean, Japanese, and Simplified Chinese
 - Optional compatibility patch for `Adamas.VendingMachines`
 
 ## Research Progression
@@ -27,10 +31,16 @@ The current research chain is:
 - `Fine Meal Printing` -> requires `Simple Meal Printing` and `MicroelectronicsBasics`
 - `Lavish Meal Printing` -> requires `Fine Meal Printing` and `MultiAnalyzer`
 
+Toner tank unlocks are:
+
+- `Small toner tank` -> requires `Food Processing`
+- `Medium toner tank` -> requires `Food Processing` and `Machining`
+- `Large toner tank` -> requires `Food Processing` and `MicroelectronicsBasics`
+
 ## How It Works
 
 1. Place a `Food Disintegrator` next to stored or loose ingestible food.
-2. Connect it to `Toner Tanks`, `Food Printers`, and `Animal Feeders` with toner pipes.
+2. Connect it to `Toner Tanks`, `Food Printers`, `Animal Feeders`, and `Nutrient feeders` with toner pipes.
 3. Disintegrated food adds toner and preserves its final ingestible ingredient defs in connected tanks.
 4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically, or use a `Nutrient feeder` for adjacent beds.
 5. Pawns evaluate printers against the connected network's current ingredient profile before selecting them as a food source.
@@ -41,8 +51,11 @@ The current research chain is:
 - Functional buildings also transmit power, so they can bridge adjacent powered tiles like conduit-capable buildings.
 - Toner tanks spoil their stored contents after extended power loss.
 - Toner storage contributes to RimWorld's low-food accounting through the colony nutrition counter.
+- Food printers use the toner network as their real input source and no longer rely on nutrient paste hoppers.
 - Food printers respect research locks for meal tiers and current connected toner availability.
 - Printer food-type prediction is based on stored ingredient provenance in connected toner tanks.
+- Toner-consuming buildings show a persistent `Need to connect toner tank` warning when they are not connected to a toner network with at least one tank.
+- `Deconstruct pipes` only targets placed toner pipes and ignores walls, machines, and other non-pipe buildings that merely share pipe visuals.
 
 ## Printer Food Rules
 
@@ -54,6 +67,7 @@ The current research chain is:
 
 - All settings include hover tooltips in the mod settings window.
 - Main settings cover toner costs, feeder output, tank capacities, and power draw values.
+- A `Reset to defaults` button restores the mod's settings to their default values.
 - The `Debug` section is folded by default and currently contains:
   - `Debug log`
   - `Hard check food type`
@@ -62,6 +76,15 @@ The current research chain is:
 
 - Developer-facing integration examples live under `Example/`.
 - See `Example/README.md` for toner consumer, toner producer, embedded-preview, and custom place-worker examples.
+- The example set includes a custom `PlaceWorker_EmbeddedPipePreview` subclass pattern for buildings that need extra placement rules.
+
+## Localization
+
+- Live keyed and DefInjected translations are included for:
+  - English
+  - Korean
+  - Japanese
+  - Simplified Chinese
 
 ## Compatibility
 
