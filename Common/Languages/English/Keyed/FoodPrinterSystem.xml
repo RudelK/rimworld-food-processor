@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
   <FPS_TonerStored>Stored toner: {0}</FPS_TonerStored>
   <FPS_TonerCapacity>Capacity: {0}</FPS_TonerCapacity>
@@ -83,4 +83,6 @@
   <FPS_NoOccupant>No occupant</FPS_NoOccupant>
   <FPS_NoLinkedBed>No linked bed</FPS_NoLinkedBed>
   <FPS_MustPlaceAtBedHead>Must be placed at the head of a bed.</FPS_MustPlaceAtBedHead>
-</LanguageData>
+  <FPS_SettingsResetToDefaults>Reset to defaults</FPS_SettingsResetToDefaults>
+  <FPS_SettingsResetToDefaultsDesc>Reset all Food Process mod settings to their default values.</FPS_SettingsResetToDefaultsDesc></LanguageData>
+

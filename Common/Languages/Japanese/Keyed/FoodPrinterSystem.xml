@@ -83,4 +83,6 @@
   <FPS_NoOccupant>使用者なし</FPS_NoOccupant>
   <FPS_NoLinkedBed>接続されたベッドなし</FPS_NoLinkedBed>
   <FPS_MustPlaceAtBedHead>ベッドの頭側に設置する必要があります。</FPS_MustPlaceAtBedHead>
-</LanguageData>
+  <FPS_SettingsResetToDefaults>デフォルトに戻す</FPS_SettingsResetToDefaults>
+  <FPS_SettingsResetToDefaultsDesc>Food Process mod の設定をすべて初期値に戻します。</FPS_SettingsResetToDefaultsDesc></LanguageData>
+

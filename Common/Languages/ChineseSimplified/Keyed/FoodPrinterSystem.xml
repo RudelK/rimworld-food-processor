@@ -83,4 +83,6 @@
   <FPS_NoOccupant>无占用者</FPS_NoOccupant>
   <FPS_NoLinkedBed>无已连接床位</FPS_NoLinkedBed>
   <FPS_MustPlaceAtBedHead>必须放置在床头位置。</FPS_MustPlaceAtBedHead>
-</LanguageData>
+  <FPS_SettingsResetToDefaults>恢复默认设置</FPS_SettingsResetToDefaults>
+  <FPS_SettingsResetToDefaultsDesc>将 Food Process mod 的所有设置恢复为默认值。</FPS_SettingsResetToDefaultsDesc></LanguageData>
+

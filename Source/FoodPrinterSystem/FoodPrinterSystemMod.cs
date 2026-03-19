@@ -1,4 +1,4 @@
-using HarmonyLib;
+﻿using HarmonyLib;
 using UnityEngine;
 using Verse;
 
@@ -25,6 +25,30 @@ namespace FoodPrinterSystem
         public bool randomMealSelection = true;
         public bool debugLoggingEnabled = false;
         public bool hardCheckFoodType = true;
+
+        public void ResetToDefaults()
+        {
+            pastePrintCost = 3;
+            simpleMealPrintCost = 5;
+            fineMealPrintCost = 7;
+            lavishMealPrintCost = 10;
+            feederOutputLimit = 75;
+            smallTankCapacity = 500;
+            mediumTankCapacity = 1900;
+            largeTankCapacity = 4300;
+            disintegratorIdlePower = 50;
+            disintegratorActivePower = 500;
+            smallTankPower = 200;
+            mediumTankPower = 700;
+            largeTankPower = 1500;
+            foodPrinterPower = 200;
+            animalFeederPower = 100;
+            bedsideFeederTonerCost = 3.0f;
+            randomMealSelection = true;
+            debugLoggingEnabled = false;
+            hardCheckFoodType = true;
+            Sanitize();
+        }
 
         public bool RandomMealSelection
         {
@@ -149,7 +173,7 @@ namespace FoodPrinterSystem
 
             lastSettingsDrawFrame = Time.frameCount;
 
-            Rect viewRect = new Rect(0f, 0f, inRect.width - 16f, 900f);
+            Rect viewRect = new Rect(0f, 0f, inRect.width - 16f, 960f);
             Widgets.BeginScrollView(inRect, ref settingsScrollPosition, viewRect);
 
             Listing_Standard listing = new Listing_Standard();
@@ -191,6 +215,9 @@ namespace FoodPrinterSystem
 
             listing.GapLine();
             DrawDebugSection(listing);
+
+            listing.Gap(6f);
+            DrawResetButton(listing);
 
             listing.End();
             Widgets.EndScrollView();
@@ -276,6 +303,34 @@ namespace FoodPrinterSystem
                 "FPS_SettingsHardCheckFoodTypeDesc".Translate().ToString());
         }
 
+        private void DrawResetButton(Listing_Standard listing)
+        {
+            Rect buttonRect = listing.GetRect(34f);
+            string label = "FPS_SettingsResetToDefaults".Translate();
+            string tooltip = "FPS_SettingsResetToDefaultsDesc".Translate();
+            AddTooltip(buttonRect, tooltip);
+            if (Widgets.ButtonText(buttonRect, label))
+            {
+                Settings.ResetToDefaults();
+                ClearSettingBuffers();
+            }
+        }
+
+        private void ClearSettingBuffers()
+        {
+            feederOutputLimitBuffer = null;
+            smallTankCapacityBuffer = null;
+            mediumTankCapacityBuffer = null;
+            largeTankCapacityBuffer = null;
+            disintegratorIdlePowerBuffer = null;
+            disintegratorActivePowerBuffer = null;
+            smallTankPowerBuffer = null;
+            mediumTankPowerBuffer = null;
+            largeTankPowerBuffer = null;
+            foodPrinterPowerBuffer = null;
+            animalFeederPowerBuffer = null;
+        }
+
         private static int DrawIntSlider(Listing_Standard listing, string label, string tooltip, int value, int min, int max)
         {
             Rect rect = listing.GetRect(34f);
@@ -337,3 +392,6 @@ namespace FoodPrinterSystem
         }
     }
 }
+
+
+

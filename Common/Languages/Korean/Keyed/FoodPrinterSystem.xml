@@ -83,4 +83,5 @@
   <FPS_NoOccupant>점유자 없음</FPS_NoOccupant>
   <FPS_NoLinkedBed>연결된 침대 없음</FPS_NoLinkedBed>
   <FPS_MustPlaceAtBedHead>침대 머리맡에 정확히 설치해야 합니다.</FPS_MustPlaceAtBedHead>
-</LanguageData>
+  <FPS_SettingsResetToDefaults>기본값으로 재설정</FPS_SettingsResetToDefaults>
+  <FPS_SettingsResetToDefaultsDesc>음식 가공 모드 설정을 모두 기본값으로 되돌립니다.</FPS_SettingsResetToDefaultsDesc></LanguageData>
