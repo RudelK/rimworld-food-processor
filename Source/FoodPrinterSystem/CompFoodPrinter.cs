@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -183,7 +183,8 @@ namespace FoodPrinterSystem
             {
                 defaultLabel = "FPS_PrinterSettings".Translate(),
                 defaultDesc = "FPS_PrinterSettingsDesc".Translate(),
-                icon = ContentFinder<Texture2D>.Get("UI/Commands/DesirePower", true),
+                icon = ContentFinder<Texture2D>.Get("UI/foodprocess/printer_setting", true),
+                iconDrawScale = 0.85f,
                 action = delegate
                 {
                     Find.WindowStack.Add(new Dialog_FoodPrinterSettings(this));
@@ -1153,4 +1154,6 @@ namespace FoodPrinterSystem
         }
     }
 }
+
+
 

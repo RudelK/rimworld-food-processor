@@ -82,7 +82,7 @@ namespace FoodPrinterSystem
 
                 TextAnchor previousAnchor = Text.Anchor;
                 Text.Anchor = TextAnchor.MiddleRight;
-                Widgets.Label(costRect, printerComp.GetCategoryCostLabel(category));
+                Widgets.Label(costRect, printerComp.GetCategoryCostLabel(category)+"         ");
                 Text.Anchor = previousAnchor;
                 Widgets.Label(statusRect, printerComp.GetCategoryStatusLabel(category));
 
