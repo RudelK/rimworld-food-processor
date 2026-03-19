@@ -58,6 +58,11 @@ The current research chain is:
   - `Debug log`
   - `Hard check food type`
 
+## Developer Examples
+
+- Developer-facing integration examples live under `Example/`.
+- See `Example/README.md` for toner consumer, toner producer, embedded-preview, and custom place-worker examples.
+
 ## Compatibility
 
 Required:
@@ -73,6 +78,7 @@ Optional:
 
 ```text
 About/                  Mod metadata
+Example/                Developer-facing C# and XML integration examples
 Common/                 Shared defs, languages, textures, and XML content
 1.6/                    Version-specific output folder and assemblies
 ModSupport/             Optional compatibility patches

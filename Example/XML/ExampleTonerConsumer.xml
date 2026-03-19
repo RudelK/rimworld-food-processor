@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <ThingDef ParentName="BuildingBase">
+    <defName>FPS_Example_TonerConsumer</defName>
+    <label>example toner consumer</label>
+    <description>Example-only building that consumes toner from a connected pipe network.</description>
+    <thingClass>FoodPrinterSystem.Examples.ExampleTonerConsumer</thingClass>
+    <tickerType>Rare</tickerType>
+    <graphicData>
+      <texPath>Things/Building/BuildingBase</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <shaderType>CutoutComplex</shaderType>
+      <drawSize>(1,1)</drawSize>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>Impassable</passability>
+    <fillPercent>1</fillPercent>
+    <statBases>
+      <WorkToBuild>200</WorkToBuild>
+      <MaxHitPoints>100</MaxHitPoints>
+    </statBases>
+    <comps>
+      <li Class="CompProperties_Power">
+        <compClass>CompPowerTrader</compClass>
+        <basePowerConsumption>50</basePowerConsumption>
+      </li>
+      <li Class="FoodPrinterSystem.CompProperties_TonerNode"/>
+    </comps>
+    <size>(1,1)</size>
+    <costList>
+      <Steel>25</Steel>
+    </costList>
+    <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
+    <designationCategory>FPS_FoodProcessingCategory</designationCategory>
+    <uiOrder>2990</uiOrder>
+    <researchPrerequisites>
+      <li>FPS_FoodProcessing</li>
+    </researchPrerequisites>
+  </ThingDef>
+</Defs>
