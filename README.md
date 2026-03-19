@@ -2,7 +2,7 @@
 
 Food Process is a RimWorld 1.6 mod that adds a centralized food-processing network.
 
-Raw food and meals can be broken down into liquid toner, stored in connected tanks, and then printed back out as meals or animal feed through a shared pipe network.
+Raw food and meals can be broken down into liquid toner, stored in connected tanks, and then printed back out as meals or animal feed through a shared pipe network. Ingredient provenance is preserved through the toner network, so printed food can still reflect meat, vegetable, and human-meat origin for downstream food-type checks.
 
 ## Features
 
@@ -10,16 +10,19 @@ Raw food and meals can be broken down into liquid toner, stored in connected tan
 - Toner Tanks for shared network storage
 - Food Printer that produces researched meal tiers from stored toner
 - Animal Feeder that turns toner into kibble
+- Bedside Feeder that directly feeds humanlike bed occupants from the toner network
 - Toner pipes and underground pipes for network routing
 - In-game mod settings for power use, print costs, tank capacity, and related balance values
-- Harmony-based integration with RimWorld food-search logic
+- Harmony-based integration with RimWorld food-search logic and ingest jobs
+- Pawn-aware printer filtering based on connected ingredient provenance
+- Shared floor-level pipe rendering and architect-category overlay previews
 - Optional compatibility patch for `Adamas.VendingMachines`
 
 ## Research Progression
 
 The current research chain is:
 
-- `Food Processing` -> requires `Electricity`
+- `Food Processing` -> requires `Electricity` and `Nutrient paste meal`
 - `Simple Meal Printing` -> requires `Food Processing` and `Electricity`
 - `Fine Meal Printing` -> requires `Simple Meal Printing` and `MicroelectronicsBasics`
 - `Lavish Meal Printing` -> requires `Fine Meal Printing` and `MultiAnalyzer`
@@ -28,15 +31,32 @@ The current research chain is:
 
 1. Place a `Food Disintegrator` next to stored or loose ingestible food.
 2. Connect it to `Toner Tanks`, `Food Printers`, and `Animal Feeders` with food pipes.
-3. Store toner in the network.
-4. Let colonists or prisoners use the `Food Printer`, or let the `Animal Feeder` generate kibble automatically.
+3. Disintegrated food adds toner and preserves its final ingestible ingredient defs in connected tanks.
+4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically, or use a `Bedside Feeder` for adjacent beds.
+5. Pawns evaluate printers against the connected network's current ingredient profile before selecting them as a food source.
 
 ## Power And Network Notes
 
 - Functional buildings act as toner-network nodes.
 - Functional buildings also transmit power, so they can bridge adjacent powered tiles like conduit-capable buildings.
 - Toner tanks spoil their stored contents after extended power loss.
-- Food printers respect research locks for meal tiers.
+- Toner storage contributes to RimWorld's low-food accounting through the colony nutrition counter.
+- Food printers respect research locks for meal tiers and current connected toner availability.
+- Printer food-type prediction is based on stored ingredient provenance in connected toner tanks.
+
+## Printer Food Rules
+
+- Vegetarian restrictions are treated as hard blocks for incompatible printers.
+- Meat and human-meat preferences can be used for printer ranking, and can optionally become hard blocks through the mod settings.
+- If Ideology is disabled, or ideology resolution is unavailable for a pawn, printer policy falls back to neutral instead of blocking use.
+
+## Mod Settings
+
+- All settings include hover tooltips in the mod settings window.
+- Main settings cover toner costs, feeder output, tank capacities, and power draw values.
+- The `Debug` section is folded by default and currently contains:
+  - `Debug log`
+  - `Hard check food type`
 
 ## Compatibility
 
