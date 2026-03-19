@@ -11,7 +11,6 @@
 			<linkFlags>
 				<li>Custom1</li>
 			</linkFlags>      
-      <color>(180,230,194)</color>
       <damageData>
         <rect>(0,0.35,1,0.3)</rect>
       </damageData>

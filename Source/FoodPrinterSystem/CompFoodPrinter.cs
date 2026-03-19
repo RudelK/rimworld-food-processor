@@ -207,15 +207,6 @@ namespace FoodPrinterSystem
                 text += "\n" + "FPS_PrinterProcessing".Translate(processingLabel, Mathf.RoundToInt(ProcessingProgress * 100f).ToString());
             }
 
-            if (!autoMode)
-            {
-                FoodPreferability? category = GetSelectedManualCategory();
-                if (category != null)
-                {
-                    text += "\n" + "FPS_PrinterManualSelection".Translate(GetCategoryLabel(category.Value));
-                }
-            }
-
             return text;
         }
 

@@ -18,7 +18,6 @@
   <FPS_PrinterColumnMeal>Meal tier</FPS_PrinterColumnMeal>
   <FPS_PrinterColumnNutrition>Toner cost</FPS_PrinterColumnNutrition>
   <FPS_PrinterColumnStatus>Status</FPS_PrinterColumnStatus>
-  <FPS_PrinterManualSelection>Manual category: {0}</FPS_PrinterManualSelection>
   <FPS_PrinterManualButton>Set manual</FPS_PrinterManualButton>
   <FPS_PrinterManualSelected>Manual</FPS_PrinterManualSelected>
   <FPS_PrinterAvailableOutput>Will dispense: {0}</FPS_PrinterAvailableOutput>

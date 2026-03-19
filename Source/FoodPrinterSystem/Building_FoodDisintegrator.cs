@@ -70,16 +70,6 @@ namespace FoodPrinterSystem
         {
             string text = base.GetInspectString();
             TonerNetworkSummary summary = TonerNetworkUtility.GetSummary(this);
-            if (summary.HasNetwork)
-            {
-                if (!text.NullOrEmpty())
-                {
-                    text += "\n";
-                }
-
-                text += FoodPrinterSystemUtility.FormatSummary(summary);
-            }
-
             if (summary.Capacity <= 0)
             {
                 if (!text.NullOrEmpty())
