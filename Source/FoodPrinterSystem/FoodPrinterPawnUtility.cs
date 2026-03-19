@@ -149,25 +149,35 @@ namespace FoodPrinterSystem
                 return policy;
             }
 
-            try
+            if (!ModsConfig.IdeologyActive)
             {
-                Ideo ideo = pawn.Ideo;
-                if (ideo != null)
+                // When Ideology is disabled there is no meaningful precept state to
+                // resolve, so printer policy must stay neutral and skip all ideology
+                // API access entirely.
+                policy.UsedNeutralFallback = true;
+            }
+            else
+            {
+                try
                 {
-                    policy.IdeologyResolutionSucceeded = true;
-                    policy.RequiresVegetarianFood = FoodUtility.HasVegetarianRequiredPrecept(ideo);
-                    policy.PrefersMeat = FoodUtility.HasMeatEatingRequiredPrecept(ideo);
-                    policy.PrefersHumanMeat = FoodUtility.HasHumanMeatEatingRequiredPrecept(ideo);
+                    Ideo ideo = pawn.Ideo;
+                    if (ideo != null)
+                    {
+                        policy.IdeologyResolutionSucceeded = true;
+                        policy.RequiresVegetarianFood = FoodUtility.HasVegetarianRequiredPrecept(ideo);
+                        policy.PrefersMeat = FoodUtility.HasMeatEatingRequiredPrecept(ideo);
+                        policy.PrefersHumanMeat = FoodUtility.HasHumanMeatEatingRequiredPrecept(ideo);
+                    }
+                    else
+                    {
+                        policy.UsedNeutralFallback = true;
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
                     policy.UsedNeutralFallback = true;
+                    LogResolutionFallback("ideology", pawn, ex);
                 }
-            }
-            catch (Exception ex)
-            {
-                policy.UsedNeutralFallback = true;
-                LogResolutionFallback("ideology", pawn, ex);
             }
 
             try
@@ -453,9 +463,10 @@ namespace FoodPrinterSystem
 
         // Hard printer checks use the cached toner-derived food characteristics so
         // search-time selection and execution-time revalidation agree without
-        // building preview meals every tick. Vegetarian restrictions are always
-        // hard-denied; meat and human-meat preferences only become hard-denied when
-        // the mod setting is enabled.
+        // building preview meals every tick. Vegetarian restrictions remain hard if
+        // they were positively resolved. Preference-based hard denial only applies
+        // when ideology resolution succeeded; otherwise preference data stays soft so
+        // pawns without a resolved ideoligion do not get blocked from printing.
         private static bool TryGetHardFoodTypeBlockReason(PawnPrinterFoodPolicy policy, PrinterFoodCharacteristics characteristics, out string reason)
         {
             reason = null;
@@ -471,6 +482,11 @@ namespace FoodPrinterSystem
             }
 
             if (!IsHardFoodTypeCheckEnabled())
+            {
+                return false;
+            }
+
+            if (!policy.IdeologyResolutionSucceeded)
             {
                 return false;
             }
