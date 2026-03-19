@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <FPS_FoodProcessing.label>식품 처리</FPS_FoodProcessing.label>
+  <FPS_FoodProcessing.description>산업용 식품 분해, 액체 토너 저장, 영양죽 합성, 인쇄 식품 배급 시스템을 개발합니다.</FPS_FoodProcessing.description>
+  <FPS_SimpleMealPrinting.label>간단한 식사 출력</FPS_SimpleMealPrinting.label>
+  <FPS_SimpleMealPrinting.description>식사 출력기가 저장된 토너를 안정적인 간단한 식사로 형태화하는 방법을 익히게 합니다.</FPS_SimpleMealPrinting.description>
+  <FPS_FineMealPrinting.label>좋은 식사 출력</FPS_FineMealPrinting.label>
+  <FPS_FineMealPrinting.description>식사 출력기를 업그레이드하여 일반형, 채식형, 육식형을 포함한 정제된 좋은 식사를 합성할 수 있게 합니다.</FPS_FineMealPrinting.description>
+  <FPS_LavishMealPrinting.label>호화로운 식사 출력</FPS_LavishMealPrinting.label>
+  <FPS_LavishMealPrinting.description>식사 출력기를 업그레이드하여 최고의 인쇄 식사를 위한 호화로운 식사와 특수 변종을 합성할 수 있게 합니다.</FPS_LavishMealPrinting.description>
+</LanguageData>

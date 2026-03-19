@@ -59,7 +59,7 @@
 
   <ThingDef ParentName="FPS_PipeBase">
     <defName>FPS_Pipe</defName>
-    <label>food pipe</label>
+    <label>Toner pipe</label>
     <description>Transfers liquid toner between food system buildings. Connectivity matters, not flow rate.</description>
     <uiIconPath>UI/foodprocess/UI_PipeBuild</uiIconPath>
     <uiIconScale>0.85</uiIconScale>
@@ -76,7 +76,7 @@
 
   <ThingDef ParentName="FPS_PipeBase">
     <defName>FPS_HiddenPipe</defName>
-    <label>underground food pipe</label>
+    <label>Underground toner pipe</label>
     <description>Hidden underground piping for routing toner beneath walls and machines.</description>
     <uiIconScale>0.7</uiIconScale>
     <graphicData>
@@ -103,7 +103,7 @@
 
   <ThingDef ParentName="BuildingBase">
     <defName>FPS_FoodDisintegrator</defName>
-    <label>food disintegrator</label>
+    <label>INGR disintegrator</label>
     <description>Breaks down adjacent food items and transfers their nutrition into the connected toner network. Processes one item every 250 ticks.</description>
     <thingClass>FoodPrinterSystem.Building_FoodDisintegrator</thingClass>
     <tickerType>Rare</tickerType>
@@ -179,7 +179,7 @@
 
   <ThingDef ParentName="FPS_TonerTankBase">
     <defName>FPS_TonerTankSmall</defName>
-    <label>small toner tank</label>
+    <label>Small toner tank</label>
     <description>Stores liquid toner for the food printer system. If left unpowered for 80,000 ticks, all stored toner spoils.</description>
     <graphicData>
       <texPath>Things/Building/foodsystem/toner/toner_tank</texPath>
@@ -222,7 +222,7 @@
 
   <ThingDef ParentName="FPS_TonerTankBase">
     <defName>FPS_TonerTankMedium</defName>
-    <label>medium toner tank</label>
+    <label>Medium toner tank</label>
     <description>Stores liquid toner for the food printer system. If left unpowered for 80,000 ticks, all stored toner spoils.</description>
     <graphicData>
       <texPath>Things/Building/foodsystem/toner/toner_tank</texPath>
@@ -266,7 +266,7 @@
 
   <ThingDef ParentName="FPS_TonerTankBase">
     <defName>FPS_TonerTankLarge</defName>
-    <label>large toner tank</label>
+    <label>Large toner tank</label>
     <description>Stores liquid toner for the food printer system. If left unpowered for 80,000 ticks, all stored toner spoils.</description>
     <graphicData>
       <texPath>Things/Building/foodsystem/toner/toner_tank</texPath>
@@ -310,7 +310,7 @@
 
   <ThingDef ParentName="BuildingBase">
     <defName>FPS_FoodPrinter</defName>
-    <label>food printer</label>
+    <label>Food printer</label>
     <description>Dispenses printed food directly from connected toner tanks. It can auto-select the highest researched allowed food category or be locked to a manual category.</description>
     <thingClass>FoodPrinterSystem.Building_FoodPrinter</thingClass>
     <tickerType>Normal</tickerType>
@@ -391,7 +391,7 @@
 
   <ThingDef ParentName="BuildingBase">
     <defName>FPS_AnimalFeeder</defName>
-    <label>animal feeder</label>
+    <label>Animal feeder</label>
     <description>Prints kibble from the connected toner network directly into its own kibble storage every 250 ticks.</description>
     <thingClass>FoodPrinterSystem.Building_AnimalFeeder</thingClass>
     <tickerType>Rare</tickerType>
@@ -478,7 +478,7 @@
 
   <ThingDef ParentName="BuildingBase">
     <defName>FPS_BedsideFeeder</defName>
-    <label>bedside feeder</label>
+    <label>Nutrient feeder</label>
     <description>Automatically feeds the occupant of a linked bed using nutrition from the connected toner network. Must be placed exactly at the head of a bed.</description>
     <thingClass>FoodPrinterSystem.Building_BedsideFeeder</thingClass>
     <tickerType>Rare</tickerType>

@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <FPS_TonerStored>已储存墨浆：{0}</FPS_TonerStored>
+  <FPS_TonerCapacity>容量：{0}</FPS_TonerCapacity>
+  <FPS_TankContains>内容：{0}</FPS_TankContains>
+  <FPS_EmptyTank>清空储罐</FPS_EmptyTank>
+  <FPS_EmptyTankDesc>将储罐中的全部墨浆和原料彻底清空。</FPS_EmptyTankDesc>
+  <FPS_TonerNetwork>管网墨浆：{0} / {1}</FPS_TonerNetwork>
+  <FPS_TonerRemainingPowerLoss>断电失效倒计时：{0} 小时</FPS_TonerRemainingPowerLoss>
+  <FPS_TankSpoiled>{0} 已变质，储存的墨浆全部损失了。</FPS_TankSpoiled>
+  <FPS_DisintegratorNoStorage>没有已连接的墨浆储存设施。</FPS_DisintegratorNoStorage>
+  <FPS_PrinterSettings>食物打印机设置</FPS_PrinterSettings>
+  <FPS_PrinterSettingsDesc>选择这台打印机可以生产的食物类别。</FPS_PrinterSettingsDesc>
+  <FPS_PrinterMode>模式：{0}</FPS_PrinterMode>
+  <FPS_PrinterModeAuto>自动最高等级</FPS_PrinterModeAuto>
+  <FPS_PrinterModeManual>手动选择</FPS_PrinterModeManual>
+  <FPS_PrinterWindowTitle>食物打印机设置</FPS_PrinterWindowTitle>
+  <FPS_PrinterColumnMeal>餐食等级</FPS_PrinterColumnMeal>
+  <FPS_PrinterColumnNutrition>墨浆消耗</FPS_PrinterColumnNutrition>
+  <FPS_PrinterColumnStatus>状态</FPS_PrinterColumnStatus>
+  <FPS_PrinterManualButton>设为手动</FPS_PrinterManualButton>
+  <FPS_PrinterManualSelected>手动</FPS_PrinterManualSelected>
+  <FPS_PrinterAvailableOutput>将输出：{0}</FPS_PrinterAvailableOutput>
+  <FPS_PrinterUnavailableOutput>当前没有可打印的餐食。</FPS_PrinterUnavailableOutput>
+  <FPS_PrinterProcessing>处理中：{0} ({1}%)</FPS_PrinterProcessing>
+  <FPS_PrinterCategoryPaste>营养糊</FPS_PrinterCategoryPaste>
+  <FPS_PrinterCategorySimple>简单餐</FPS_PrinterCategorySimple>
+  <FPS_PrinterCategoryFine>精致餐</FPS_PrinterCategoryFine>
+  <FPS_PrinterCategoryLavish>豪华餐</FPS_PrinterCategoryLavish>
+  <FPS_PrinterCategoryRequires>需要：{0}</FPS_PrinterCategoryRequires>
+  <FPS_PrinterCategoryUnlockedRecipes>已解锁（{0} 种）</FPS_PrinterCategoryUnlockedRecipes>
+  <FPS_PrinterTooltipOutputs>可能输出：{0}</FPS_PrinterTooltipOutputs>
+  <FPS_SettingsSectionConsumption>消耗量</FPS_SettingsSectionConsumption>
+  <FPS_SettingsSectionFeeder>动物喂食器</FPS_SettingsSectionFeeder>
+  <FPS_SettingsSectionStorage>储罐容量</FPS_SettingsSectionStorage>
+  <FPS_SettingsSectionPower>电力需求</FPS_SettingsSectionPower>
+  <FPS_SettingsSectionPrinter>打印机选项</FPS_SettingsSectionPrinter>
+  <FPS_SettingsSectionDebug>调试</FPS_SettingsSectionDebug>
+  <FPS_SettingsPasteCost>营养糊消耗</FPS_SettingsPasteCost>
+  <FPS_SettingsPasteCostDesc>打印机制作 1 份营养糊餐时消耗的墨浆量。</FPS_SettingsPasteCostDesc>
+  <FPS_SettingsSimpleCost>简单餐消耗</FPS_SettingsSimpleCost>
+  <FPS_SettingsSimpleCostDesc>打印机制作 1 份简单餐时消耗的墨浆量。</FPS_SettingsSimpleCostDesc>
+  <FPS_SettingsFineCost>精致餐消耗</FPS_SettingsFineCost>
+  <FPS_SettingsFineCostDesc>打印机制作 1 份精致餐时消耗的墨浆量。</FPS_SettingsFineCostDesc>
+  <FPS_SettingsLavishCost>豪华餐消耗</FPS_SettingsLavishCost>
+  <FPS_SettingsLavishCostDesc>打印机制作 1 份豪华餐时消耗的墨浆量。</FPS_SettingsLavishCostDesc>
+  <FPS_SettingsFeederOutput>喂食器产出上限</FPS_SettingsFeederOutput>
+  <FPS_SettingsFeederOutputDesc>动物喂食器一次维持库存的饲料最大数量。</FPS_SettingsFeederOutputDesc>
+  <FPS_SettingsSmallTankCapacity>小型储罐容量</FPS_SettingsSmallTankCapacity>
+  <FPS_SettingsSmallTankCapacityDesc>小型墨浆储罐可储存的最大墨浆量。</FPS_SettingsSmallTankCapacityDesc>
+  <FPS_SettingsMediumTankCapacity>中型储罐容量</FPS_SettingsMediumTankCapacity>
+  <FPS_SettingsMediumTankCapacityDesc>中型墨浆储罐可储存的最大墨浆量。</FPS_SettingsMediumTankCapacityDesc>
+  <FPS_SettingsLargeTankCapacity>大型储罐容量</FPS_SettingsLargeTankCapacity>
+  <FPS_SettingsLargeTankCapacityDesc>大型墨浆储罐可储存的最大墨浆量。</FPS_SettingsLargeTankCapacityDesc>
+  <FPS_SettingsDisintegratorIdlePower>分解机空闲功耗 (W)</FPS_SettingsDisintegratorIdlePower>
+  <FPS_SettingsDisintegratorIdlePowerDesc>食材分解机通电但未处理食物时的耗电量。</FPS_SettingsDisintegratorIdlePowerDesc>
+  <FPS_SettingsDisintegratorActivePower>分解机工作功耗 (W)</FPS_SettingsDisintegratorActivePower>
+  <FPS_SettingsDisintegratorActivePowerDesc>食材分解机将食物转换为墨浆时的耗电量。</FPS_SettingsDisintegratorActivePowerDesc>
+  <FPS_SettingsSmallTankPower>小型储罐功耗 (W)</FPS_SettingsSmallTankPower>
+  <FPS_SettingsSmallTankPowerDesc>小型墨浆储罐运行时的耗电量。</FPS_SettingsSmallTankPowerDesc>
+  <FPS_SettingsMediumTankPower>中型储罐功耗 (W)</FPS_SettingsMediumTankPower>
+  <FPS_SettingsMediumTankPowerDesc>中型墨浆储罐运行时的耗电量。</FPS_SettingsMediumTankPowerDesc>
+  <FPS_SettingsLargeTankPower>大型储罐功耗 (W)</FPS_SettingsLargeTankPower>
+  <FPS_SettingsLargeTankPowerDesc>大型墨浆储罐运行时的耗电量。</FPS_SettingsLargeTankPowerDesc>
+  <FPS_SettingsPrinterPower>食物打印机功耗 (W)</FPS_SettingsPrinterPower>
+  <FPS_SettingsPrinterPowerDesc>食物打印机通电时的耗电量。</FPS_SettingsPrinterPowerDesc>
+  <FPS_SettingsFeederPower>动物喂食器功耗 (W)</FPS_SettingsFeederPower>
+  <FPS_SettingsFeederPowerDesc>动物喂食器通电时的耗电量。</FPS_SettingsFeederPowerDesc>
+  <FPS_SettingsBedsideFeederCost>营养喂食器每餐墨浆消耗</FPS_SettingsBedsideFeederCost>
+  <FPS_SettingsBedsideFeederCostDesc>营养喂食器每提供一次进食时消耗的墨浆量。</FPS_SettingsBedsideFeederCostDesc>
+  <FPS_SettingsRandomization>启用随机餐食选择</FPS_SettingsRandomization>
+  <FPS_SettingsRandomizationDesc>允许打印机从当前有效的餐食变种中随机选择，而不是始终输出同一种结果。</FPS_SettingsRandomizationDesc>
+  <FPS_SettingsDebugLog>启用调试日志</FPS_SettingsDebugLog>
+  <FPS_SettingsDebugLogDesc>即使 RimWorld 开发者模式关闭，也将 Food Printer 的调试信息写入日志。</FPS_SettingsDebugLogDesc>
+  <FPS_SettingsHardCheckFoodType>严格检查食物类型偏好</FPS_SettingsHardCheckFoodType>
+  <FPS_SettingsHardCheckFoodTypeDesc>启用后，角色会拒绝使用那些连接墨浆原料与其当前肉类或人肉偏好不匹配的打印机。</FPS_SettingsHardCheckFoodTypeDesc>
+  <FPS_DeconstructPipes>拆除管道</FPS_DeconstructPipes>
+  <FPS_DeconstructPipesDesc>仅将已放置的墨浆管道标记为拆除对象。即使共用管道可视效果，也不会选中墙体、机器或其他非管道建筑。</FPS_DeconstructPipesDesc>
+  <FPS_PipeDuplicatePlacementBlocked>此处已存在管道设施：{0}。</FPS_PipeDuplicatePlacementBlocked>
+  <FPS_PipeDuplicateSpawnBlocked>无法安装 {0}，因为 {1} 已在该位置提供了管道设施。</FPS_PipeDuplicateSpawnBlocked>
+  <FPS_LinkedBed>已连接床位：{0}</FPS_LinkedBed>
+  <FPS_FeedingOccupant>正在喂食：{0}</FPS_FeedingOccupant>
+  <FPS_NoOccupant>无占用者</FPS_NoOccupant>
+  <FPS_NoLinkedBed>无已连接床位</FPS_NoLinkedBed>
+  <FPS_MustPlaceAtBedHead>必须放置在床头位置。</FPS_MustPlaceAtBedHead>
+</LanguageData>

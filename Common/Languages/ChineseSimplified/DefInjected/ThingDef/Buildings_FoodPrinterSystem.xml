@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <FPS_Pipe.label>墨浆管道</FPS_Pipe.label>
+  <FPS_Pipe.description>在食物系统建筑之间输送液态墨浆。关键在于是否连通，而不是流速。</FPS_Pipe.description>
+  <FPS_HiddenPipe.label>地下墨浆管道</FPS_HiddenPipe.label>
+  <FPS_HiddenPipe.description>用于在墙体和机器下方铺设墨浆线路的隐藏地下管道。</FPS_HiddenPipe.description>
+  <FPS_FoodDisintegrator.label>食材分解机</FPS_FoodDisintegrator.label>
+  <FPS_FoodDisintegrator.description>分解相邻的食物物品，并将其营养转移到已连接的墨浆管网中。每 250 tick 处理 1 个物品。</FPS_FoodDisintegrator.description>
+  <FPS_TonerTankSmall.label>小型墨浆储罐</FPS_TonerTankSmall.label>
+  <FPS_TonerTankSmall.description>为食物打印系统储存液态墨浆。若断电持续 80,000 tick，已储存的墨浆将全部变质。</FPS_TonerTankSmall.description>
+  <FPS_TonerTankMedium.label>中型墨浆储罐</FPS_TonerTankMedium.label>
+  <FPS_TonerTankMedium.description>为食物打印系统储存液态墨浆。若断电持续 80,000 tick，已储存的墨浆将全部变质。</FPS_TonerTankMedium.description>
+  <FPS_TonerTankLarge.label>大型墨浆储罐</FPS_TonerTankLarge.label>
+  <FPS_TonerTankLarge.description>为食物打印系统储存液态墨浆。若断电持续 80,000 tick，已储存的墨浆将全部变质。</FPS_TonerTankLarge.description>
+  <FPS_FoodPrinter.label>食物打印机</FPS_FoodPrinter.label>
+  <FPS_FoodPrinter.description>直接从已连接的墨浆储罐中输出打印食物。它可以自动选择已研究且允许的最高餐食类别，也可以锁定为手动类别。</FPS_FoodPrinter.description>
+  <FPS_AnimalFeeder.label>动物喂食器</FPS_AnimalFeeder.label>
+  <FPS_AnimalFeeder.description>直接从已连接的墨浆管网打印饲料，并每 250 tick 补充到自身的饲料存储中。</FPS_AnimalFeeder.description>
+  <FPS_BedsideFeeder.label>营养喂食器</FPS_BedsideFeeder.label>
+  <FPS_BedsideFeeder.description>使用已连接墨浆管网中的营养自动喂食已连接床位的占用者。必须准确放置在床头位置。</FPS_BedsideFeeder.description>
+</LanguageData>

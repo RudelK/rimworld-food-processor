@@ -10,7 +10,7 @@ Raw food and meals can be broken down into liquid toner, stored in connected tan
 - Toner Tanks for shared network storage
 - Food Printer that produces researched meal tiers from stored toner
 - Animal Feeder that turns toner into kibble
-- Bedside Feeder that directly feeds humanlike bed occupants from the toner network
+- Nutrient feeder that directly feeds humanlike bed occupants from the toner network
 - Toner pipes and underground pipes for network routing
 - In-game mod settings for power use, print costs, tank capacity, and related balance values
 - Harmony-based integration with RimWorld food-search logic and ingest jobs
@@ -30,9 +30,9 @@ The current research chain is:
 ## How It Works
 
 1. Place a `Food Disintegrator` next to stored or loose ingestible food.
-2. Connect it to `Toner Tanks`, `Food Printers`, and `Animal Feeders` with food pipes.
+2. Connect it to `Toner Tanks`, `Food Printers`, and `Animal Feeders` with toner pipes.
 3. Disintegrated food adds toner and preserves its final ingestible ingredient defs in connected tanks.
-4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically, or use a `Bedside Feeder` for adjacent beds.
+4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically, or use a `Nutrient feeder` for adjacent beds.
 5. Pawns evaluate printers against the connected network's current ingredient profile before selecting them as a food source.
 
 ## Power And Network Notes

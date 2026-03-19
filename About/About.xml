@@ -14,5 +14,5 @@
       <downloadUrl>https://github.com/pardeike/HarmonyRimWorld/releases/latest</downloadUrl>
     </li>
   </modDependencies>
-  <description>Build a centralized food pipeline in RimWorld. Food Disintegrators convert adjacent food into liquid toner, Toner Tanks store it, Food Printers dispense meals from the connected network, and Animal Feeders turn toner into kibble.</description>
+  <description>Build a centralized toner pipeline in RimWorld. INGR Disintegrators convert adjacent food into liquid toner, Toner Tanks store it, Food Printers dispense meals from the connected network, and Animal Feeders turn toner into kibble.</description>
 </ModMetaData>

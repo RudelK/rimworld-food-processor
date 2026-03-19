@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <FPS_FoodProcessing.label>食物加工</FPS_FoodProcessing.label>
+  <FPS_FoodProcessing.description>开发工业化食物分解、液态墨浆储存、营养糊合成与打印食物配送系统。</FPS_FoodProcessing.description>
+  <FPS_SimpleMealPrinting.label>简单餐打印</FPS_SimpleMealPrinting.label>
+  <FPS_SimpleMealPrinting.description>让食物打印机学会将储存的墨浆塑形成稳定的简单餐。</FPS_SimpleMealPrinting.description>
+  <FPS_FineMealPrinting.label>精致餐打印</FPS_FineMealPrinting.label>
+  <FPS_FineMealPrinting.description>升级食物打印机，使其能够合成精制的精致餐，包括标准、素食和肉食变种。</FPS_FineMealPrinting.description>
+  <FPS_LavishMealPrinting.label>豪华餐打印</FPS_LavishMealPrinting.label>
+  <FPS_LavishMealPrinting.description>升级食物打印机，使其能够合成豪华餐及其专门变种，提供最上乘的打印餐食体验。</FPS_LavishMealPrinting.description>
+</LanguageData>

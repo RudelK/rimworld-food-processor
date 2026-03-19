@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <FPS_TonerStored>保存トナー: {0}</FPS_TonerStored>
+  <FPS_TonerCapacity>容量: {0}</FPS_TonerCapacity>
+  <FPS_TankContains>内容物: {0}</FPS_TankContains>
+  <FPS_EmptyTank>タンクを空にする</FPS_EmptyTank>
+  <FPS_EmptyTankDesc>タンク内のすべてのトナーと材料を完全に排出します。</FPS_EmptyTankDesc>
+  <FPS_TonerNetwork>ネットワーク内トナー: {0} / {1}</FPS_TonerNetwork>
+  <FPS_TonerRemainingPowerLoss>停電による消失まで: {0} 時間</FPS_TonerRemainingPowerLoss>
+  <FPS_TankSpoiled>{0} は腐敗し、保存されていたトナーをすべて失いました。</FPS_TankSpoiled>
+  <FPS_DisintegratorNoStorage>接続されたトナー貯蔵がありません。</FPS_DisintegratorNoStorage>
+  <FPS_PrinterSettings>フードプリンター設定</FPS_PrinterSettings>
+  <FPS_PrinterSettingsDesc>このプリンターが生産できる食品カテゴリを選択します。</FPS_PrinterSettingsDesc>
+  <FPS_PrinterMode>モード: {0}</FPS_PrinterMode>
+  <FPS_PrinterModeAuto>自動: 最高段階</FPS_PrinterModeAuto>
+  <FPS_PrinterModeManual>手動選択</FPS_PrinterModeManual>
+  <FPS_PrinterWindowTitle>フードプリンター設定</FPS_PrinterWindowTitle>
+  <FPS_PrinterColumnMeal>食事ランク</FPS_PrinterColumnMeal>
+  <FPS_PrinterColumnNutrition>トナー消費</FPS_PrinterColumnNutrition>
+  <FPS_PrinterColumnStatus>状態</FPS_PrinterColumnStatus>
+  <FPS_PrinterManualButton>手動に設定</FPS_PrinterManualButton>
+  <FPS_PrinterManualSelected>手動</FPS_PrinterManualSelected>
+  <FPS_PrinterAvailableOutput>排出予定: {0}</FPS_PrinterAvailableOutput>
+  <FPS_PrinterUnavailableOutput>現在印刷可能な食事はありません。</FPS_PrinterUnavailableOutput>
+  <FPS_PrinterProcessing>処理中: {0} ({1}%)</FPS_PrinterProcessing>
+  <FPS_PrinterCategoryPaste>栄養ペースト</FPS_PrinterCategoryPaste>
+  <FPS_PrinterCategorySimple>簡易食事</FPS_PrinterCategorySimple>
+  <FPS_PrinterCategoryFine>上等な食事</FPS_PrinterCategoryFine>
+  <FPS_PrinterCategoryLavish>豪華な食事</FPS_PrinterCategoryLavish>
+  <FPS_PrinterCategoryRequires>必要: {0}</FPS_PrinterCategoryRequires>
+  <FPS_PrinterCategoryUnlockedRecipes>解禁済み（{0} 種）</FPS_PrinterCategoryUnlockedRecipes>
+  <FPS_PrinterTooltipOutputs>出力候補: {0}</FPS_PrinterTooltipOutputs>
+  <FPS_SettingsSectionConsumption>消費量</FPS_SettingsSectionConsumption>
+  <FPS_SettingsSectionFeeder>動物給餌器</FPS_SettingsSectionFeeder>
+  <FPS_SettingsSectionStorage>タンク容量</FPS_SettingsSectionStorage>
+  <FPS_SettingsSectionPower>電力消費</FPS_SettingsSectionPower>
+  <FPS_SettingsSectionPrinter>プリンター設定</FPS_SettingsSectionPrinter>
+  <FPS_SettingsSectionDebug>デバッグ</FPS_SettingsSectionDebug>
+  <FPS_SettingsPasteCost>栄養ペースト費用</FPS_SettingsPasteCost>
+  <FPS_SettingsPasteCostDesc>プリンターが栄養ペースト食 1 つを作るのに消費するトナー量です。</FPS_SettingsPasteCostDesc>
+  <FPS_SettingsSimpleCost>簡易食事の費用</FPS_SettingsSimpleCost>
+  <FPS_SettingsSimpleCostDesc>プリンターが簡易食事 1 つを作るのに消費するトナー量です。</FPS_SettingsSimpleCostDesc>
+  <FPS_SettingsFineCost>上等な食事の費用</FPS_SettingsFineCost>
+  <FPS_SettingsFineCostDesc>プリンターが上等な食事 1 つを作るのに消費するトナー量です。</FPS_SettingsFineCostDesc>
+  <FPS_SettingsLavishCost>豪華な食事の費用</FPS_SettingsLavishCost>
+  <FPS_SettingsLavishCostDesc>プリンターが豪華な食事 1 つを作るのに消費するトナー量です。</FPS_SettingsLavishCostDesc>
+  <FPS_SettingsFeederOutput>給餌器の生産上限</FPS_SettingsFeederOutput>
+  <FPS_SettingsFeederOutputDesc>動物給餌器が一度に備蓄しておく飼料の最大数です。</FPS_SettingsFeederOutputDesc>
+  <FPS_SettingsSmallTankCapacity>小型タンク容量</FPS_SettingsSmallTankCapacity>
+  <FPS_SettingsSmallTankCapacityDesc>小型トナータンクが保存できる最大トナー量です。</FPS_SettingsSmallTankCapacityDesc>
+  <FPS_SettingsMediumTankCapacity>中型タンク容量</FPS_SettingsMediumTankCapacity>
+  <FPS_SettingsMediumTankCapacityDesc>中型トナータンクが保存できる最大トナー量です。</FPS_SettingsMediumTankCapacityDesc>
+  <FPS_SettingsLargeTankCapacity>大型タンク容量</FPS_SettingsLargeTankCapacity>
+  <FPS_SettingsLargeTankCapacityDesc>大型トナータンクが保存できる最大トナー量です。</FPS_SettingsLargeTankCapacityDesc>
+  <FPS_SettingsDisintegratorIdlePower>分解機待機電力 (W)</FPS_SettingsDisintegratorIdlePower>
+  <FPS_SettingsDisintegratorIdlePowerDesc>電源は入っているが食料を処理していないときの 食材分解機 の消費電力です。</FPS_SettingsDisintegratorIdlePowerDesc>
+  <FPS_SettingsDisintegratorActivePower>分解機稼働電力 (W)</FPS_SettingsDisintegratorActivePower>
+  <FPS_SettingsDisintegratorActivePowerDesc>食材分解機 が食料をトナーへ変換している間の消費電力です。</FPS_SettingsDisintegratorActivePowerDesc>
+  <FPS_SettingsSmallTankPower>小型タンク電力 (W)</FPS_SettingsSmallTankPower>
+  <FPS_SettingsSmallTankPowerDesc>小型トナータンクが稼働中のときの消費電力です。</FPS_SettingsSmallTankPowerDesc>
+  <FPS_SettingsMediumTankPower>中型タンク電力 (W)</FPS_SettingsMediumTankPower>
+  <FPS_SettingsMediumTankPowerDesc>中型トナータンクが稼働中のときの消費電力です。</FPS_SettingsMediumTankPowerDesc>
+  <FPS_SettingsLargeTankPower>大型タンク電力 (W)</FPS_SettingsLargeTankPower>
+  <FPS_SettingsLargeTankPowerDesc>大型トナータンクが稼働中のときの消費電力です。</FPS_SettingsLargeTankPowerDesc>
+  <FPS_SettingsPrinterPower>フードプリンター電力 (W)</FPS_SettingsPrinterPower>
+  <FPS_SettingsPrinterPowerDesc>フードプリンターが通電中のときの消費電力です。</FPS_SettingsPrinterPowerDesc>
+  <FPS_SettingsFeederPower>動物給餌器電力 (W)</FPS_SettingsFeederPower>
+  <FPS_SettingsFeederPowerDesc>動物給餌器が通電中のときの消費電力です。</FPS_SettingsFeederPowerDesc>
+  <FPS_SettingsBedsideFeederCost>栄養フィーダーの1食あたりトナー消費</FPS_SettingsBedsideFeederCost>
+  <FPS_SettingsBedsideFeederCostDesc>栄養フィーダーが1食分を提供するたびに消費するトナー量です。</FPS_SettingsBedsideFeederCostDesc>
+  <FPS_SettingsRandomization>ランダム食事選択を有効化</FPS_SettingsRandomization>
+  <FPS_SettingsRandomizationDesc>プリンターが常に同じ出力を使うのではなく、現在有効な食事バリアントからランダムに選ぶようにします。</FPS_SettingsRandomizationDesc>
+  <FPS_SettingsDebugLog>デバッグログを有効化</FPS_SettingsDebugLog>
+  <FPS_SettingsDebugLogDesc>RimWorld の開発者モードがオフでも、Food Printer のデバッグメッセージをログに出力します。</FPS_SettingsDebugLogDesc>
+  <FPS_SettingsHardCheckFoodType>食品タイプ嗜好の厳格チェック</FPS_SettingsHardCheckFoodType>
+  <FPS_SettingsHardCheckFoodTypeDesc>有効にすると、接続されたトナー材料が現在の肉食または人肉嗜好に合わないプリンターをポーンが拒否します。</FPS_SettingsHardCheckFoodTypeDesc>
+  <FPS_DeconstructPipes>パイプ解体</FPS_DeconstructPipes>
+  <FPS_DeconstructPipesDesc>設置済みのトナーパイプのみを解体指定します。パイプ表示を共有していても、壁や機械、その他の非パイプ建造物は対象にしません。</FPS_DeconstructPipesDesc>
+  <FPS_PipeDuplicatePlacementBlocked>ここにはすでにパイプ設備があります: {0}。</FPS_PipeDuplicatePlacementBlocked>
+  <FPS_PipeDuplicateSpawnBlocked>{1} がすでにその場所にパイプ設備を提供しているため、{0} を設置できませんでした。</FPS_PipeDuplicateSpawnBlocked>
+  <FPS_LinkedBed>接続されたベッド: {0}</FPS_LinkedBed>
+  <FPS_FeedingOccupant>給餌中: {0}</FPS_FeedingOccupant>
+  <FPS_NoOccupant>使用者なし</FPS_NoOccupant>
+  <FPS_NoLinkedBed>接続されたベッドなし</FPS_NoLinkedBed>
+  <FPS_MustPlaceAtBedHead>ベッドの頭側に設置する必要があります。</FPS_MustPlaceAtBedHead>
+</LanguageData>

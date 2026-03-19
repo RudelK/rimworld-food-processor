@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <FPS_Pipe.label>토너 파이프</FPS_Pipe.label>
+  <FPS_Pipe.description>식품 시스템 건물 사이에서 액체 토너를 전달합니다. 유량이 아니라 연결 상태가 중요합니다.</FPS_Pipe.description>
+  <FPS_HiddenPipe.label>지하 토너 파이프</FPS_HiddenPipe.label>
+  <FPS_HiddenPipe.description>벽과 기계 아래로 토너를 연결하기 위한 숨겨진 지하 배관입니다.</FPS_HiddenPipe.description>
+  <FPS_FoodDisintegrator.label>재료 분해기</FPS_FoodDisintegrator.label>
+  <FPS_FoodDisintegrator.description>인접한 음식 아이템을 분해해 그 영양분을 연결된 토너 네트워크로 옮깁니다. 250틱마다 아이템 1개를 처리합니다.</FPS_FoodDisintegrator.description>
+  <FPS_TonerTankSmall.label>소형 토너 저장고</FPS_TonerTankSmall.label>
+  <FPS_TonerTankSmall.description>식사 출력기 시스템용 액체 토너를 저장합니다. 전원이 32시간 동안 꺼져 있으면 저장된 토너가 모두 상합니다.</FPS_TonerTankSmall.description>
+  <FPS_TonerTankMedium.label>중형 토너 저장고</FPS_TonerTankMedium.label>
+  <FPS_TonerTankMedium.description>식사 출력기 시스템용 액체 토너를 저장합니다. 전원이 32시간 동안 꺼져 있으면 저장된 토너가 모두 상합니다.</FPS_TonerTankMedium.description>
+  <FPS_TonerTankLarge.label>대형 토너 저장고</FPS_TonerTankLarge.label>
+  <FPS_TonerTankLarge.description>식사 출력기 시스템용 액체 토너를 저장합니다. 전원이 32시간 동안 꺼져 있으면 저장된 토너가 모두 상합니다.</FPS_TonerTankLarge.description>
+  <FPS_FoodPrinter.label>식사 출력기</FPS_FoodPrinter.label>
+  <FPS_FoodPrinter.description>연결된 토너 저장고에서 직접 인쇄된 음식을 배출합니다. 연구된 허용 음식 단계 중 가장 높은 것을 자동 선택하거나 수동 단계로 고정할 수 있습니다.</FPS_FoodPrinter.description>
+  <FPS_AnimalFeeder.label>동물 급여기</FPS_AnimalFeeder.label>
+  <FPS_AnimalFeeder.description>연결된 토너 네트워크에서 바로 사료를 출력하여 250틱마다 자체 저장 공간에 채워 넣습니다.</FPS_AnimalFeeder.description>
+  <FPS_BedsideFeeder.label>영양 공급기</FPS_BedsideFeeder.label>
+  <FPS_BedsideFeeder.description>연결된 토너 네트워크의 영양분을 사용해 연결된 침대에 누워있는 폰에게 영양분을 공급합니다. 반드시 침대 머리맡에 정확히 설치해야 합니다.</FPS_BedsideFeeder.description>
+</LanguageData>

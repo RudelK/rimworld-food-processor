@@ -66,8 +66,8 @@
   <FPS_SettingsPrinterPowerDesc>Power draw of a food printer while it is powered.</FPS_SettingsPrinterPowerDesc>
   <FPS_SettingsFeederPower>Animal feeder power (W)</FPS_SettingsFeederPower>
   <FPS_SettingsFeederPowerDesc>Power draw of an animal feeder while it is powered.</FPS_SettingsFeederPowerDesc>
-  <FPS_SettingsBedsideFeederCost>Bedside feeder toner cost per meal</FPS_SettingsBedsideFeederCost>
-  <FPS_SettingsBedsideFeederCostDesc>How much toner the bedside feeder consumes each time it serves one meal.</FPS_SettingsBedsideFeederCostDesc>
+  <FPS_SettingsBedsideFeederCost>Nutrient feeder toner cost per meal</FPS_SettingsBedsideFeederCost>
+  <FPS_SettingsBedsideFeederCostDesc>How much toner the Nutrient feeder consumes each time it serves one meal.</FPS_SettingsBedsideFeederCostDesc>
   <FPS_SettingsRandomization>Enable random meal selection</FPS_SettingsRandomization>
   <FPS_SettingsRandomizationDesc>Allow printers to choose randomly between currently valid meal variants instead of always using the same output.</FPS_SettingsRandomizationDesc>
   <FPS_SettingsDebugLog>Enable debug logging</FPS_SettingsDebugLog>
@@ -75,7 +75,7 @@
   <FPS_SettingsHardCheckFoodType>Hard check food type preferences</FPS_SettingsHardCheckFoodType>
   <FPS_SettingsHardCheckFoodTypeDesc>When enabled, pawns will refuse printers whose connected toner ingredients do not match their current meat or human-meat food preferences.</FPS_SettingsHardCheckFoodTypeDesc>
   <FPS_DeconstructPipes>Deconstruct pipes</FPS_DeconstructPipes>
-  <FPS_DeconstructPipesDesc>Mark only placed food pipes for deconstruction. This ignores walls, machines, and other non-pipe buildings even if they share pipe visuals.</FPS_DeconstructPipesDesc>
+  <FPS_DeconstructPipesDesc>Mark only placed toner pipes for deconstruction. This ignores walls, machines, and other non-pipe buildings even if they share pipe visuals.</FPS_DeconstructPipesDesc>
   <FPS_PipeDuplicatePlacementBlocked>Pipe infrastructure already exists here: {0}.</FPS_PipeDuplicatePlacementBlocked>
   <FPS_PipeDuplicateSpawnBlocked>{0} could not be installed because {1} already provides pipe infrastructure there.</FPS_PipeDuplicateSpawnBlocked>
   <FPS_LinkedBed>Linked bed: {0}</FPS_LinkedBed>
@@ -84,4 +84,3 @@
   <FPS_NoLinkedBed>No linked bed</FPS_NoLinkedBed>
   <FPS_MustPlaceAtBedHead>Must be placed at the head of a bed.</FPS_MustPlaceAtBedHead>
 </LanguageData>
-
