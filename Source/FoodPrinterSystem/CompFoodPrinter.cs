@@ -598,6 +598,12 @@ namespace FoodPrinterSystem
                 return false;
             }
 
+            Building_FoodPrinter foodPrinter = printer as Building_FoodPrinter;
+            if (foodPrinter != null && !foodPrinter.HasValidFeedSource())
+            {
+                return false;
+            }
+
             if (IsPrinting)
             {
                 return false;

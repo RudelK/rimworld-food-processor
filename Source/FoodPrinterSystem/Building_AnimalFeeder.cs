@@ -18,6 +18,13 @@ namespace FoodPrinterSystem
             base.SpawnSetup(map, respawningAfterLoad);
             powerComp = GetComp<CompPowerTrader>();
             ApplyPowerSetting();
+            FoodPrinterAlertHarmony.NotifyConsumerRegistryChanged();
+        }
+
+        public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
+        {
+            base.DeSpawn(mode);
+            FoodPrinterAlertHarmony.NotifyConsumerRegistryChanged();
         }
 
         public override void TickRare()

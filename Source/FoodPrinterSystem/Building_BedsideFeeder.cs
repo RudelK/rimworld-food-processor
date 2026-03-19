@@ -20,6 +20,13 @@ namespace FoodPrinterSystem
             base.SpawnSetup(map, respawningAfterLoad);
             powerComp = GetComp<CompPowerTrader>();
             FindLinkedBed();
+            FoodPrinterAlertHarmony.NotifyConsumerRegistryChanged();
+        }
+
+        public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
+        {
+            base.DeSpawn(mode);
+            FoodPrinterAlertHarmony.NotifyConsumerRegistryChanged();
         }
 
         public override void ExposeData()

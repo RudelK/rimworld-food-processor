@@ -51,7 +51,12 @@ namespace FoodPrinterSystem
 
         public bool HasStorage
         {
-            get { return TotalCapacity > 0; }
+            get { return owner != null && owner.HasConnectedStorage(anchorThing); }
+        }
+
+        public bool HasConnectedStorage
+        {
+            get { return owner != null && owner.HasConnectedStorage(anchorThing); }
         }
 
         public bool CanDraw(int amount)
@@ -132,6 +137,22 @@ namespace FoodPrinterSystem
         {
             MapComponent_TonerNetwork component = FoodPrinterSystemUtility.GetNetworkComponent(thing == null ? null : thing.Map);
             return component == null ? default(TonerNetworkSummary) : component.GetSummary(thing);
+        }
+
+        public static bool HasConnectedStorage(Thing thing)
+        {
+            MapComponent_TonerNetwork component = FoodPrinterSystemUtility.GetNetworkComponent(thing == null ? null : thing.Map);
+            return component != null && component.HasConnectedStorage(thing);
+        }
+
+        public static bool HasConnectedStorage(ThingComp comp)
+        {
+            return HasConnectedStorage(comp == null ? null : comp.parent);
+        }
+
+        public static bool HasConnectedStorage(ITonerNetworkUser user)
+        {
+            return HasConnectedStorage(user == null ? null : user.TonerNetworkThing);
         }
 
         public static TonerNetworkSummary GetSummary(ThingComp comp)

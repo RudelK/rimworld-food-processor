@@ -15,6 +15,8 @@ namespace FoodPrinterSystem
         private float maxCapacity;
         private int netId = -1;
         private bool storageStateDirty = true;
+        private bool storagePresenceDirty = true;
+        private bool hasConnectedStorage;
 
         public List<CompPipe> Pipes
         {
@@ -41,6 +43,15 @@ namespace FoodPrinterSystem
             {
                 EnsureStorageState();
                 return maxCapacity;
+            }
+        }
+
+        public bool HasConnectedStorage
+        {
+            get
+            {
+                EnsureStoragePresence();
+                return hasConnectedStorage;
             }
         }
 
@@ -73,6 +84,7 @@ namespace FoodPrinterSystem
             }
 
             storageStateDirty = true;
+            storagePresenceDirty = true;
         }
 
         internal void AddUser(CompPipeUser user)
@@ -92,6 +104,7 @@ namespace FoodPrinterSystem
             }
 
             storageStateDirty = true;
+            storagePresenceDirty = true;
         }
 
         public void NetTick()
@@ -211,11 +224,14 @@ namespace FoodPrinterSystem
             resourceBuffer = 0f;
             maxCapacity = 0f;
             storageStateDirty = true;
+            storagePresenceDirty = true;
+            hasConnectedStorage = false;
         }
 
         internal void NotifyStorageChanged()
         {
             storageStateDirty = true;
+            storagePresenceDirty = true;
         }
 
         private void EnsureStorageState()
@@ -223,6 +239,14 @@ namespace FoodPrinterSystem
             if (storageStateDirty)
             {
                 RefreshStorageState();
+            }
+        }
+
+        private void EnsureStoragePresence()
+        {
+            if (storagePresenceDirty)
+            {
+                RefreshStoragePresence();
             }
         }
 
@@ -245,6 +269,8 @@ namespace FoodPrinterSystem
             }
 
             maxCapacity = totalCapacity;
+            hasConnectedStorage = totalCapacity > 0;
+            storagePresenceDirty = false;
             if (totalCapacity <= 0)
             {
                 resourceBuffer = 0f;
@@ -269,6 +295,22 @@ namespace FoodPrinterSystem
             {
                 SyncBufferToTanks();
             }
+        }
+
+        private void RefreshStoragePresence()
+        {
+            hasConnectedStorage = false;
+            for (int i = 0; i < tanks.Count; i++)
+            {
+                CompTonerTank tank = tanks[i];
+                if (tank != null && tank.parent != null && tank.Capacity > 0)
+                {
+                    hasConnectedStorage = true;
+                    break;
+                }
+            }
+
+            storagePresenceDirty = false;
         }
 
         private void SyncBufferToTanks()

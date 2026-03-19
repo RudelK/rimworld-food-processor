@@ -152,6 +152,15 @@ namespace FoodPrinterSystem
             }
         }
 
+        public bool HasConnectedStorage(Thing node)
+        {
+            lock (syncRoot)
+            {
+                PipeNet net = GetNetForThingLocked(node);
+                return net != null && net.HasConnectedStorage;
+            }
+        }
+
         public List<Thing> GetConnectedNodes(Thing node)
         {
             lock (syncRoot)

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <LanguageData>
   <FPS_TonerStored>저장된 토너: {0}</FPS_TonerStored>
   <FPS_TonerCapacity>용량: {0}</FPS_TonerCapacity>
@@ -10,7 +10,7 @@
   <FPS_TankSpoiled>{0}(이)가 상하여 저장된 토너를 모두 잃었습니다.</FPS_TankSpoiled>
   <FPS_DisintegratorNoStorage>연결된 토너 저장소가 없습니다.</FPS_DisintegratorNoStorage>
   <FPS_PrinterSettings>식사 출력기 설정</FPS_PrinterSettings>
-  <FPS_PrinterSettingsDesc>이 프린터가 생산할 수 있는 음식 분류를 선택합니다.</FPS_PrinterSettingsDesc>
+  <FPS_PrinterSettingsDesc>이 출력기가 생산할 수 있는 음식 분류를 선택합니다.</FPS_PrinterSettingsDesc>
   <FPS_PrinterMode>모드: {0}</FPS_PrinterMode>
   <FPS_PrinterModeAuto>자동 최고 단계</FPS_PrinterModeAuto>
   <FPS_PrinterModeManual>수동 선택</FPS_PrinterModeManual>
@@ -34,16 +34,16 @@
   <FPS_SettingsSectionFeeder>동물 급여기</FPS_SettingsSectionFeeder>
   <FPS_SettingsSectionStorage>저장고 용량</FPS_SettingsSectionStorage>
   <FPS_SettingsSectionPower>전력 요구량</FPS_SettingsSectionPower>
-  <FPS_SettingsSectionPrinter>프린터 옵션</FPS_SettingsSectionPrinter>
+  <FPS_SettingsSectionPrinter>출력기 옵션</FPS_SettingsSectionPrinter>
   <FPS_SettingsSectionDebug>디버그</FPS_SettingsSectionDebug>
   <FPS_SettingsPasteCost>영양죽 비용</FPS_SettingsPasteCost>
-  <FPS_SettingsPasteCostDesc>프린터가 영양죽 1개를 만들 때 소비하는 토너 양입니다.</FPS_SettingsPasteCostDesc>
+  <FPS_SettingsPasteCostDesc>출력기가 영양죽 1개를 만들 때 소비하는 토너 양입니다.</FPS_SettingsPasteCostDesc>
   <FPS_SettingsSimpleCost>간단한 식사 비용</FPS_SettingsSimpleCost>
-  <FPS_SettingsSimpleCostDesc>프린터가 간단한 식사 1개를 만들 때 소비하는 토너 양입니다.</FPS_SettingsSimpleCostDesc>
+  <FPS_SettingsSimpleCostDesc>출력기가 간단한 식사 1개를 만들 때 소비하는 토너 양입니다.</FPS_SettingsSimpleCostDesc>
   <FPS_SettingsFineCost>좋은 식사 비용</FPS_SettingsFineCost>
-  <FPS_SettingsFineCostDesc>프린터가 좋은 식사 1개를 만들 때 소비하는 토너 양입니다.</FPS_SettingsFineCostDesc>
+  <FPS_SettingsFineCostDesc>출력기가 좋은 식사 1개를 만들 때 소비하는 토너 양입니다.</FPS_SettingsFineCostDesc>
   <FPS_SettingsLavishCost>호화로운 식사 비용</FPS_SettingsLavishCost>
-  <FPS_SettingsLavishCostDesc>프린터가 호화로운 식사 1개를 만들 때 소비하는 토너 양입니다.</FPS_SettingsLavishCostDesc>
+  <FPS_SettingsLavishCostDesc>출력기가 호화로운 식사 1개를 만들 때 소비하는 토너 양입니다.</FPS_SettingsLavishCostDesc>
   <FPS_SettingsFeederOutput>급여기 출력 한도</FPS_SettingsFeederOutput>
   <FPS_SettingsFeederOutputDesc>동물 급여기가 한 번에 비축해 둘 사료 개수의 최대치입니다.</FPS_SettingsFeederOutputDesc>
   <FPS_SettingsSmallTankCapacity>소형 저장고 용량</FPS_SettingsSmallTankCapacity>
@@ -69,19 +69,21 @@
   <FPS_SettingsBedsideFeederCost>영양 공급기 식사당 토너 비용</FPS_SettingsBedsideFeederCost>
   <FPS_SettingsBedsideFeederCostDesc>영양 공급기가 식사 1회를 제공할 때마다 소비하는 토너 양입니다.</FPS_SettingsBedsideFeederCostDesc>
   <FPS_SettingsRandomization>무작위 식사 선택 사용</FPS_SettingsRandomization>
-  <FPS_SettingsRandomizationDesc>프린터가 항상 같은 결과를 내는 대신 현재 유효한 식사 변종 중에서 무작위로 선택하도록 합니다.</FPS_SettingsRandomizationDesc>
+  <FPS_SettingsRandomizationDesc>출력기가 항상 같은 결과를 내는 대신 현재 유효한 식사 변종 중에서 무작위로 선택하도록 합니다.</FPS_SettingsRandomizationDesc>
   <FPS_SettingsDebugLog>디버그 로그 활성화</FPS_SettingsDebugLog>
-  <FPS_SettingsDebugLogDesc>림월드 개발자 모드가 꺼져 있어도 Food Printer 디버그 메시지를 로그에 기록합니다.</FPS_SettingsDebugLogDesc>
+  <FPS_SettingsDebugLogDesc>림월드 개발자 모드가 꺼져 있어도 음식 출력기 디버그 메시지를 로그에 기록합니다.</FPS_SettingsDebugLogDesc>
   <FPS_SettingsHardCheckFoodType>음식 유형 선호 엄격 검사</FPS_SettingsHardCheckFoodType>
-  <FPS_SettingsHardCheckFoodTypeDesc>활성화하면 폰은 연결된 토너 재료가 현재의 육류 또는 인간 고기 선호와 맞지 않는 프린터를 거부합니다.</FPS_SettingsHardCheckFoodTypeDesc>
+  <FPS_SettingsHardCheckFoodTypeDesc>활성화하면 폰은 연결된 토너 재료가 현재의 육류 또는 인간 고기 선호와 맞지 않는 출력기를 거부합니다.</FPS_SettingsHardCheckFoodTypeDesc>
   <FPS_DeconstructPipes>파이프 해체</FPS_DeconstructPipes>
   <FPS_DeconstructPipesDesc>설치된 토너 파이프만 해체 대상으로 지정합니다. 파이프 시각효과를 공유하더라도 벽, 기계, 기타 비파이프 건물은 무시합니다.</FPS_DeconstructPipesDesc>
   <FPS_PipeDuplicatePlacementBlocked>여기에 이미 파이프 기반시설이 있습니다: {0}.</FPS_PipeDuplicatePlacementBlocked>
   <FPS_PipeDuplicateSpawnBlocked>{1}(이)가 이미 그 위치에 파이프 기반시설을 제공하고 있어 {0}을(를) 설치할 수 없습니다.</FPS_PipeDuplicateSpawnBlocked>
   <FPS_LinkedBed>연결된 침대: {0}</FPS_LinkedBed>
-  <FPS_FeedingOccupant>급식 중: {0}</FPS_FeedingOccupant>
+  <FPS_FeedingOccupant>공급 중: {0}</FPS_FeedingOccupant>
   <FPS_NoOccupant>점유자 없음</FPS_NoOccupant>
   <FPS_NoLinkedBed>연결된 침대 없음</FPS_NoLinkedBed>
   <FPS_MustPlaceAtBedHead>침대 머리맡에 정확히 설치해야 합니다.</FPS_MustPlaceAtBedHead>
   <FPS_SettingsResetToDefaults>기본값으로 재설정</FPS_SettingsResetToDefaults>
-  <FPS_SettingsResetToDefaultsDesc>음식 가공 모드 설정을 모두 기본값으로 되돌립니다.</FPS_SettingsResetToDefaultsDesc></LanguageData>
+  <FPS_SettingsResetToDefaultsDesc>음식 가공 모드 설정을 모두 기본값으로 되돌립니다.</FPS_SettingsResetToDefaultsDesc>
+  <FPS_PrinterNeedsTankAlert>토너 저장고 연결 필요</FPS_PrinterNeedsTankAlert>
+  <FPS_PrinterNeedsTankAlertDesc>하나 이상의 토너 소비 건물이 토너 저장고에 연결되어 있지 않습니다. 이 경고를 해제하려면 각 건물을 최소 하나의 토너 저장고가 있는 토너 네트워크에 연결하세요.</FPS_PrinterNeedsTankAlertDesc></LanguageData>

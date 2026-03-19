@@ -84,5 +84,7 @@
   <FPS_NoLinkedBed>No linked bed</FPS_NoLinkedBed>
   <FPS_MustPlaceAtBedHead>Must be placed at the head of a bed.</FPS_MustPlaceAtBedHead>
   <FPS_SettingsResetToDefaults>Reset to defaults</FPS_SettingsResetToDefaults>
-  <FPS_SettingsResetToDefaultsDesc>Reset all Food Process mod settings to their default values.</FPS_SettingsResetToDefaultsDesc></LanguageData>
+  <FPS_SettingsResetToDefaultsDesc>Reset all Food Process mod settings to their default values.</FPS_SettingsResetToDefaultsDesc>
+  <FPS_PrinterNeedsTankAlert>Need to connect toner tank</FPS_PrinterNeedsTankAlert>
+  <FPS_PrinterNeedsTankAlertDesc>One or more toner-consuming buildings are not connected to toner tank storage. Connect each building to a toner network with at least one toner tank to clear this warning.</FPS_PrinterNeedsTankAlertDesc></LanguageData>
 

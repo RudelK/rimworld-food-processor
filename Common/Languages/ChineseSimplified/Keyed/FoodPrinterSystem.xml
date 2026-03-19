@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <LanguageData>
   <FPS_TonerStored>已储存墨浆：{0}</FPS_TonerStored>
   <FPS_TonerCapacity>容量：{0}</FPS_TonerCapacity>
@@ -84,5 +84,6 @@
   <FPS_NoLinkedBed>无已连接床位</FPS_NoLinkedBed>
   <FPS_MustPlaceAtBedHead>必须放置在床头位置。</FPS_MustPlaceAtBedHead>
   <FPS_SettingsResetToDefaults>恢复默认设置</FPS_SettingsResetToDefaults>
-  <FPS_SettingsResetToDefaultsDesc>将 Food Process mod 的所有设置恢复为默认值。</FPS_SettingsResetToDefaultsDesc></LanguageData>
-
+  <FPS_SettingsResetToDefaultsDesc>将 Food Process mod 的所有设置恢复为默认值。</FPS_SettingsResetToDefaultsDesc>
+  <FPS_PrinterNeedsTankAlert>需要连接碳粉罐</FPS_PrinterNeedsTankAlert>
+  <FPS_PrinterNeedsTankAlertDesc>一个或多个消耗碳粉的建筑未连接到碳粉罐存储。要清除此警告，请将每个建筑连接到至少包含一个碳粉罐的碳粉网络。</FPS_PrinterNeedsTankAlertDesc></LanguageData>

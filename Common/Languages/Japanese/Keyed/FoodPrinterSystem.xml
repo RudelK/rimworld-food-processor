@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <LanguageData>
   <FPS_TonerStored>保存トナー: {0}</FPS_TonerStored>
   <FPS_TonerCapacity>容量: {0}</FPS_TonerCapacity>
@@ -84,5 +84,6 @@
   <FPS_NoLinkedBed>接続されたベッドなし</FPS_NoLinkedBed>
   <FPS_MustPlaceAtBedHead>ベッドの頭側に設置する必要があります。</FPS_MustPlaceAtBedHead>
   <FPS_SettingsResetToDefaults>デフォルトに戻す</FPS_SettingsResetToDefaults>
-  <FPS_SettingsResetToDefaultsDesc>Food Process mod の設定をすべて初期値に戻します。</FPS_SettingsResetToDefaultsDesc></LanguageData>
-
+  <FPS_SettingsResetToDefaultsDesc>Food Process mod の設定をすべて初期値に戻します。</FPS_SettingsResetToDefaultsDesc>
+  <FPS_PrinterNeedsTankAlert>トナータンクを接続する必要があります</FPS_PrinterNeedsTankAlert>
+  <FPS_PrinterNeedsTankAlertDesc>1台以上のトナー消費建造物がトナータンク貯蔵に接続されていません。この警告を消すには、各建造物を少なくとも1台のトナータンクを含むトナーネットワークに接続してください。</FPS_PrinterNeedsTankAlertDesc></LanguageData>
