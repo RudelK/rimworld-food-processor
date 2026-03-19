@@ -213,7 +213,11 @@
     <costList>
       <Steel>50</Steel>
     </costList>
+    <designatorDropdown>FPS_TonerTank</designatorDropdown>
     <uiOrder>2145</uiOrder>
+    <researchPrerequisites Inherit="False">
+      <li>FPS_FoodProcessing</li>
+    </researchPrerequisites>
   </ThingDef>
 
   <ThingDef ParentName="FPS_TonerTankBase">
@@ -253,6 +257,11 @@
       <Steel>240</Steel>
     </costList>
     <uiOrder>2146</uiOrder>
+    <designatorDropdown>FPS_TonerTank</designatorDropdown>
+    <researchPrerequisites Inherit="False">
+      <li>FPS_FoodProcessing</li>
+      <li>Machining</li>
+    </researchPrerequisites>
   </ThingDef>
 
   <ThingDef ParentName="FPS_TonerTankBase">
@@ -292,6 +301,11 @@
       <Steel>500</Steel>
     </costList>
     <uiOrder>2147</uiOrder>
+    <designatorDropdown>FPS_TonerTank</designatorDropdown>
+    <researchPrerequisites Inherit="False">
+      <li>FPS_FoodProcessing</li>
+      <li>MicroelectronicsBasics</li>
+    </researchPrerequisites>
   </ThingDef>
 
   <ThingDef ParentName="BuildingBase">
