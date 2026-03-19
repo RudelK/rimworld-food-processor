@@ -23,6 +23,7 @@ namespace FoodPrinterSystem
         public int animalFeederPower = 100;
         public float bedsideFeederTonerCost = 3.0f;
         public bool randomMealSelection = true;
+        public bool debugLoggingEnabled = false;
         public bool hardCheckFoodType = true;
 
         public bool RandomMealSelection
@@ -33,6 +34,11 @@ namespace FoodPrinterSystem
         public bool HardCheckFoodType
         {
             get { return hardCheckFoodType; }
+        }
+
+        public bool DebugLoggingEnabled
+        {
+            get { return debugLoggingEnabled; }
         }
 
         public override void ExposeData()
@@ -58,6 +64,7 @@ namespace FoodPrinterSystem
             Scribe_Values.Look(ref animalFeederPower, "animalFeederPower", 100);
             Scribe_Values.Look(ref bedsideFeederTonerCost, "bedsideFeederTonerCost", 3.0f);
             Scribe_Values.Look(ref randomMealSelection, "randomMealSelection", true);
+            Scribe_Values.Look(ref debugLoggingEnabled, "debugLoggingEnabled", false);
             Scribe_Values.Look(ref hardCheckFoodType, "hardCheckFoodType", true);
 
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
@@ -107,6 +114,8 @@ namespace FoodPrinterSystem
         private string largeTankPowerBuffer;
         private string foodPrinterPowerBuffer;
         private string animalFeederPowerBuffer;
+        private bool showDebugSettings;
+        private int lastSettingsDrawFrame = -1;
 
         public static FoodPrinterSystemSettings Settings { get; private set; }
 
@@ -126,46 +135,56 @@ namespace FoodPrinterSystem
         {
             Settings.Sanitize();
 
-            Rect viewRect = new Rect(0f, 0f, inRect.width - 16f, 800f);
+            if (Time.frameCount > lastSettingsDrawFrame + 1)
+            {
+                // Reset foldout state whenever the settings window is opened again.
+                showDebugSettings = false;
+            }
+
+            lastSettingsDrawFrame = Time.frameCount;
+
+            Rect viewRect = new Rect(0f, 0f, inRect.width - 16f, 900f);
             Widgets.BeginScrollView(inRect, ref settingsScrollPosition, viewRect);
 
             Listing_Standard listing = new Listing_Standard();
             listing.Begin(viewRect);
 
             listing.Label("FPS_SettingsSectionConsumption".Translate());
-            Settings.pastePrintCost = DrawIntSlider(listing, "FPS_SettingsPasteCost".Translate().ToString(), Settings.pastePrintCost, 1, 50);
-            Settings.simpleMealPrintCost = DrawIntSlider(listing, "FPS_SettingsSimpleCost".Translate().ToString(), Settings.simpleMealPrintCost, 1, 50);
-            Settings.fineMealPrintCost = DrawIntSlider(listing, "FPS_SettingsFineCost".Translate().ToString(), Settings.fineMealPrintCost, 1, 50);
-            Settings.lavishMealPrintCost = DrawIntSlider(listing, "FPS_SettingsLavishCost".Translate().ToString(), Settings.lavishMealPrintCost, 1, 50);
+            Settings.pastePrintCost = DrawIntSlider(listing, "FPS_SettingsPasteCost".Translate().ToString(), "FPS_SettingsPasteCostDesc".Translate().ToString(), Settings.pastePrintCost, 1, 50);
+            Settings.simpleMealPrintCost = DrawIntSlider(listing, "FPS_SettingsSimpleCost".Translate().ToString(), "FPS_SettingsSimpleCostDesc".Translate().ToString(), Settings.simpleMealPrintCost, 1, 50);
+            Settings.fineMealPrintCost = DrawIntSlider(listing, "FPS_SettingsFineCost".Translate().ToString(), "FPS_SettingsFineCostDesc".Translate().ToString(), Settings.fineMealPrintCost, 1, 50);
+            Settings.lavishMealPrintCost = DrawIntSlider(listing, "FPS_SettingsLavishCost".Translate().ToString(), "FPS_SettingsLavishCostDesc".Translate().ToString(), Settings.lavishMealPrintCost, 1, 50);
 
             listing.GapLine();
             listing.Label("FPS_SettingsSectionFeeder".Translate());
-            Settings.feederOutputLimit = DrawIntField(listing, "FPS_SettingsFeederOutput".Translate().ToString(), Settings.feederOutputLimit, ref feederOutputLimitBuffer, 0, 10000);
-            Settings.bedsideFeederTonerCost = DrawFloatSlider(listing, "FPS_SettingsBedsideFeederCost".Translate().ToString(), Settings.bedsideFeederTonerCost, 0.1f, 20f);
+            Settings.feederOutputLimit = DrawIntField(listing, "FPS_SettingsFeederOutput".Translate().ToString(), "FPS_SettingsFeederOutputDesc".Translate().ToString(), Settings.feederOutputLimit, ref feederOutputLimitBuffer, 0, 10000);
+            Settings.bedsideFeederTonerCost = DrawFloatSlider(listing, "FPS_SettingsBedsideFeederCost".Translate().ToString(), "FPS_SettingsBedsideFeederCostDesc".Translate().ToString(), Settings.bedsideFeederTonerCost, 0.1f, 20f);
 
             listing.GapLine();
             listing.Label("FPS_SettingsSectionStorage".Translate());
-            Settings.smallTankCapacity = DrawIntField(listing, "FPS_SettingsSmallTankCapacity".Translate().ToString(), Settings.smallTankCapacity, ref smallTankCapacityBuffer, 0, 100000);
-            Settings.mediumTankCapacity = DrawIntField(listing, "FPS_SettingsMediumTankCapacity".Translate().ToString(), Settings.mediumTankCapacity, ref mediumTankCapacityBuffer, 0, 100000);
-            Settings.largeTankCapacity = DrawIntField(listing, "FPS_SettingsLargeTankCapacity".Translate().ToString(), Settings.largeTankCapacity, ref largeTankCapacityBuffer, 0, 100000);
+            Settings.smallTankCapacity = DrawIntField(listing, "FPS_SettingsSmallTankCapacity".Translate().ToString(), "FPS_SettingsSmallTankCapacityDesc".Translate().ToString(), Settings.smallTankCapacity, ref smallTankCapacityBuffer, 0, 100000);
+            Settings.mediumTankCapacity = DrawIntField(listing, "FPS_SettingsMediumTankCapacity".Translate().ToString(), "FPS_SettingsMediumTankCapacityDesc".Translate().ToString(), Settings.mediumTankCapacity, ref mediumTankCapacityBuffer, 0, 100000);
+            Settings.largeTankCapacity = DrawIntField(listing, "FPS_SettingsLargeTankCapacity".Translate().ToString(), "FPS_SettingsLargeTankCapacityDesc".Translate().ToString(), Settings.largeTankCapacity, ref largeTankCapacityBuffer, 0, 100000);
 
             listing.GapLine();
             listing.Label("FPS_SettingsSectionPower".Translate());
-            Settings.disintegratorIdlePower = DrawIntField(listing, "FPS_SettingsDisintegratorIdlePower".Translate().ToString(), Settings.disintegratorIdlePower, ref disintegratorIdlePowerBuffer, 0, 10000);
-            Settings.disintegratorActivePower = DrawIntField(listing, "FPS_SettingsDisintegratorActivePower".Translate().ToString(), Settings.disintegratorActivePower, ref disintegratorActivePowerBuffer, 0, 10000);
-            Settings.smallTankPower = DrawIntField(listing, "FPS_SettingsSmallTankPower".Translate().ToString(), Settings.smallTankPower, ref smallTankPowerBuffer, 0, 10000);
-            Settings.mediumTankPower = DrawIntField(listing, "FPS_SettingsMediumTankPower".Translate().ToString(), Settings.mediumTankPower, ref mediumTankPowerBuffer, 0, 10000);
-            Settings.largeTankPower = DrawIntField(listing, "FPS_SettingsLargeTankPower".Translate().ToString(), Settings.largeTankPower, ref largeTankPowerBuffer, 0, 10000);
-            Settings.foodPrinterPower = DrawIntField(listing, "FPS_SettingsPrinterPower".Translate().ToString(), Settings.foodPrinterPower, ref foodPrinterPowerBuffer, 0, 10000);
-            Settings.animalFeederPower = DrawIntField(listing, "FPS_SettingsFeederPower".Translate().ToString(), Settings.animalFeederPower, ref animalFeederPowerBuffer, 0, 10000);
+            Settings.disintegratorIdlePower = DrawIntField(listing, "FPS_SettingsDisintegratorIdlePower".Translate().ToString(), "FPS_SettingsDisintegratorIdlePowerDesc".Translate().ToString(), Settings.disintegratorIdlePower, ref disintegratorIdlePowerBuffer, 0, 10000);
+            Settings.disintegratorActivePower = DrawIntField(listing, "FPS_SettingsDisintegratorActivePower".Translate().ToString(), "FPS_SettingsDisintegratorActivePowerDesc".Translate().ToString(), Settings.disintegratorActivePower, ref disintegratorActivePowerBuffer, 0, 10000);
+            Settings.smallTankPower = DrawIntField(listing, "FPS_SettingsSmallTankPower".Translate().ToString(), "FPS_SettingsSmallTankPowerDesc".Translate().ToString(), Settings.smallTankPower, ref smallTankPowerBuffer, 0, 10000);
+            Settings.mediumTankPower = DrawIntField(listing, "FPS_SettingsMediumTankPower".Translate().ToString(), "FPS_SettingsMediumTankPowerDesc".Translate().ToString(), Settings.mediumTankPower, ref mediumTankPowerBuffer, 0, 10000);
+            Settings.largeTankPower = DrawIntField(listing, "FPS_SettingsLargeTankPower".Translate().ToString(), "FPS_SettingsLargeTankPowerDesc".Translate().ToString(), Settings.largeTankPower, ref largeTankPowerBuffer, 0, 10000);
+            Settings.foodPrinterPower = DrawIntField(listing, "FPS_SettingsPrinterPower".Translate().ToString(), "FPS_SettingsPrinterPowerDesc".Translate().ToString(), Settings.foodPrinterPower, ref foodPrinterPowerBuffer, 0, 10000);
+            Settings.animalFeederPower = DrawIntField(listing, "FPS_SettingsFeederPower".Translate().ToString(), "FPS_SettingsFeederPowerDesc".Translate().ToString(), Settings.animalFeederPower, ref animalFeederPowerBuffer, 0, 10000);
 
             listing.GapLine();
             listing.Label("FPS_SettingsSectionPrinter".Translate());
-            listing.CheckboxLabeled("FPS_SettingsRandomization".Translate().ToString(), ref Settings.randomMealSelection);
             listing.CheckboxLabeled(
-                "FPS_SettingsHardCheckFoodType".Translate().ToString(),
-                ref Settings.hardCheckFoodType,
-                "FPS_SettingsHardCheckFoodTypeDesc".Translate().ToString());
+                "FPS_SettingsRandomization".Translate().ToString(),
+                ref Settings.randomMealSelection,
+                "FPS_SettingsRandomizationDesc".Translate().ToString());
+
+            listing.GapLine();
+            DrawDebugSection(listing);
 
             listing.End();
             Widgets.EndScrollView();
@@ -232,32 +251,59 @@ namespace FoodPrinterSystem
             }
         }
 
-        private static int DrawIntSlider(Listing_Standard listing, string label, int value, int min, int max)
+        private void DrawDebugSection(Listing_Standard listing)
+        {
+            Rect debugRect = listing.GetRect(34f);
+            string debugLabel = (showDebugSettings ? "\u25BC " : "\u25B6 ") + "FPS_SettingsSectionDebug".Translate();
+            if (Widgets.ButtonText(debugRect, debugLabel))
+            {
+                showDebugSettings = !showDebugSettings;
+            }
+
+            if (!showDebugSettings)
+            {
+                return;
+            }
+
+            listing.CheckboxLabeled(
+                "FPS_SettingsDebugLog".Translate().ToString(),
+                ref Settings.debugLoggingEnabled,
+                "FPS_SettingsDebugLogDesc".Translate().ToString());
+            listing.CheckboxLabeled(
+                "FPS_SettingsHardCheckFoodType".Translate().ToString(),
+                ref Settings.hardCheckFoodType,
+                "FPS_SettingsHardCheckFoodTypeDesc".Translate().ToString());
+        }
+
+        private static int DrawIntSlider(Listing_Standard listing, string label, string tooltip, int value, int min, int max)
         {
             Rect rect = listing.GetRect(34f);
             Rect labelRect = new Rect(rect.x, rect.y, rect.width * 0.42f, rect.height);
             Rect sliderRect = new Rect(rect.x + rect.width * 0.44f, rect.y, rect.width * 0.56f, rect.height);
             Widgets.Label(labelRect, label);
+            AddTooltip(rect, tooltip);
             float sliderValue = Widgets.HorizontalSlider(sliderRect, value, min, max, true, value.ToString(), min.ToString(), max.ToString(), 1f);
             return Mathf.RoundToInt(sliderValue);
         }
 
-        private static float DrawFloatSlider(Listing_Standard listing, string label, float value, float min, float max)
+        private static float DrawFloatSlider(Listing_Standard listing, string label, string tooltip, float value, float min, float max)
         {
             Rect rect = listing.GetRect(34f);
             Rect labelRect = new Rect(rect.x, rect.y, rect.width * 0.42f, rect.height);
             Rect sliderRect = new Rect(rect.x + rect.width * 0.44f, rect.y, rect.width * 0.56f, rect.height);
             Widgets.Label(labelRect, label);
+            AddTooltip(rect, tooltip);
             float sliderValue = Widgets.HorizontalSlider(sliderRect, value, min, max, true, value.ToString("0.0"), min.ToString("0.0"), max.ToString("0.0"), 0.1f);
             return sliderValue;
         }
 
-        private static int DrawIntField(Listing_Standard listing, string label, int value, ref string buffer, int min, int max)
+        private static int DrawIntField(Listing_Standard listing, string label, string tooltip, int value, ref string buffer, int min, int max)
         {
             Rect rect = listing.GetRect(34f);
             Rect labelRect = new Rect(rect.x, rect.y + 5f, rect.width * 0.62f, 24f);
             Rect fieldRect = new Rect(rect.x + rect.width * 0.66f, rect.y + 2f, rect.width * 0.34f, 24f);
             Widgets.Label(labelRect, label);
+            AddTooltip(rect, tooltip);
             if (buffer.NullOrEmpty())
             {
                 buffer = value.ToString();
@@ -267,6 +313,14 @@ namespace FoodPrinterSystem
             value = Mathf.Clamp(value, min, max);
             buffer = value.ToString();
             return value;
+        }
+
+        private static void AddTooltip(Rect rect, string tooltip)
+        {
+            if (!tooltip.NullOrEmpty())
+            {
+                TooltipHandler.TipRegion(rect, tooltip);
+            }
         }
     }
 }

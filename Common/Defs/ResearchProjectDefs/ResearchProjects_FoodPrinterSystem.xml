@@ -8,6 +8,7 @@
     <techLevel>Industrial</techLevel>
     <prerequisites>
       <li>Electricity</li>
+      <li>NutrientPaste</li>
     </prerequisites>
     <requiredResearchBuilding>HiTechResearchBench</requiredResearchBuilding>
   </ResearchProjectDef>

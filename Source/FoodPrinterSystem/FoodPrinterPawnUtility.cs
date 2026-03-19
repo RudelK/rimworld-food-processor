@@ -632,7 +632,7 @@ namespace FoodPrinterSystem
 
         private static bool ShouldDebugLog()
         {
-            return Prefs.DevMode;
+            return FoodPrinterSystemMod.Settings != null && FoodPrinterSystemMod.Settings.DebugLoggingEnabled;
         }
 
         private static string GetPawnDebugLabel(Pawn pawn)

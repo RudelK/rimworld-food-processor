@@ -36,23 +36,43 @@
   <FPS_SettingsSectionStorage>Tank Capacities</FPS_SettingsSectionStorage>
   <FPS_SettingsSectionPower>Power Requirements</FPS_SettingsSectionPower>
   <FPS_SettingsSectionPrinter>Printer Options</FPS_SettingsSectionPrinter>
+  <FPS_SettingsSectionDebug>Debug</FPS_SettingsSectionDebug>
   <FPS_SettingsPasteCost>Nutrient paste cost</FPS_SettingsPasteCost>
+  <FPS_SettingsPasteCostDesc>How much toner a printer consumes to produce one nutrient paste meal.</FPS_SettingsPasteCostDesc>
   <FPS_SettingsSimpleCost>Simple meal cost</FPS_SettingsSimpleCost>
+  <FPS_SettingsSimpleCostDesc>How much toner a printer consumes to produce one simple meal.</FPS_SettingsSimpleCostDesc>
   <FPS_SettingsFineCost>Fine meal cost</FPS_SettingsFineCost>
+  <FPS_SettingsFineCostDesc>How much toner a printer consumes to produce one fine meal.</FPS_SettingsFineCostDesc>
   <FPS_SettingsLavishCost>Lavish meal cost</FPS_SettingsLavishCost>
+  <FPS_SettingsLavishCostDesc>How much toner a printer consumes to produce one lavish meal.</FPS_SettingsLavishCostDesc>
   <FPS_SettingsFeederOutput>Feeder output limit</FPS_SettingsFeederOutput>
+  <FPS_SettingsFeederOutputDesc>Maximum number of feed meals an animal feeder will keep stocked at once.</FPS_SettingsFeederOutputDesc>
   <FPS_SettingsSmallTankCapacity>Small tank capacity</FPS_SettingsSmallTankCapacity>
+  <FPS_SettingsSmallTankCapacityDesc>Maximum toner stored by a small toner tank.</FPS_SettingsSmallTankCapacityDesc>
   <FPS_SettingsMediumTankCapacity>Medium tank capacity</FPS_SettingsMediumTankCapacity>
+  <FPS_SettingsMediumTankCapacityDesc>Maximum toner stored by a medium toner tank.</FPS_SettingsMediumTankCapacityDesc>
   <FPS_SettingsLargeTankCapacity>Large tank capacity</FPS_SettingsLargeTankCapacity>
+  <FPS_SettingsLargeTankCapacityDesc>Maximum toner stored by a large toner tank.</FPS_SettingsLargeTankCapacityDesc>
   <FPS_SettingsDisintegratorIdlePower>Disintegrator idle power (W)</FPS_SettingsDisintegratorIdlePower>
+  <FPS_SettingsDisintegratorIdlePowerDesc>Power draw of a food disintegrator while it is powered but not processing food.</FPS_SettingsDisintegratorIdlePowerDesc>
   <FPS_SettingsDisintegratorActivePower>Disintegrator active power (W)</FPS_SettingsDisintegratorActivePower>
+  <FPS_SettingsDisintegratorActivePowerDesc>Power draw of a food disintegrator while it is actively converting food into toner.</FPS_SettingsDisintegratorActivePowerDesc>
   <FPS_SettingsSmallTankPower>Small tank power (W)</FPS_SettingsSmallTankPower>
+  <FPS_SettingsSmallTankPowerDesc>Power draw of a small toner tank while it is operating.</FPS_SettingsSmallTankPowerDesc>
   <FPS_SettingsMediumTankPower>Medium tank power (W)</FPS_SettingsMediumTankPower>
+  <FPS_SettingsMediumTankPowerDesc>Power draw of a medium toner tank while it is operating.</FPS_SettingsMediumTankPowerDesc>
   <FPS_SettingsLargeTankPower>Large tank power (W)</FPS_SettingsLargeTankPower>
+  <FPS_SettingsLargeTankPowerDesc>Power draw of a large toner tank while it is operating.</FPS_SettingsLargeTankPowerDesc>
   <FPS_SettingsPrinterPower>Food printer power (W)</FPS_SettingsPrinterPower>
+  <FPS_SettingsPrinterPowerDesc>Power draw of a food printer while it is powered.</FPS_SettingsPrinterPowerDesc>
   <FPS_SettingsFeederPower>Animal feeder power (W)</FPS_SettingsFeederPower>
+  <FPS_SettingsFeederPowerDesc>Power draw of an animal feeder while it is powered.</FPS_SettingsFeederPowerDesc>
   <FPS_SettingsBedsideFeederCost>Bedside feeder toner cost per meal</FPS_SettingsBedsideFeederCost>
+  <FPS_SettingsBedsideFeederCostDesc>How much toner the bedside feeder consumes each time it serves one meal.</FPS_SettingsBedsideFeederCostDesc>
   <FPS_SettingsRandomization>Enable random meal selection</FPS_SettingsRandomization>
+  <FPS_SettingsRandomizationDesc>Allow printers to choose randomly between currently valid meal variants instead of always using the same output.</FPS_SettingsRandomizationDesc>
+  <FPS_SettingsDebugLog>Enable debug logging</FPS_SettingsDebugLog>
+  <FPS_SettingsDebugLogDesc>Write Food Printer debug messages to the RimWorld log, even when RimWorld Dev Mode is off.</FPS_SettingsDebugLogDesc>
   <FPS_SettingsHardCheckFoodType>Hard check food type preferences</FPS_SettingsHardCheckFoodType>
   <FPS_SettingsHardCheckFoodTypeDesc>When enabled, pawns will refuse printers whose connected toner ingredients do not match their current meat or human-meat food preferences.</FPS_SettingsHardCheckFoodTypeDesc>
   <FPS_PipeDuplicatePlacementBlocked>Pipe infrastructure already exists here: {0}.</FPS_PipeDuplicatePlacementBlocked>
