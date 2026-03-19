@@ -400,6 +400,11 @@ namespace FoodPrinterSystem
 
         public ThingDef GetMealToPrint(Building printer, bool randomize)
         {
+            return GetMealToPrint(printer, null, null, randomize);
+        }
+
+        public ThingDef GetMealToPrint(Building printer, PawnPrinterFoodPolicy policy, Pawn eater, bool randomize)
+        {
             EnsureInitialized();
             if (HasActiveProcessing)
             {
@@ -411,37 +416,70 @@ namespace FoodPrinterSystem
                 return ProcessingMealDef;
             }
 
-            FoodPreferability? category = autoMode ? GetBestAvailableCategory(printer) : GetSelectedManualCategory();
-            return GetMealForCategory(category, printer, randomize);
+            FoodPreferability? category = autoMode
+                ? (eater == null ? GetBestAvailableCategory(printer) : GetBestAvailableCategory(printer, policy, eater))
+                : GetSelectedManualCategory();
+            return eater == null
+                ? GetMealForCategory(category, printer, randomize)
+                : GetMealForCategory(category, printer, policy, eater, randomize);
         }
 
         public bool TryStartProcessing(Building printer, Pawn pawn)
         {
+            return TryStartProcessing(printer, pawn, pawn);
+        }
+
+        public bool TryStartProcessing(Building printer, Pawn reservationPawn, Pawn eaterPawn)
+        {
             EnsureInitialized();
-            if (IsPrinting || IsBusyFor(pawn) || !TryReservePrinterForProcessing(printer, pawn))
+            Building_FoodPrinter foodPrinter = printer as Building_FoodPrinter;
+            PawnPrinterFoodPolicy eaterPolicy = foodPrinter == null || eaterPawn == null
+                ? null
+                : FoodPrinterPawnUtility.ResolvePawnFoodPolicy(eaterPawn);
+            if (IsPrinting || IsBusyFor(reservationPawn))
             {
+                LogProcessingEvent("printer_start_failed", printer, reservationPawn, eaterPawn, null, processingTonerCost, "printer_busy");
                 return false;
             }
 
-            FoodPreferability? category = autoMode ? GetBestAvailableCategory(printer) : GetSelectedManualCategory();
-            ThingDef mealDef = GetMealForCategory(category, printer, true);
+            if (foodPrinter != null && !FoodPrinterPawnUtility.IsPrinterAllowedForPawn(eaterPolicy, eaterPawn, foodPrinter))
+            {
+                LogProcessingEvent("printer_start_failed", printer, reservationPawn, eaterPawn, null, 0, "policy_blocked");
+                return false;
+            }
+
+            ThingDef mealDef = GetMealToPrint(printer, eaterPolicy, eaterPawn, true);
             if (mealDef == null || !IsMealResearched(mealDef))
             {
-                ReleasePrinterReservation(printer, pawn);
+                LogProcessingEvent("printer_start_failed", printer, reservationPawn, eaterPawn, mealDef, 0, "no_valid_meal_selected");
+                return false;
+            }
+
+            if (foodPrinter != null && !FoodPrinterPawnUtility.CanPawnConsumeMeal(eaterPolicy, eaterPawn, foodPrinter, mealDef))
+            {
+                LogProcessingEvent("printer_start_failed", printer, reservationPawn, eaterPawn, mealDef, 0, "selected_meal_policy_blocked");
+                return false;
+            }
+
+            if (!TryReservePrinterForProcessing(printer, reservationPawn))
+            {
+                LogProcessingEvent("printer_start_failed", printer, reservationPawn, eaterPawn, null, 0, "reservation_failed");
                 return false;
             }
 
             int tonerCost = FoodPrinterSystemUtility.GetPrintCost(mealDef);
             if (tonerCost <= 0 || !TonerPipeNetManager.CanDraw(printer, tonerCost))
             {
-                ReleasePrinterReservation(printer, pawn);
+                ReleasePrinterReservation(printer, reservationPawn);
+                LogProcessingEvent("printer_start_failed", printer, reservationPawn, eaterPawn, mealDef, tonerCost, "insufficient_toner");
                 return false;
             }
 
-            currentProcessingPawn = pawn;
+            currentProcessingPawn = reservationPawn;
             processingMealDefName = mealDef.defName;
             processingTonerCost = tonerCost;
             processingTicksRemaining = FoodPrinterSystemUtility.PrintingDelayTicks;
+            LogProcessingEvent("printer_start_succeeded", printer, reservationPawn, eaterPawn, mealDef, tonerCost, "started");
             return true;
         }
 
@@ -457,8 +495,23 @@ namespace FoodPrinterSystem
 
         public Thing CompleteProcessing(Building printer, Pawn pawn)
         {
+            return CompleteProcessing(printer, pawn, pawn);
+        }
+
+        public Thing CompleteProcessing(Building printer, Pawn reservationPawn, Pawn eaterPawn)
+        {
             if (!HasCompletedProcessing)
             {
+                LogProcessingEvent("printer_complete_failed", printer, reservationPawn, eaterPawn, ProcessingMealDef, processingTonerCost, "processing_not_complete");
+                return null;
+            }
+
+            Building_FoodPrinter foodPrinter = printer as Building_FoodPrinter;
+            if (foodPrinter != null && eaterPawn != null && !FoodPrinterPawnUtility.CanPawnConsumePrinterMeal(eaterPawn, foodPrinter))
+            {
+                ReleasePrinterReservation(printer, reservationPawn);
+                ClearProcessingState();
+                LogProcessingEvent("printer_complete_failed", printer, reservationPawn, eaterPawn, ProcessingMealDef, processingTonerCost, "policy_blocked");
                 return null;
             }
 
@@ -467,13 +520,19 @@ namespace FoodPrinterSystem
             Thing meal = mealDef == null ? null : ThingMaker.MakeThing(mealDef);
             if (meal == null || tonerCost <= 0 || !TonerNetworkUtility.TryConsumeToner(printer, tonerCost))
             {
-                ReleasePrinterReservation(printer, pawn);
+                ReleasePrinterReservation(printer, reservationPawn);
                 ClearProcessingState();
                 if (meal != null && !meal.Destroyed)
                 {
                     meal.Destroy(DestroyMode.Vanish);
                 }
 
+                string failureReason = meal == null
+                    ? "meal_creation_failed"
+                    : tonerCost <= 0
+                        ? "invalid_toner_cost"
+                        : "consume_toner_failed";
+                LogProcessingEvent("printer_complete_failed", printer, reservationPawn, eaterPawn, mealDef, tonerCost, failureReason);
                 return null;
             }
 
@@ -500,13 +559,14 @@ namespace FoodPrinterSystem
                 }
             }
 
-            ReleasePrinterReservation(printer, pawn);
+            ReleasePrinterReservation(printer, reservationPawn);
             ClearProcessingState();
             if (printer != null && printer.def.building != null && printer.def.building.soundDispense != null)
             {
                 printer.def.building.soundDispense.PlayOneShot(new TargetInfo(printer.Position, printer.Map));
             }
 
+            LogProcessingEvent("printer_complete_succeeded", printer, reservationPawn, eaterPawn, mealDef, tonerCost, "completed");
             return meal;
         }
 
@@ -517,6 +577,7 @@ namespace FoodPrinterSystem
                 return;
             }
 
+            LogProcessingEvent("printer_processing_cancelled", printer, pawn, pawn, ProcessingMealDef, processingTonerCost, "cancelled");
             ReleasePrinterReservation(printer, pawn);
             ClearProcessingState();
         }
@@ -637,6 +698,25 @@ namespace FoodPrinterSystem
             return null;
         }
 
+        private FoodPreferability? GetBestAvailableCategory(Building printer, PawnPrinterFoodPolicy policy, Pawn eater)
+        {
+            for (int i = CategoryOrder.Length - 1; i >= 0; i--)
+            {
+                FoodPreferability category = CategoryOrder[i];
+                if (!IsCategoryEnabled(category) || !IsCategoryResearched(category))
+                {
+                    continue;
+                }
+
+                if (GetAffordableMealsForCategory(printer, category, policy, eater).Count > 0)
+                {
+                    return category;
+                }
+            }
+
+            return null;
+        }
+
         private FoodPreferability? GetHighestEnabledResearchedCategory()
         {
             for (int i = CategoryOrder.Length - 1; i >= 0; i--)
@@ -685,6 +765,24 @@ namespace FoodPrinterSystem
             return randomize && FoodPrinterSystemUtility.RandomMealSelectionEnabled ? GetWeightedRandomMeal(candidates) : GetRepresentativeMeal(candidates);
         }
 
+        private ThingDef GetMealForCategory(FoodPreferability? category, Building printer, PawnPrinterFoodPolicy policy, Pawn eater, bool randomize)
+        {
+            if (category == null || !IsCategoryResearched(category.Value))
+            {
+                return null;
+            }
+
+            List<ThingDef> candidates = printer == null
+                ? GetConfiguredMealsForCategory(category.Value)
+                : GetAffordableMealsForCategory(printer, category.Value, policy, eater);
+            if (candidates.Count == 0)
+            {
+                return null;
+            }
+
+            return randomize && FoodPrinterSystemUtility.RandomMealSelectionEnabled ? GetWeightedRandomMeal(candidates) : GetRepresentativeMeal(candidates);
+        }
+
         private List<ThingDef> GetConfiguredMealsForCategory(FoodPreferability category)
         {
             List<ThingDef> meals = new List<ThingDef>();
@@ -722,6 +820,31 @@ namespace FoodPrinterSystem
                 {
                     affordable.Add(meals[i]);
                 }
+            }
+
+            return affordable;
+        }
+
+        private List<ThingDef> GetAffordableMealsForCategory(Building printer, FoodPreferability category, PawnPrinterFoodPolicy policy, Pawn eater)
+        {
+            List<ThingDef> meals = GetConfiguredMealsForCategory(category);
+            TonerNetworkSummary summary = TonerNetworkUtility.GetSummary(printer);
+            List<ThingDef> affordable = new List<ThingDef>();
+            Building_FoodPrinter foodPrinter = printer as Building_FoodPrinter;
+            for (int i = 0; i < meals.Count; i++)
+            {
+                ThingDef mealDef = meals[i];
+                if (summary.Stored < FoodPrinterSystemUtility.GetPrintCost(mealDef))
+                {
+                    continue;
+                }
+
+                if (foodPrinter != null && eater != null && !FoodPrinterPawnUtility.IsMealAllowedForPawn(policy, eater, foodPrinter, mealDef))
+                {
+                    continue;
+                }
+
+                affordable.Add(mealDef);
             }
 
             return affordable;
@@ -864,6 +987,40 @@ namespace FoodPrinterSystem
             processingTicksRemaining = 0;
             processingTonerCost = 0;
             currentProcessingPawn = null;
+        }
+
+        private static void LogProcessingEvent(string eventName, Building printer, Pawn reservationPawn, Pawn eaterPawn, ThingDef mealDef, int tonerCost, string reason)
+        {
+            if (!Prefs.DevMode)
+            {
+                return;
+            }
+
+            TonerNetworkSummary summary = TonerPipeNetManager.GetSummary(printer);
+            Log.Message("[FPS] " + eventName
+                + ": printer=" + GetPrinterDebugLabel(printer)
+                + ", reservationPawn=" + GetPawnDebugLabel(reservationPawn)
+                + ", eaterPawn=" + GetPawnDebugLabel(eaterPawn)
+                + ", meal=" + GetMealDebugLabel(mealDef)
+                + ", tonerCost=" + tonerCost
+                + ", networkStored=" + summary.Stored
+                + ", networkCapacity=" + summary.Capacity
+                + ", reason=" + reason);
+        }
+
+        private static string GetPrinterDebugLabel(Building printer)
+        {
+            return printer == null ? "null" : printer.LabelShortCap + " (" + printer.thingIDNumber + ")";
+        }
+
+        private static string GetPawnDebugLabel(Pawn pawn)
+        {
+            return pawn == null ? "null" : pawn.LabelShortCap + " (" + pawn.thingIDNumber + ")";
+        }
+
+        private static string GetMealDebugLabel(ThingDef mealDef)
+        {
+            return mealDef == null ? "null" : mealDef.defName;
         }
 
         private void DrawProcessingBar()

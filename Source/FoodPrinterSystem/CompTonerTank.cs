@@ -29,8 +29,16 @@ namespace FoodPrinterSystem
         // (for example muffalo meat, not muffalo) because printer food-type prediction
         // depends on ingredientDef.ingestible.foodType staying accurate downstream.
         private List<ThingDef> storedIngredients = new List<ThingDef>();
+        private FoodTypeFlags cachedIngredientFoodTypes;
+        private FoodKind cachedIngredientFoodKind = FoodKind.Any;
+        private bool cachedContainsHumanMeatIngredient;
+        private bool cachedContainsVegetarianForbiddenIngredient;
 
         public List<ThingDef> StoredIngredients => storedIngredients;
+        public FoodTypeFlags CachedIngredientFoodTypes => cachedIngredientFoodTypes;
+        public FoodKind CachedIngredientFoodKind => cachedIngredientFoodKind;
+        public bool CachedContainsHumanMeatIngredient => cachedContainsHumanMeatIngredient;
+        public bool CachedContainsVegetarianForbiddenIngredient => cachedContainsVegetarianForbiddenIngredient;
 
         public CompProperties_TonerTank Props
         {
@@ -66,12 +74,15 @@ namespace FoodPrinterSystem
             base.PostSpawnSetup(respawningAfterLoad);
             powerComp = parent.TryGetComp<CompPowerTrader>();
             NotifySettingsChanged();
+            RebuildIngredientCharacteristics();
 
             MapComponent_TonerNetwork netComp = parent.Map.GetComponent<MapComponent_TonerNetwork>();
             if (netComp != null)
             {
                 netComp.RegisterTank(this);
             }
+
+            TonerPipeNetManager.MarkDirty(parent.MapHeld);
         }
 
         public override void PostDeSpawn(Map map, DestroyMode mode)
@@ -82,6 +93,8 @@ namespace FoodPrinterSystem
             {
                 netComp.DeregisterTank(this);
             }
+
+            TonerPipeNetManager.MarkDirty(map);
         }
 
         public override void CompTickRare()
@@ -147,18 +160,33 @@ namespace FoodPrinterSystem
         public void AddIngredients(List<ThingDef> ingredients)
         {
             if (ingredients == null || ingredients.Count == 0) return;
+            bool changed = false;
             for (int i = 0; i < ingredients.Count; i++)
             {
                 if (!storedIngredients.Contains(ingredients[i]))
                 {
                     storedIngredients.Add(ingredients[i]);
+                    changed = true;
                 }
+            }
+
+            if (changed)
+            {
+                RebuildIngredientCharacteristics();
+                NotifyIngredientStateChanged();
             }
         }
 
         public void ClearIngredients()
         {
+            if (storedIngredients.Count == 0)
+            {
+                return;
+            }
+
             storedIngredients.Clear();
+            RebuildIngredientCharacteristics();
+            NotifyIngredientStateChanged();
         }
 
         public void SetStoredToner(int amount)
@@ -241,6 +269,7 @@ namespace FoodPrinterSystem
                     storedIngredients = new List<ThingDef>();
                 }
                 storedIngredients.RemoveAll(x => x == null);
+                RebuildIngredientCharacteristics();
             }
 
             if (Scribe.mode == LoadSaveMode.LoadingVars && storedToner == 0)
@@ -282,6 +311,81 @@ namespace FoodPrinterSystem
             {
                 storedToner = 0;
             }
+        }
+
+        private void NotifyIngredientStateChanged()
+        {
+            // Printer food-character prediction is cached by toner network revision,
+            // so ingredient provenance changes must invalidate that revision too.
+            if (parent != null && parent.MapHeld != null)
+            {
+                TonerPipeNetManager.MarkDirty(parent.MapHeld);
+            }
+        }
+
+        private void RebuildIngredientCharacteristics()
+        {
+            FoodTypeFlags foodTypes = FoodTypeFlags.None;
+            bool hasMeat = false;
+            bool hasNonMeat = false;
+            bool containsHumanMeat = false;
+            bool containsVegetarianForbidden = false;
+
+            for (int i = 0; i < storedIngredients.Count; i++)
+            {
+                ThingDef ingredientDef = storedIngredients[i];
+                if (ingredientDef == null || ingredientDef.ingestible == null)
+                {
+                    continue;
+                }
+
+                FoodTypeFlags ingredientFoodTypes = ingredientDef.ingestible.foodType;
+                foodTypes |= ingredientFoodTypes;
+                if ((ingredientFoodTypes & FoodTypeFlags.Meat) != FoodTypeFlags.None)
+                {
+                    hasMeat = true;
+                }
+
+                if ((ingredientFoodTypes & FoodTypeFlags.Meat) != ingredientFoodTypes)
+                {
+                    hasNonMeat = true;
+                }
+
+                if (!containsHumanMeat && FoodUtility.IsHumanFood(ingredientDef))
+                {
+                    containsHumanMeat = true;
+                }
+
+                if (!containsVegetarianForbidden && FoodUtility.UnacceptableVegetarian(ingredientDef))
+                {
+                    containsVegetarianForbidden = true;
+                }
+            }
+
+            cachedIngredientFoodTypes = foodTypes;
+            cachedIngredientFoodKind = DetermineFoodKind(hasMeat, hasNonMeat);
+            cachedContainsHumanMeatIngredient = containsHumanMeat;
+            cachedContainsVegetarianForbiddenIngredient = containsVegetarianForbidden;
+        }
+
+        private static FoodKind DetermineFoodKind(bool hasMeat, bool hasNonMeat)
+        {
+            if (hasMeat && hasNonMeat)
+            {
+                return FoodKind.Any;
+            }
+
+            if (hasMeat)
+            {
+                return FoodKind.Meat;
+            }
+
+            if (hasNonMeat)
+            {
+                return FoodKind.NonMeat;
+            }
+
+            return FoodKind.Any;
         }
 
         private void DrawStorageBar()

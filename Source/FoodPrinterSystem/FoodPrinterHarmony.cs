@@ -59,15 +59,7 @@ namespace FoodPrinterSystem
                     return;
                 }
 
-                if (__result
-                    && selectedPrinter != null
-                    && FoodPrinterJobUtility.IsPrinterJobCandidate(selectedPrinter, getter, eater, canRefillDispenser, allowForbidden, allowSociallyImproper, ignoreReservations))
-                {
-                    foodDef = selectedPrinter.AvailableMealDef ?? foodDef;
-                    return;
-                }
-
-                Building_FoodPrinter replacementPrinter = FoodPrinterJobUtility.FindClosestValidPrinter(getter, eater, canRefillDispenser, allowForbidden, allowSociallyImproper, ignoreReservations, selectedPrinter);
+                Building_FoodPrinter replacementPrinter = FoodPrinterJobUtility.FindClosestValidPrinter(getter, eater, canRefillDispenser, allowForbidden, allowSociallyImproper, ignoreReservations);
                 if (replacementPrinter == null)
                 {
                     if (selectedPrinter != null)
@@ -81,7 +73,7 @@ namespace FoodPrinterSystem
                 }
 
                 foodSource = replacementPrinter;
-                foodDef = replacementPrinter.AvailableMealDef;
+                foodDef = FoodPrinterPawnUtility.GetResolvedMealDefForPawn(eater, replacementPrinter);
                 __result = foodDef != null;
             }
         }
@@ -97,7 +89,8 @@ namespace FoodPrinterSystem
                     return true;
                 }
 
-                ThingDef mealDef = printer.AvailableMealDef;
+                Pawn eater = currentFoodEater ?? currentFoodGetter;
+                ThingDef mealDef = FoodPrinterPawnUtility.GetResolvedMealDefForPawn(eater, printer);
                 if (mealDef == null)
                 {
                     return true;
@@ -181,14 +174,17 @@ namespace FoodPrinterSystem
                     Pawn actor = toil.actor;
                     Building_FoodPrinter currentPrinter = GetPrinter(actor, printerInd);
                     CompFoodPrinter comp = currentPrinter == null ? null : currentPrinter.FoodPrinterComp;
+                    Pawn eaterPawn = GetMealConsumer(actor);
                     if (currentPrinter == null || comp == null)
                     {
+                        LogPrinterJobEvent("printer_toil_init_failed", actor, eaterPawn, currentPrinter, "missing_printer_or_comp");
                         actor.jobs.curDriver.EndJobWith(JobCondition.Incompletable);
                         return;
                     }
 
                     if (currentPrinter.IsPrinting || comp.IsBusyFor(actor) || !currentPrinter.CanPrintNow)
                     {
+                        LogPrinterJobEvent("printer_toil_init_failed", actor, eaterPawn, currentPrinter, "printer_unavailable");
                         if (!TrySwitchToAlternativePrinter(actor, printerInd, currentPrinter))
                         {
                             actor.jobs.curDriver.EndJobWith(JobCondition.Incompletable);
@@ -197,8 +193,20 @@ namespace FoodPrinterSystem
                         return;
                     }
 
-                    if (!comp.TryStartProcessing(currentPrinter, actor))
+                    if (!FoodPrinterPawnUtility.CanPawnConsumePrinterMeal(eaterPawn, currentPrinter))
                     {
+                        LogPrinterJobEvent("printer_toil_init_failed", actor, eaterPawn, currentPrinter, "policy_blocked");
+                        if (!TrySwitchToAlternativePrinter(actor, printerInd, currentPrinter))
+                        {
+                            actor.jobs.curDriver.EndJobWith(JobCondition.Incompletable);
+                        }
+
+                        return;
+                    }
+
+                    if (!comp.TryStartProcessing(currentPrinter, actor, eaterPawn))
+                    {
+                        LogPrinterJobEvent("printer_toil_init_failed", actor, eaterPawn, currentPrinter, "start_processing_failed");
                         if (!TrySwitchToAlternativePrinter(actor, printerInd, currentPrinter))
                         {
                             actor.jobs.curDriver.EndJobWith(JobCondition.Incompletable);
@@ -227,8 +235,23 @@ namespace FoodPrinterSystem
 
                         if (ticksLeft <= 1)
                         {
+                            Pawn eaterPawn = GetMealConsumer(actor);
+                            // Revalidate the hard allow/deny rules immediately before
+                            // completion so we never generate a meal from a printer the
+                            // pawn can no longer use.
+                            if (!FoodPrinterPawnUtility.CanPawnConsumePrinterMeal(eaterPawn, currentPrinter))
+                            {
+                                LogPrinterJobEvent("printer_toil_completion_failed", actor, eaterPawn, currentPrinter, "policy_blocked_before_completion");
+                                if (!TrySwitchToAlternativePrinter(actor, printerInd, currentPrinter))
+                                {
+                                    actor.jobs.curDriver.EndJobWith(JobCondition.Incompletable);
+                                }
+
+                                return;
+                            }
+
                             comp.UpdateProcessingTicksRemaining(0);
-                            Thing meal = comp.CompleteProcessing(currentPrinter, actor);
+                            Thing meal = comp.CompleteProcessing(currentPrinter, actor, eaterPawn);
                             if (meal != null)
                             {
                                 if (actor.carryTracker.TryStartCarry(meal))
@@ -237,6 +260,7 @@ namespace FoodPrinterSystem
                                 }
                                 else
                                 {
+                                    LogPrinterJobEvent("printer_toil_completion_failed", actor, eaterPawn, currentPrinter, "carry_failed");
                                     if (!meal.Destroyed && !meal.Spawned && actor.Map != null)
                                     {
                                         GenSpawn.Spawn(meal, actor.Position, actor.Map);
@@ -246,7 +270,11 @@ namespace FoodPrinterSystem
                             }
                             else
                             {
-                                actor.jobs.curDriver.EndJobWith(JobCondition.Incompletable);
+                                LogPrinterJobEvent("printer_toil_completion_failed", actor, eaterPawn, currentPrinter, "complete_processing_returned_null");
+                                if (!TrySwitchToAlternativePrinter(actor, printerInd, currentPrinter))
+                                {
+                                    actor.jobs.curDriver.EndJobWith(JobCondition.Incompletable);
+                                }
                             }
                         }
                     }
@@ -256,7 +284,7 @@ namespace FoodPrinterSystem
                     Pawn actor = toil.actor;
                     Building_FoodPrinter currentPrinter = GetPrinter(actor, printerInd);
                     CompFoodPrinter comp = currentPrinter == null ? null : currentPrinter.FoodPrinterComp;
-                    if (processingStarted && comp != null && comp.IsProcessingPawn(actor))
+                    if (processingStarted && comp != null && comp.IsProcessingPawn(actor) && !comp.HasCompletedProcessing)
                     {
                         comp.CancelProcessing(currentPrinter, actor);
                     }
@@ -375,12 +403,49 @@ namespace FoodPrinterSystem
             Building_FoodPrinter alternative = FoodPrinterJobUtility.FindClosestValidPrinter(pawn, eater, true, false, false, false, currentPrinter);
             if (alternative == null || pawn == null || pawn.CurJob == null)
             {
+                LogPrinterJobEvent("printer_switch_failed", pawn, eater, currentPrinter, "no_alternative_printer");
                 return false;
             }
 
             Job replacementJob = pawn.CurJob.Clone();
             replacementJob.SetTarget(targetIndex, alternative);
-            return pawn.jobs.TryTakeOrderedJob(replacementJob, null, false);
+            bool switched = pawn.jobs.TryTakeOrderedJob(replacementJob, null, false);
+            LogPrinterJobEvent(switched ? "printer_switch_succeeded" : "printer_switch_failed", pawn, eater, alternative, switched ? "switched" : "take_ordered_job_failed");
+            return switched;
+        }
+
+        private static void LogPrinterJobEvent(string eventName, Pawn actor, Pawn eater, Building_FoodPrinter printer, string reason)
+        {
+            if (!Prefs.DevMode)
+            {
+                return;
+            }
+
+            CompFoodPrinter comp = printer == null ? null : printer.FoodPrinterComp;
+            Log.Message("[FPS] " + eventName
+                + ": actor=" + GetPawnDebugLabel(actor)
+                + ", eater=" + GetPawnDebugLabel(eater)
+                + ", printer=" + GetPrinterDebugLabel(printer)
+                + ", canPrintNow=" + (printer != null && printer.CanPrintNow)
+                + ", isPrinting=" + (printer != null && printer.IsPrinting)
+                + ", processingMeal=" + GetMealDebugLabel(comp == null ? null : comp.ProcessingMealDef)
+                + ", processingCost=" + (comp == null ? 0 : comp.ProcessingTonerCost)
+                + ", reason=" + reason);
+        }
+
+        private static string GetPawnDebugLabel(Pawn pawn)
+        {
+            return pawn == null ? "null" : pawn.LabelShortCap + " (" + pawn.thingIDNumber + ")";
+        }
+
+        private static string GetPrinterDebugLabel(Building_FoodPrinter printer)
+        {
+            return printer == null ? "null" : printer.LabelShortCap + " (" + printer.thingIDNumber + ")";
+        }
+
+        private static string GetMealDebugLabel(ThingDef mealDef)
+        {
+            return mealDef == null ? "null" : mealDef.defName;
         }
     }
 }

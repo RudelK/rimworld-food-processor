@@ -8,6 +8,7 @@ namespace FoodPrinterSystem
     public static class FoodPrinterJobUtility
     {
         private const float MaxPrinterSearchDistance = 9999f;
+        private const float PreferenceDistanceCreditPerPoint = 4f;
 
         public static Building_FoodPrinter FindClosestValidPrinter(Pawn getter, Pawn eater, bool allowDispenserFull, bool allowForbidden, bool allowSociallyImproper, bool ignoreReservations, Building_FoodPrinter excludedPrinter = null)
         {
@@ -22,29 +23,52 @@ namespace FoodPrinterSystem
                 return null;
             }
 
-            TraverseParms traverseParms = TraverseParms.For(getter, Danger.Some, TraverseMode.ByPawn, false, false, false, false);
-            Thing result = GenClosest.ClosestThingReachable(
-                getter.Position,
-                getter.Map,
-                ThingRequest.ForDef(FoodPrinterSystemDefOf.FPS_FoodPrinter),
-                PathEndMode.InteractionCell,
-                traverseParms,
-                MaxPrinterSearchDistance,
-                delegate(Thing thing)
+            PawnPrinterFoodPolicy pawnPolicy = FoodPrinterPawnUtility.ResolvePawnFoodPolicy(eater);
+            Building_FoodPrinter bestPrinter = null;
+            float bestAdjustedDistance = float.MaxValue;
+            float bestRawDistance = float.MaxValue;
+            float bestPreferenceScore = float.MinValue;
+
+            for (int i = 0; i < printers.Count; i++)
+            {
+                Building_FoodPrinter printer = printers[i] as Building_FoodPrinter;
+                if (!IsPrinterJobCandidate(printer, getter, eater, pawnPolicy, allowDispenserFull, allowForbidden, allowSociallyImproper, ignoreReservations, excludedPrinter))
                 {
-                    return IsPrinterJobCandidate(thing as Building_FoodPrinter, getter, eater, allowDispenserFull, allowForbidden, allowSociallyImproper, ignoreReservations, excludedPrinter);
-                },
-                printers,
-                0,
-                -1,
-                true,
-                RegionType.Set_Passable,
-                false,
-                false);
-            return result as Building_FoodPrinter;
+                    continue;
+                }
+
+                // Soft preference scoring only ranks printers that already passed the
+                // hard allow/deny filters in IsPrinterJobCandidate.
+                float rawDistance = getter.Position.DistanceTo(printer.InteractionCell);
+                float preferenceScore = FoodPrinterPawnUtility.GetPrinterPreferenceScore(pawnPolicy, eater, printer);
+                float adjustedDistance = rawDistance - (preferenceScore * PreferenceDistanceCreditPerPoint);
+                if (IsBetterPrinterCandidate(adjustedDistance, rawDistance, preferenceScore, bestAdjustedDistance, bestRawDistance, bestPreferenceScore))
+                {
+                    bestPrinter = printer;
+                    bestAdjustedDistance = adjustedDistance;
+                    bestRawDistance = rawDistance;
+                    bestPreferenceScore = preferenceScore;
+                }
+            }
+
+            return bestPrinter;
         }
 
         public static bool IsPrinterJobCandidate(Building_FoodPrinter printer, Pawn getter, Pawn eater, bool allowDispenserFull, bool allowForbidden, bool allowSociallyImproper, bool ignoreReservations, Building_FoodPrinter excludedPrinter = null)
+        {
+            return IsPrinterJobCandidate(
+                printer,
+                getter,
+                eater,
+                FoodPrinterPawnUtility.ResolvePawnFoodPolicy(eater),
+                allowDispenserFull,
+                allowForbidden,
+                allowSociallyImproper,
+                ignoreReservations,
+                excludedPrinter);
+        }
+
+        private static bool IsPrinterJobCandidate(Building_FoodPrinter printer, Pawn getter, Pawn eater, PawnPrinterFoodPolicy pawnPolicy, bool allowDispenserFull, bool allowForbidden, bool allowSociallyImproper, bool ignoreReservations, Building_FoodPrinter excludedPrinter = null)
         {
             if (printer == null
                 || printer == excludedPrinter
@@ -61,8 +85,8 @@ namespace FoodPrinterSystem
                 return false;
             }
 
-            ThingDef availableMealDef = printer.AvailableMealDef;
             CompFoodPrinter printerComp = printer.FoodPrinterComp;
+            ThingDef availableMealDef = FoodPrinterPawnUtility.GetResolvedMealDefForPawn(pawnPolicy, eater, printer);
             if (printerComp == null || availableMealDef == null || !printerComp.IsMealResearched(availableMealDef))
             {
                 return false;
@@ -88,7 +112,9 @@ namespace FoodPrinterSystem
                 return false;
             }
 
-            if (!printer.CanPawnPrint(eater))
+            // Hard filter: never allow fallback selection to use a printer that the
+            // eater is not actually allowed to consume from.
+            if (!FoodPrinterPawnUtility.IsPrinterAllowedForPawn(pawnPolicy, eater, printer))
             {
                 return false;
             }
@@ -132,6 +158,31 @@ namespace FoodPrinterSystem
         {
             bool animalsCare = !getter.RaceProps.Animal;
             return thing.IsSociallyProper(getter) || thing.IsSociallyProper(eater, eater.IsPrisonerOfColony, animalsCare);
+        }
+
+        private static bool IsBetterPrinterCandidate(float adjustedDistance, float rawDistance, float preferenceScore, float bestAdjustedDistance, float bestRawDistance, float bestPreferenceScore)
+        {
+            if (adjustedDistance < bestAdjustedDistance - 0.001f)
+            {
+                return true;
+            }
+
+            if (adjustedDistance > bestAdjustedDistance + 0.001f)
+            {
+                return false;
+            }
+
+            if (preferenceScore > bestPreferenceScore + 0.001f)
+            {
+                return true;
+            }
+
+            if (preferenceScore < bestPreferenceScore - 0.001f)
+            {
+                return false;
+            }
+
+            return rawDistance < bestRawDistance;
         }
     }
 }

@@ -110,6 +110,7 @@
     <Compile Include="FoodPrinterAlertHarmony.cs" />
     <Compile Include="FoodPrinterHarmony.cs" />
     <Compile Include="FoodPrinterJobUtility.cs" />
+    <Compile Include="FoodPrinterPawnUtility.cs" />
     <Compile Include="FoodPrinterSystemDefOf.cs" />
     <Compile Include="FoodPrinterSystemMod.cs" />
     <Compile Include="FoodPrinterSystemUtility.cs" />

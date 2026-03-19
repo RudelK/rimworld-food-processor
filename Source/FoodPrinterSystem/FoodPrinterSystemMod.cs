@@ -23,10 +23,16 @@ namespace FoodPrinterSystem
         public int animalFeederPower = 100;
         public float bedsideFeederTonerCost = 3.0f;
         public bool randomMealSelection = true;
+        public bool hardCheckFoodType = true;
 
         public bool RandomMealSelection
         {
             get { return randomMealSelection; }
+        }
+
+        public bool HardCheckFoodType
+        {
+            get { return hardCheckFoodType; }
         }
 
         public override void ExposeData()
@@ -52,6 +58,7 @@ namespace FoodPrinterSystem
             Scribe_Values.Look(ref animalFeederPower, "animalFeederPower", 100);
             Scribe_Values.Look(ref bedsideFeederTonerCost, "bedsideFeederTonerCost", 3.0f);
             Scribe_Values.Look(ref randomMealSelection, "randomMealSelection", true);
+            Scribe_Values.Look(ref hardCheckFoodType, "hardCheckFoodType", true);
 
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
@@ -119,7 +126,7 @@ namespace FoodPrinterSystem
         {
             Settings.Sanitize();
 
-            Rect viewRect = new Rect(0f, 0f, inRect.width - 16f, 760f);
+            Rect viewRect = new Rect(0f, 0f, inRect.width - 16f, 800f);
             Widgets.BeginScrollView(inRect, ref settingsScrollPosition, viewRect);
 
             Listing_Standard listing = new Listing_Standard();
@@ -155,6 +162,10 @@ namespace FoodPrinterSystem
             listing.GapLine();
             listing.Label("FPS_SettingsSectionPrinter".Translate());
             listing.CheckboxLabeled("FPS_SettingsRandomization".Translate().ToString(), ref Settings.randomMealSelection);
+            listing.CheckboxLabeled(
+                "FPS_SettingsHardCheckFoodType".Translate().ToString(),
+                ref Settings.hardCheckFoodType,
+                "FPS_SettingsHardCheckFoodTypeDesc".Translate().ToString());
 
             listing.End();
             Widgets.EndScrollView();

@@ -96,15 +96,7 @@ namespace FoodPrinterSystem
 
         public bool CanPawnPrint(Pawn eater)
         {
-            CompFoodPrinter comp = FoodPrinterComp;
-            ThingDef mealDef = AvailableMealDef;
-            if (comp == null || mealDef == null || !comp.IsMealResearched(mealDef))
-            {
-                return false;
-            }
-
-            FoodPolicy currentPolicy = eater == null ? null : eater.foodRestriction?.CurrentFoodPolicy;
-            return currentPolicy == null || currentPolicy.Allows(mealDef);
+            return FoodPrinterPawnUtility.IsPrinterAllowedForPawn(eater, this);
         }
     }
 }
