@@ -193,7 +193,8 @@ namespace FoodPrinterSystem
                         return;
                     }
 
-                    if (!FoodPrinterPawnUtility.CanPawnConsumePrinterMeal(eaterPawn, currentPrinter))
+                    PawnPrinterFoodPolicy eaterPolicy = FoodPrinterPawnUtility.ResolvePawnFoodPolicy(eaterPawn);
+                    if (!FoodPrinterPawnUtility.CanPawnConsumePrinterMeal(eaterPolicy, eaterPawn, currentPrinter))
                     {
                         LogPrinterJobEvent("printer_toil_init_failed", actor, eaterPawn, currentPrinter, "policy_blocked");
                         if (!TrySwitchToAlternativePrinter(actor, printerInd, currentPrinter))
@@ -236,10 +237,11 @@ namespace FoodPrinterSystem
                         if (ticksLeft <= 1)
                         {
                             Pawn eaterPawn = GetMealConsumer(actor);
+                            PawnPrinterFoodPolicy eaterPolicy = FoodPrinterPawnUtility.ResolvePawnFoodPolicy(eaterPawn);
                             // Revalidate the hard allow/deny rules immediately before
                             // completion so we never generate a meal from a printer the
                             // pawn can no longer use.
-                            if (!FoodPrinterPawnUtility.CanPawnConsumePrinterMeal(eaterPawn, currentPrinter))
+                            if (!FoodPrinterPawnUtility.CanPawnConsumePrinterMeal(eaterPolicy, eaterPawn, currentPrinter))
                             {
                                 LogPrinterJobEvent("printer_toil_completion_failed", actor, eaterPawn, currentPrinter, "policy_blocked_before_completion");
                                 if (!TrySwitchToAlternativePrinter(actor, printerInd, currentPrinter))
@@ -416,7 +418,7 @@ namespace FoodPrinterSystem
 
         private static void LogPrinterJobEvent(string eventName, Pawn actor, Pawn eater, Building_FoodPrinter printer, string reason)
         {
-            if (!Prefs.DevMode)
+            if (FoodPrinterSystemMod.Settings == null || !FoodPrinterSystemMod.Settings.DebugLoggingEnabled)
             {
                 return;
             }

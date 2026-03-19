@@ -10,9 +10,18 @@ namespace FoodPrinterSystem
     {
         private static readonly System.Reflection.FieldInfo AllAlertsFieldInfo = AccessTools.Field(typeof(AlertsReadout), "AllAlerts");
         private static readonly System.Reflection.MethodInfo AlertRecalculateMethodInfo = AccessTools.Method(typeof(Alert), "Recalculate");
+        private static readonly System.Reflection.FieldInfo ResourceCounterMapFieldInfo = AccessTools.Field(typeof(ResourceCounter), "map");
+        private static int lastInvalidationTick = -1;
 
         public static void InvalidateAlertCache()
         {
+            int currentTick = Find.TickManager == null ? -1 : Find.TickManager.TicksGame;
+            if (currentTick >= 0 && lastInvalidationTick == currentTick)
+            {
+                return;
+            }
+
+            lastInvalidationTick = currentTick;
             UIRoot_Play uiRoot = Find.UIRoot as UIRoot_Play;
             if (uiRoot != null && uiRoot.alerts != null && AllAlertsFieldInfo != null && AlertRecalculateMethodInfo != null)
             {
@@ -36,7 +45,7 @@ namespace FoodPrinterSystem
         {
             public static void Postfix(ResourceCounter __instance, ref float __result)
             {
-                Map map = AccessTools.Field(typeof(ResourceCounter), "map")?.GetValue(__instance) as Map;
+                Map map = ResourceCounterMapFieldInfo == null ? null : ResourceCounterMapFieldInfo.GetValue(__instance) as Map;
                 if (map != null)
                 {
                     MapComponent_TonerNetwork netComp = map.GetComponent<MapComponent_TonerNetwork>();

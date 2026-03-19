@@ -20,6 +20,14 @@ namespace FoodPrinterSystem
     [StaticConstructorOnStartup]
     public class CompFoodPrinter : ThingComp
     {
+        private sealed class CachedAffordableMeals
+        {
+            public int SettingsRevision;
+            public int ResearchStateMask;
+            public int NetworkRevision;
+            public List<ThingDef> Meals;
+        }
+
         private static readonly FoodPreferability[] CategoryOrder =
         {
             FoodPreferability.MealAwful,
@@ -40,6 +48,12 @@ namespace FoodPrinterSystem
         private int processingTicksRemaining;
         private int processingTonerCost;
         private Pawn currentProcessingPawn;
+        private string cachedManualMealDefName;
+        private ThingDef cachedManualMealDef;
+        private string cachedProcessingMealDefName;
+        private ThingDef cachedProcessingMealDef;
+        private readonly Dictionary<FoodPreferability, List<ThingDef>> configuredMealsByCategory = new Dictionary<FoodPreferability, List<ThingDef>>();
+        private readonly Dictionary<FoodPreferability, CachedAffordableMeals> affordableMealsByCategory = new Dictionary<FoodPreferability, CachedAffordableMeals>();
 
         public CompProperties_FoodPrinter Props
         {
@@ -54,12 +68,12 @@ namespace FoodPrinterSystem
 
         public ThingDef ManualMealDef
         {
-            get { return manualMealDefName.NullOrEmpty() ? null : DefDatabase<ThingDef>.GetNamedSilentFail(manualMealDefName); }
+            get { return ResolveCachedMealDef(manualMealDefName, ref cachedManualMealDefName, ref cachedManualMealDef); }
         }
 
         public ThingDef ProcessingMealDef
         {
-            get { return processingMealDefName.NullOrEmpty() ? null : DefDatabase<ThingDef>.GetNamedSilentFail(processingMealDefName); }
+            get { return ResolveCachedMealDef(processingMealDefName, ref cachedProcessingMealDefName, ref cachedProcessingMealDef); }
         }
 
         public bool IsProcessing
@@ -151,6 +165,7 @@ namespace FoodPrinterSystem
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 initialized = false;
+                InvalidateMealCaches();
                 EnsureInitialized();
                 MigrateLegacyAllowedMeals();
                 EnsureManualMealSelection();
@@ -538,7 +553,9 @@ namespace FoodPrinterSystem
 
             if (meal != null)
             {
-                System.Collections.Generic.List<ThingDef> ingredients = TonerNetworkUtility.GetAllIngredients(printer);
+                System.Collections.Generic.List<ThingDef> ingredients = foodPrinter != null
+                    ? FoodPrinterPawnUtility.GetPredictedFoodCharacteristics(foodPrinter).PredictedIngredientDefs
+                    : TonerNetworkUtility.GetAllIngredients(printer);
                 if (ingredients != null && ingredients.Count > 0)
                 {
                     CompIngredients compIng = meal.TryGetComp<CompIngredients>();
@@ -626,6 +643,7 @@ namespace FoodPrinterSystem
             }
 
             initialized = true;
+            InvalidateMealCaches();
             if (enabledCategoryIds == null)
             {
                 enabledCategoryIds = new List<string>();
@@ -785,7 +803,13 @@ namespace FoodPrinterSystem
 
         private List<ThingDef> GetConfiguredMealsForCategory(FoodPreferability category)
         {
+            if (configuredMealsByCategory.TryGetValue(category, out List<ThingDef> cachedMeals))
+            {
+                return cachedMeals;
+            }
+
             List<ThingDef> meals = new List<ThingDef>();
+            configuredMealsByCategory[category] = meals;
             if (Props.defaultMealDefs == null)
             {
                 return meals;
@@ -811,9 +835,27 @@ namespace FoodPrinterSystem
 
         private List<ThingDef> GetAffordableMealsForCategory(Building printer, FoodPreferability category)
         {
+            if (printer == null)
+            {
+                return GetConfiguredMealsForCategory(category);
+            }
+
+            int settingsRevision = FoodPrinterSystemMod.SettingsRevision;
+            int researchStateMask = GetResearchStateMask();
+            int networkRevision = GetNetworkRevision(printer);
+            if (affordableMealsByCategory.TryGetValue(category, out CachedAffordableMeals cachedMeals)
+                && cachedMeals != null
+                && cachedMeals.SettingsRevision == settingsRevision
+                && cachedMeals.ResearchStateMask == researchStateMask
+                && cachedMeals.NetworkRevision == networkRevision
+                && cachedMeals.Meals != null)
+            {
+                return cachedMeals.Meals;
+            }
+
             List<ThingDef> meals = GetConfiguredMealsForCategory(category);
             TonerNetworkSummary summary = TonerNetworkUtility.GetSummary(printer);
-            List<ThingDef> affordable = new List<ThingDef>();
+            List<ThingDef> affordable = new List<ThingDef>(meals.Count);
             for (int i = 0; i < meals.Count; i++)
             {
                 if (summary.Stored >= FoodPrinterSystemUtility.GetPrintCost(meals[i]))
@@ -822,23 +864,24 @@ namespace FoodPrinterSystem
                 }
             }
 
+            affordableMealsByCategory[category] = new CachedAffordableMeals
+            {
+                SettingsRevision = settingsRevision,
+                ResearchStateMask = researchStateMask,
+                NetworkRevision = networkRevision,
+                Meals = affordable
+            };
             return affordable;
         }
 
         private List<ThingDef> GetAffordableMealsForCategory(Building printer, FoodPreferability category, PawnPrinterFoodPolicy policy, Pawn eater)
         {
-            List<ThingDef> meals = GetConfiguredMealsForCategory(category);
-            TonerNetworkSummary summary = TonerNetworkUtility.GetSummary(printer);
-            List<ThingDef> affordable = new List<ThingDef>();
+            List<ThingDef> meals = GetAffordableMealsForCategory(printer, category);
+            List<ThingDef> affordable = new List<ThingDef>(meals.Count);
             Building_FoodPrinter foodPrinter = printer as Building_FoodPrinter;
             for (int i = 0; i < meals.Count; i++)
             {
                 ThingDef mealDef = meals[i];
-                if (summary.Stored < FoodPrinterSystemUtility.GetPrintCost(mealDef))
-                {
-                    continue;
-                }
-
                 if (foodPrinter != null && eater != null && !FoodPrinterPawnUtility.IsMealAllowedForPawn(policy, eater, foodPrinter, mealDef))
                 {
                     continue;
@@ -991,7 +1034,7 @@ namespace FoodPrinterSystem
 
         private static void LogProcessingEvent(string eventName, Building printer, Pawn reservationPawn, Pawn eaterPawn, ThingDef mealDef, int tonerCost, string reason)
         {
-            if (!Prefs.DevMode)
+            if (FoodPrinterSystemMod.Settings == null || !FoodPrinterSystemMod.Settings.DebugLoggingEnabled)
             {
                 return;
             }
@@ -1060,6 +1103,62 @@ namespace FoodPrinterSystem
         {
             Matrix4x4 matrix = Matrix4x4.TRS(center, Quaternion.identity, new Vector3(size.x, 1f, size.y));
             Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+        }
+
+        private void InvalidateMealCaches()
+        {
+            configuredMealsByCategory.Clear();
+            affordableMealsByCategory.Clear();
+            cachedManualMealDefName = null;
+            cachedManualMealDef = null;
+            cachedProcessingMealDefName = null;
+            cachedProcessingMealDef = null;
+        }
+
+        private static ThingDef ResolveCachedMealDef(string mealDefName, ref string cachedMealDefName, ref ThingDef cachedMealDef)
+        {
+            if (mealDefName.NullOrEmpty())
+            {
+                cachedMealDefName = null;
+                cachedMealDef = null;
+                return null;
+            }
+
+            if (cachedMealDefName == mealDefName)
+            {
+                return cachedMealDef;
+            }
+
+            cachedMealDefName = mealDefName;
+            cachedMealDef = DefDatabase<ThingDef>.GetNamedSilentFail(mealDefName);
+            return cachedMealDef;
+        }
+
+        private int GetResearchStateMask()
+        {
+            int mask = 0;
+            for (int i = 0; i < CategoryOrder.Length; i++)
+            {
+                if (IsCategoryResearched(CategoryOrder[i]))
+                {
+                    mask |= 1 << i;
+                }
+            }
+
+            return mask;
+        }
+
+        private static int GetNetworkRevision(Building printer)
+        {
+            if (printer == null || printer.Map == null)
+            {
+                return 0;
+            }
+
+            MapComponent_TonerNetwork networkComponent = FoodPrinterSystemUtility.GetNetworkComponent(printer.Map);
+            return networkComponent == null
+                ? 0
+                : unchecked((networkComponent.NetworkRevision * 397) ^ networkComponent.ContentsRevision);
         }
     }
 }

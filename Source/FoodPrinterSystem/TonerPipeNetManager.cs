@@ -321,5 +321,14 @@ namespace FoodPrinterSystem
                 component.MarkDirty();
             }
         }
+
+        public static void NotifyContentsChanged(Map map)
+        {
+            MapComponent_TonerNetwork component = FoodPrinterSystemUtility.GetNetworkComponent(map);
+            if (component != null)
+            {
+                component.NotifyContentsChanged();
+            }
+        }
     }
 }

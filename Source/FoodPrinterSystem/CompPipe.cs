@@ -133,11 +133,6 @@ namespace FoodSystemPipe
             {
                 PipeOverlayDrawer.DrawBuiltOverlay(parent, this);
             }
-
-            if (parent.Spawned)
-            {
-                PipeOverlayDrawer.DrawActiveOverlay(parent.Map);
-            }
         }
 
         protected virtual bool ShouldDrawPipeOverlay()

@@ -8,8 +8,10 @@ namespace FoodPrinterSystem
 {
     public class Building_BedsideFeeder : Building
     {
+        private const int BedSearchRetryTicks = GenTicks.TickRareInterval * 4;
         private Building_Bed linkedBed;
         private CompPowerTrader powerComp;
+        private int nextBedSearchTick;
 
         public Building_Bed LinkedBed => linkedBed;
 
@@ -35,8 +37,20 @@ namespace FoodPrinterSystem
 
             if (linkedBed == null || linkedBed.Destroyed || !IsAtBedHead(linkedBed, Position))
             {
+                int currentTick = Find.TickManager == null ? 0 : Find.TickManager.TicksGame;
+                if (currentTick < nextBedSearchTick)
+                {
+                    return;
+                }
+
                 FindLinkedBed();
-                if (linkedBed == null) return;
+                if (linkedBed == null)
+                {
+                    nextBedSearchTick = currentTick + BedSearchRetryTicks;
+                    return;
+                }
+
+                nextBedSearchTick = 0;
             }
 
             foreach (Pawn occupant in linkedBed.CurOccupants)

@@ -14,6 +14,7 @@ namespace FoodPrinterSystem
         private float resourceBuffer;
         private float maxCapacity;
         private int netId = -1;
+        private bool storageStateDirty = true;
 
         public List<CompPipe> Pipes
         {
@@ -29,7 +30,7 @@ namespace FoodPrinterSystem
         {
             get
             {
-                RefreshStorageState();
+                EnsureStorageState();
                 return resourceBuffer;
             }
         }
@@ -38,7 +39,7 @@ namespace FoodPrinterSystem
         {
             get
             {
-                RefreshStorageState();
+                EnsureStorageState();
                 return maxCapacity;
             }
         }
@@ -70,6 +71,8 @@ namespace FoodPrinterSystem
             {
                 tanks.Add(tank);
             }
+
+            storageStateDirty = true;
         }
 
         internal void AddUser(CompPipeUser user)
@@ -87,11 +90,13 @@ namespace FoodPrinterSystem
             {
                 tanks.Add(tank);
             }
+
+            storageStateDirty = true;
         }
 
         public void NetTick()
         {
-            RefreshStorageState();
+            EnsureStorageState();
 
             float netConsumptionRate = 0f;
             for (int i = 0; i < users.Count; i++)
@@ -125,7 +130,7 @@ namespace FoodPrinterSystem
                 return true;
             }
 
-            RefreshStorageState();
+            EnsureStorageState();
             return resourceBuffer + 0.0001f >= amount;
         }
 
@@ -136,7 +141,7 @@ namespace FoodPrinterSystem
                 return true;
             }
 
-            RefreshStorageState();
+            EnsureStorageState();
             if (resourceBuffer + 0.0001f < amount)
             {
                 return false;
@@ -154,7 +159,7 @@ namespace FoodPrinterSystem
                 return true;
             }
 
-            RefreshStorageState();
+            EnsureStorageState();
             if (maxCapacity <= 0f || resourceBuffer + amount > maxCapacity + 0.0001f)
             {
                 return false;
@@ -167,7 +172,7 @@ namespace FoodPrinterSystem
 
         public TonerNetworkSummary GetSummary()
         {
-            RefreshStorageState();
+            EnsureStorageState();
             TonerNetworkSummary summary = new TonerNetworkSummary();
             summary.HasNetwork = pipes.Count > 0;
             summary.Stored = Mathf.RoundToInt(resourceBuffer);
@@ -205,12 +210,27 @@ namespace FoodPrinterSystem
             tanks.Clear();
             resourceBuffer = 0f;
             maxCapacity = 0f;
+            storageStateDirty = true;
+        }
+
+        internal void NotifyStorageChanged()
+        {
+            storageStateDirty = true;
+        }
+
+        private void EnsureStorageState()
+        {
+            if (storageStateDirty)
+            {
+                RefreshStorageState();
+            }
         }
 
         private void RefreshStorageState()
         {
             int totalCapacity = 0;
             int totalStored = 0;
+            bool requiresRedistribution = false;
 
             for (int i = 0; i < tanks.Count; i++)
             {
@@ -228,36 +248,33 @@ namespace FoodPrinterSystem
             if (totalCapacity <= 0)
             {
                 resourceBuffer = 0f;
-                ZeroAllTanks();
+                storageStateDirty = false;
                 return;
             }
 
             if (totalStored < 0)
             {
                 totalStored = 0;
+                requiresRedistribution = true;
             }
             else if (totalStored > totalCapacity)
             {
                 totalStored = totalCapacity;
+                requiresRedistribution = true;
             }
 
             resourceBuffer = totalStored;
-            RedistributeAcrossTanks(totalStored, totalCapacity);
+            storageStateDirty = false;
+            if (requiresRedistribution)
+            {
+                SyncBufferToTanks();
+            }
         }
 
         private void SyncBufferToTanks()
         {
-            int totalCapacity = 0;
-            for (int i = 0; i < tanks.Count; i++)
-            {
-                CompTonerTank tank = tanks[i];
-                if (tank != null && tank.parent != null)
-                {
-                    totalCapacity += tank.Capacity;
-                }
-            }
-
-            maxCapacity = totalCapacity;
+            EnsureStorageState();
+            int totalCapacity = Mathf.RoundToInt(maxCapacity);
             if (totalCapacity <= 0)
             {
                 resourceBuffer = 0f;
@@ -277,9 +294,11 @@ namespace FoodPrinterSystem
                 CompTonerTank tank = tanks[i];
                 if (tank != null)
                 {
-                    tank.SetStoredToner(0);
+                    tank.SetStoredTonerFromNetwork(0);
                 }
             }
+
+            storageStateDirty = false;
         }
 
         private void RedistributeAcrossTanks(int totalStored, int totalCapacity)
@@ -340,9 +359,11 @@ namespace FoodPrinterSystem
                 CompTonerTank tank = tanks[i];
                 if (tank != null && tank.StoredToner != targets[i])
                 {
-                    tank.SetStoredToner(targets[i]);
+                    tank.SetStoredTonerFromNetwork(targets[i]);
                 }
             }
+
+            storageStateDirty = false;
         }
     }
 }

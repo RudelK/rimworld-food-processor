@@ -8,6 +8,7 @@ namespace FoodPrinterSystem
     {
         private CompPowerTrader powerComp;
         private int activeTicksRemaining;
+        private Thing cachedAdjacentFood;
 
         public override void SpawnSetup(Map map, bool respawningAfterLoad)
         {
@@ -20,6 +21,7 @@ namespace FoodPrinterSystem
         {
             base.TickRare();
 
+            bool wasActive = activeTicksRemaining > 0;
             if (activeTicksRemaining > 0)
             {
                 activeTicksRemaining -= GenTicks.TickRareInterval;
@@ -29,7 +31,11 @@ namespace FoodPrinterSystem
                 }
             }
 
-            ApplyPowerSetting();
+            if (wasActive != (activeTicksRemaining > 0))
+            {
+                ApplyPowerSetting();
+            }
+
             if (powerComp == null || !powerComp.PowerOn)
             {
                 return;
@@ -89,6 +95,12 @@ namespace FoodPrinterSystem
 
         private Thing FindAdjacentFood()
         {
+            if (IsCachedAdjacentFoodValid())
+            {
+                return cachedAdjacentFood;
+            }
+
+            cachedAdjacentFood = null;
             foreach (IntVec3 cell in GenAdj.CellsAdjacentCardinal(this))
             {
                 if (!cell.InBounds(Map))
@@ -102,12 +114,39 @@ namespace FoodPrinterSystem
                     Thing food = FindFoodInThing(things[j]);
                     if (food != null)
                     {
+                        if (food.Spawned)
+                        {
+                            cachedAdjacentFood = food;
+                        }
+
                         return food;
                     }
                 }
             }
 
             return null;
+        }
+
+        private bool IsCachedAdjacentFoodValid()
+        {
+            return cachedAdjacentFood != null
+                && cachedAdjacentFood.Spawned
+                && cachedAdjacentFood.Map == Map
+                && FoodPrinterSystemUtility.IsProcessableFood(cachedAdjacentFood)
+                && IsAdjacentCardinalCell(cachedAdjacentFood.Position);
+        }
+
+        private bool IsAdjacentCardinalCell(IntVec3 cell)
+        {
+            foreach (IntVec3 adjacent in GenAdj.CellsAdjacentCardinal(this))
+            {
+                if (adjacent == cell)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static Thing FindFoodInThing(Thing thing)

@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using FoodPrinterSystem;
 using RimWorld;
+using UnityEngine;
 using Verse;
 
 namespace FoodSystemPipe
@@ -15,8 +16,11 @@ namespace FoodSystemPipe
     public static class PipeOverlayVisibilityUtility
     {
         private const string FoodProcessCategoryDefName = "FPS_FoodProcessingCategory";
-        private static readonly bool DebugLoggingEnabled = false;
         private static readonly BindingFlags MemberFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        private static int cachedVisibilityFrame = -1;
+        private static int cachedVisibilityMapId = -1;
+        private static PipeOverlayVisibilityMode cachedVisibilityMode = PipeOverlayVisibilityMode.Hidden;
+        private static string cachedSelectedDesignatorDebugLabel = "<none>";
 
         public static PipeOverlayVisibilityMode GetVisibilityMode(Map map)
         {
@@ -25,34 +29,60 @@ namespace FoodSystemPipe
                 return PipeOverlayVisibilityMode.Hidden;
             }
 
-            return IsFoodProcessCategoryActive(GetSelectedDesignator())
-                ? PipeOverlayVisibilityMode.FoodProcess
-                : PipeOverlayVisibilityMode.Hidden;
+            RefreshFrameCache(map);
+            return cachedVisibilityMode;
         }
 
         public static string GetSelectedDesignatorDebugLabel()
         {
-            Designator selectedDesignator = GetSelectedDesignator();
-            if (selectedDesignator != null)
+            Map map = Find.CurrentMap;
+            if (map == null)
             {
-                BuildableDef placingDef = GetSelectedBuildableDef(selectedDesignator);
-                return placingDef == null
-                    ? selectedDesignator.GetType().FullName
-                    : selectedDesignator.GetType().FullName + "(" + placingDef.defName + ")";
+                return "<none>";
             }
 
-            DesignationCategoryDef architectCategory = GetSelectedArchitectCategory();
-            return architectCategory == null
-                ? "<none>"
-                : "ArchitectCategory(" + architectCategory.defName + ")";
+            RefreshFrameCache(map);
+            return cachedSelectedDesignatorDebugLabel;
         }
 
         public static void DebugLog(string message)
         {
-            if (DebugLoggingEnabled)
+            if (FoodPrinterSystemMod.Settings != null && FoodPrinterSystemMod.Settings.DebugLoggingEnabled)
             {
                 Log.Message("[PipeOverlay] " + message);
             }
+        }
+
+        private static void RefreshFrameCache(Map map)
+        {
+            int frame = Time.frameCount;
+            int mapId = map == null ? -1 : map.uniqueID;
+            if (cachedVisibilityFrame == frame && cachedVisibilityMapId == mapId)
+            {
+                return;
+            }
+
+            Designator selectedDesignator = GetSelectedDesignator();
+            if (selectedDesignator != null)
+            {
+                BuildableDef placingDef = GetSelectedBuildableDef(selectedDesignator);
+                cachedSelectedDesignatorDebugLabel = placingDef == null
+                    ? selectedDesignator.GetType().FullName
+                    : selectedDesignator.GetType().FullName + "(" + placingDef.defName + ")";
+            }
+            else
+            {
+                DesignationCategoryDef architectCategory = GetSelectedArchitectCategory();
+                cachedSelectedDesignatorDebugLabel = architectCategory == null
+                    ? "<none>"
+                    : "ArchitectCategory(" + architectCategory.defName + ")";
+            }
+
+            cachedVisibilityMode = IsFoodProcessCategoryActive(selectedDesignator)
+                ? PipeOverlayVisibilityMode.FoodProcess
+                : PipeOverlayVisibilityMode.Hidden;
+            cachedVisibilityFrame = frame;
+            cachedVisibilityMapId = mapId;
         }
 
         private static Designator GetSelectedDesignator()

@@ -33,8 +33,13 @@ namespace FoodSystemPipe
                 return;
             }
 
+            if (!component.BeginActiveDrawFrame())
+            {
+                return;
+            }
+
             PipeOverlayState state = component.GetVisibleState();
-            if (state == null || state.IsEmpty || !component.BeginNetworkDraw(state))
+            if (state == null || state.IsEmpty)
             {
                 return;
             }

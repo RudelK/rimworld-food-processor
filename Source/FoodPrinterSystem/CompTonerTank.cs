@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FoodSystemPipe;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -100,7 +101,6 @@ namespace FoodPrinterSystem
         public override void CompTickRare()
         {
             base.CompTickRare();
-            NotifySettingsChanged();
 
             if (storedToner <= 0)
             {
@@ -120,8 +120,7 @@ namespace FoodPrinterSystem
                 return;
             }
 
-            storedToner = 0;
-            ClearIngredients();
+            SetStoredToner(0);
             unpoweredTicks = 0;
             if (parent.MapHeld != null)
             {
@@ -191,19 +190,49 @@ namespace FoodPrinterSystem
 
         public void SetStoredToner(int amount)
         {
-            storedToner = amount < 0 ? 0 : amount;
-            ClampStoredTonerToCapacity();
-            if (storedToner == 0)
-            {
-                ClearIngredients();
-            }
-            FoodPrinterAlertHarmony.InvalidateAlertCache();
+            SetStoredTonerInternal(amount, true);
+        }
+
+        internal void SetStoredTonerFromNetwork(int amount)
+        {
+            SetStoredTonerInternal(amount, false);
         }
 
         public void NotifySettingsChanged()
         {
+            int previousStored = storedToner;
             ClampStoredTonerToCapacity();
             ApplyPowerSetting();
+            if (parent != null && parent.Spawned)
+            {
+                NotifyStoredTonerChanged();
+            }
+
+            if (storedToner != previousStored)
+            {
+                FoodPrinterAlertHarmony.InvalidateAlertCache();
+            }
+        }
+
+        private void SetStoredTonerInternal(int amount, bool notifyNetwork)
+        {
+            int previousStored = storedToner;
+            storedToner = amount < 0 ? 0 : amount;
+            ClampStoredTonerToCapacity();
+            if (storedToner == 0 && previousStored > 0)
+            {
+                ClearIngredients();
+            }
+
+            if (storedToner != previousStored)
+            {
+                if (notifyNetwork)
+                {
+                    NotifyStoredTonerChanged();
+                }
+
+                FoodPrinterAlertHarmony.InvalidateAlertCache();
+            }
         }
 
         public void ApplyPowerSetting()
@@ -315,11 +344,31 @@ namespace FoodPrinterSystem
 
         private void NotifyIngredientStateChanged()
         {
-            // Printer food-character prediction is cached by toner network revision,
-            // so ingredient provenance changes must invalidate that revision too.
+            // Printer food-character prediction is cached by toner network content
+            // revision, so ingredient provenance changes must invalidate that cache
+            // without forcing a full pipe topology rebuild.
             if (parent != null && parent.MapHeld != null)
             {
-                TonerPipeNetManager.MarkDirty(parent.MapHeld);
+                TonerNetworkUtility.NotifyContentsChanged(parent.MapHeld);
+            }
+        }
+
+        private void NotifyStoredTonerChanged()
+        {
+            if (parent == null)
+            {
+                return;
+            }
+
+            CompPipe pipeComp = parent.TryGetComp<CompPipe>();
+            if (pipeComp != null && pipeComp.PipeNet != null)
+            {
+                pipeComp.PipeNet.NotifyStorageChanged();
+            }
+
+            if (parent.MapHeld != null)
+            {
+                TonerNetworkUtility.NotifyContentsChanged(parent.MapHeld);
             }
         }
 

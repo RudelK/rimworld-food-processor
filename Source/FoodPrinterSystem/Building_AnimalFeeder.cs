@@ -7,8 +7,11 @@ namespace FoodPrinterSystem
     public class Building_AnimalFeeder : Building_Storage
     {
         private const int FixedBatchSize = 10;
+        private const int KibbleRecountIntervalTicks = GenTicks.TickRareInterval * 4;
 
         private CompPowerTrader powerComp;
+        private int cachedStoredKibble = -1;
+        private int nextKibbleRecountTick;
 
         public override void SpawnSetup(Map map, bool respawningAfterLoad)
         {
@@ -20,7 +23,6 @@ namespace FoodPrinterSystem
         public override void TickRare()
         {
             base.TickRare();
-            ApplyPowerSetting();
 
             if (powerComp == null || !powerComp.PowerOn)
             {
@@ -28,7 +30,7 @@ namespace FoodPrinterSystem
             }
 
             int outputLimit = FoodPrinterSystemUtility.GetAnimalFeederOutputLimit();
-            int storedKibble = CountStoredKibble();
+            int storedKibble = GetStoredKibbleCount();
             int remainingCapacity = outputLimit - storedKibble;
             if (remainingCapacity <= 0)
             {
@@ -53,6 +55,12 @@ namespace FoodPrinterSystem
                 {
                     kibble.Destroy(DestroyMode.Vanish);
                 }
+
+                cachedStoredKibble = -1;
+            }
+            else if (cachedStoredKibble >= 0)
+            {
+                cachedStoredKibble += batchSize;
             }
         }
 
@@ -103,6 +111,19 @@ namespace FoodPrinterSystem
             }
 
             return total;
+        }
+
+        private int GetStoredKibbleCount()
+        {
+            int currentTick = Find.TickManager == null ? 0 : Find.TickManager.TicksGame;
+            if (cachedStoredKibble >= 0 && currentTick < nextKibbleRecountTick)
+            {
+                return cachedStoredKibble;
+            }
+
+            cachedStoredKibble = CountStoredKibble();
+            nextKibbleRecountTick = currentTick + KibbleRecountIntervalTicks;
+            return cachedStoredKibble;
         }
 
         private bool TryStoreKibble(Thing kibble)

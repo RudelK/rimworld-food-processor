@@ -116,13 +116,19 @@ namespace FoodPrinterSystem
         private string animalFeederPowerBuffer;
         private bool showDebugSettings;
         private int lastSettingsDrawFrame = -1;
+        private static int settingsRevision = 1;
 
         public static FoodPrinterSystemSettings Settings { get; private set; }
+        public static int SettingsRevision
+        {
+            get { return settingsRevision; }
+        }
 
         public FoodPrinterSystemMod(ModContentPack content) : base(content)
         {
             Settings = GetSettings<FoodPrinterSystemSettings>();
             Settings.Sanitize();
+            BumpSettingsRevision();
             new Harmony(HarmonyId).PatchAll();
         }
 
@@ -206,6 +212,7 @@ namespace FoodPrinterSystem
             }
 
             Settings.Sanitize();
+            BumpSettingsRevision();
             if (Current.Game == null || Find.Maps == null)
             {
                 return;
@@ -214,12 +221,6 @@ namespace FoodPrinterSystem
             for (int mapIndex = 0; mapIndex < Find.Maps.Count; mapIndex++)
             {
                 Map map = Find.Maps[mapIndex];
-                MapComponent_TonerNetwork network = FoodPrinterSystemUtility.GetNetworkComponent(map);
-                if (network != null)
-                {
-                    network.MarkDirty();
-                }
-
                 for (int i = 0; i < map.listerThings.AllThings.Count; i++)
                 {
                     Thing thing = map.listerThings.AllThings[i];
@@ -320,6 +321,18 @@ namespace FoodPrinterSystem
             if (!tooltip.NullOrEmpty())
             {
                 TooltipHandler.TipRegion(rect, tooltip);
+            }
+        }
+
+        private static void BumpSettingsRevision()
+        {
+            if (settingsRevision == int.MaxValue)
+            {
+                settingsRevision = 1;
+            }
+            else
+            {
+                settingsRevision++;
             }
         }
     }

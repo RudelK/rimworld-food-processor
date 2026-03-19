@@ -63,9 +63,12 @@ namespace FoodPrinterSystem
             }
 
             MapComponent_TonerNetwork networkComponent = FoodPrinterSystemUtility.GetNetworkComponent(printer.Map);
-            int networkRevision = networkComponent == null ? 0 : networkComponent.NetworkRevision;
-            // Cache by toner network revision. Tank ingredient mutations mark the
-            // network dirty so stale printer food predictions get invalidated here.
+            int networkRevision = networkComponent == null
+                ? 0
+                : unchecked((networkComponent.NetworkRevision * 397) ^ networkComponent.ContentsRevision);
+            // Cache by combined toner network topology/content revision so both
+            // pipe connectivity changes and ingredient/storage mutations invalidate
+            // stale printer food predictions without recomputing every search.
             CachedPrinterFoodCharacteristics cachedCharacteristics;
             if (CachedCharacteristicsByPrinterId.TryGetValue(printer.thingIDNumber, out cachedCharacteristics)
                 && cachedCharacteristics != null
@@ -81,6 +84,7 @@ namespace FoodPrinterSystem
             // meat/vegetarian/cannibal constraints before a meal is printed.
             List<Thing> connectedNodes = TonerPipeNetManager.GetConnectedNodes(printer);
             List<ThingDef> predictedIngredientDefs = new List<ThingDef>();
+            HashSet<ThingDef> seenIngredients = new HashSet<ThingDef>();
             FoodTypeFlags predictedFoodTypes = FoodTypeFlags.None;
             bool hasMeat = false;
             bool hasNonMeat = false;
@@ -116,7 +120,7 @@ namespace FoodPrinterSystem
                 for (int j = 0; j < tankIngredients.Count; j++)
                 {
                     ThingDef ingredientDef = tankIngredients[j];
-                    if (ingredientDef == null || ingredientDef.ingestible == null || predictedIngredientDefs.Contains(ingredientDef))
+                    if (ingredientDef == null || ingredientDef.ingestible == null || !seenIngredients.Add(ingredientDef))
                     {
                         continue;
                     }
@@ -407,15 +411,16 @@ namespace FoodPrinterSystem
             bool hasHumanMeat = characteristics.ContainsHumanMeatIngredient;
             bool hasMeat = (characteristics.PredictedFoodTypes & FoodTypeFlags.Meat) != FoodTypeFlags.None;
             bool hasVegetarianForbiddenIngredients = characteristics.ContainsVegetarianForbiddenIngredients;
+            bool shouldDebugLog = ShouldDebugLog();
 
             // Soft preference only. This never overrides the hard allow/deny rules in
             // IsPrinterAllowedForPawn; it only ranks printers that are already usable.
             float score = 0f;
-            List<string> modifiers = new List<string>();
+            List<string> modifiers = shouldDebugLog ? new List<string>() : null;
             if (policy != null && policy.PrefersHumanMeat && hasHumanMeat)
             {
                 score += 2f;
-                modifiers.Add("human_meat:+2");
+                modifiers?.Add("human_meat:+2");
             }
 
             if (policy != null && policy.PrefersMeat)
@@ -423,22 +428,22 @@ namespace FoodPrinterSystem
                 if (hasMeat)
                 {
                     score += 1f;
-                    modifiers.Add("meat:+1");
+                    modifiers?.Add("meat:+1");
                 }
                 else
                 {
                     score -= 0.5f;
-                    modifiers.Add("no_meat:-0.5");
+                    modifiers?.Add("no_meat:-0.5");
                 }
             }
 
             if (policy != null && policy.RequiresVegetarianFood && !hasVegetarianForbiddenIngredients)
             {
                 score += 0.5f;
-                modifiers.Add("vegetarian_safe:+0.5");
+                modifiers?.Add("vegetarian_safe:+0.5");
             }
 
-            LogPrinterPreference(pawn, printer, policy, score, modifiers.Count == 0 ? "none" : string.Join(", ", modifiers.ToArray()));
+            LogPrinterPreference(pawn, printer, policy, score, modifiers == null || modifiers.Count == 0 ? "none" : string.Join(", ", modifiers.ToArray()));
             return score;
         }
 

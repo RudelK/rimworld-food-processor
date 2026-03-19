@@ -7,13 +7,12 @@ namespace FoodSystemPipe
 {
     public class PipeOverlayMapComponent : MapComponent
     {
-        private readonly Dictionary<int, int> lastDrawnFrameByOverlayId = new Dictionary<int, int>();
-
         private PipeOverlayState visibleState;
         private PipeOverlayVisibilityMode currentMode = PipeOverlayVisibilityMode.Hidden;
         private PipeOverlayVisibilityMode lastLoggedMode = (PipeOverlayVisibilityMode)(-1);
         private string lastLoggedDesignator = string.Empty;
         private bool dirty = true;
+        private int lastActiveDrawFrame = -1;
 
         public PipeOverlayMapComponent(Map map) : base(map)
         {
@@ -50,8 +49,6 @@ namespace FoodSystemPipe
                 ClearVisibleState(true);
                 return;
             }
-
-            GetVisibleState();
         }
 
         public PipeOverlayState GetVisibleState()
@@ -75,21 +72,15 @@ namespace FoodSystemPipe
             return visibleState;
         }
 
-        public bool BeginNetworkDraw(PipeOverlayState state)
+        public bool BeginActiveDrawFrame()
         {
-            if (state == null || state.IsEmpty)
-            {
-                return false;
-            }
-
-            int overlayId = state.NetworkKey >= 0 ? state.NetworkKey : state.SelectedThingId;
             int frame = Time.frameCount;
-            if (lastDrawnFrameByOverlayId.TryGetValue(overlayId, out int lastFrame) && lastFrame == frame)
+            if (lastActiveDrawFrame == frame)
             {
                 return false;
             }
 
-            lastDrawnFrameByOverlayId[overlayId] = frame;
+            lastActiveDrawFrame = frame;
             return true;
         }
 
@@ -97,7 +88,6 @@ namespace FoodSystemPipe
         {
             dirty = true;
             visibleState = null;
-            lastDrawnFrameByOverlayId.Clear();
         }
 
         private void ClearVisibleState(bool hiddenByVisibilityRule)
@@ -106,7 +96,6 @@ namespace FoodSystemPipe
             visibleState = null;
             currentMode = PipeOverlayVisibilityMode.Hidden;
             dirty = true;
-            lastDrawnFrameByOverlayId.Clear();
 
             if (hadState)
             {

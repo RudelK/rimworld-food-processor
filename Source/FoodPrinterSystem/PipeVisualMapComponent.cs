@@ -43,16 +43,10 @@ namespace FoodSystemPipe
     public class PipeVisualMapComponent : MapComponent
     {
         private readonly Dictionary<PipeVisualMaskCacheKey, PipeVisualMaskCacheEntry> maskCache = new Dictionary<PipeVisualMaskCacheKey, PipeVisualMaskCacheEntry>();
-        private readonly HashSet<IntVec3> dirtyCells = new HashSet<IntVec3>();
         private int visualRevision = 1;
 
         public PipeVisualMapComponent(Map map) : base(map)
         {
-        }
-
-        public int VisualRevision
-        {
-            get { return visualRevision; }
         }
 
         public override void ExposeData()
@@ -95,30 +89,7 @@ namespace FoodSystemPipe
                 return;
             }
 
-            CellRect occupiedRect = GenAdj.OccupiedRect(position, rotation, def.size);
-            for (int x = occupiedRect.minX - 1; x <= occupiedRect.maxX + 1; x++)
-            {
-                for (int z = occupiedRect.minZ - 1; z <= occupiedRect.maxZ + 1; z++)
-                {
-                    IntVec3 cell = new IntVec3(x, 0, z);
-                    if (cell.InBounds(map))
-                    {
-                        dirtyCells.Add(cell);
-                    }
-                }
-            }
-
             InvalidateAll();
-        }
-
-        public bool IsCellMarkedDirty(IntVec3 cell)
-        {
-            return dirtyCells.Contains(cell);
-        }
-
-        public void AcknowledgeCell(IntVec3 cell)
-        {
-            dirtyCells.Remove(cell);
         }
 
         private void InvalidateAll()

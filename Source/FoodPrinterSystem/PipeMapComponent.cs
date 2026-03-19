@@ -212,7 +212,13 @@ namespace FoodPrinterSystem
             lock (syncRoot)
             {
                 PipeNet net = GetNetForThingLocked(node);
-                return net != null && net.TryDraw(amount);
+                bool success = net != null && net.TryDraw(amount);
+                if (success)
+                {
+                    NotifyContentsChangedLocked();
+                }
+
+                return success;
             }
         }
 
@@ -226,7 +232,13 @@ namespace FoodPrinterSystem
             lock (syncRoot)
             {
                 PipeNet net = GetNetForThingLocked(node);
-                return net != null && net.TryAdd(amount);
+                bool success = net != null && net.TryAdd(amount);
+                if (success)
+                {
+                    NotifyContentsChangedLocked();
+                }
+
+                return success;
             }
         }
 
@@ -505,6 +517,15 @@ namespace FoodPrinterSystem
             }
 
             return current;
+        }
+
+        private void NotifyContentsChangedLocked()
+        {
+            MapComponent_TonerNetwork tonerNetwork = this as MapComponent_TonerNetwork;
+            if (tonerNetwork != null)
+            {
+                tonerNetwork.NotifyContentsChanged();
+            }
         }
     }
 }

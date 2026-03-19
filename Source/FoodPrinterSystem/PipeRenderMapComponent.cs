@@ -43,24 +43,6 @@ namespace FoodSystemPipe
             FlushDirtyRequests();
         }
 
-        public void NotifyPipeChanged(Thing pipeThing)
-        {
-            if (!PipeCellQueryUtility.IsStandalonePipeThing(pipeThing))
-            {
-                return;
-            }
-
-            IntVec3 center = pipeThing.PositionHeld;
-            MarkDirty(center);
-            for (int i = 0; i < PipeCellQueryUtility.CardinalDirectionCount; i++)
-            {
-                MarkDirty(PipeCellQueryUtility.GetAdjacentCell(center, i));
-            }
-
-            EnsureSectionLayersRegistered();
-            FlushDirtyRequests();
-        }
-
         public void NotifyVisualNodeChanged(Thing thing)
         {
             if (thing == null || map == null)
@@ -75,7 +57,6 @@ namespace FoodSystemPipe
             }
 
             EnsureSectionLayersRegistered();
-            FlushDirtyRequests();
         }
 
         private void EnsureSectionLayersRegistered()
@@ -176,21 +157,6 @@ namespace FoodSystemPipe
         public static PipeRenderMapComponent Get(Map map)
         {
             return map == null ? null : map.GetComponent<PipeRenderMapComponent>();
-        }
-
-        public static void NotifyPipeChanged(Thing pipeThing, Map mapOverride = null)
-        {
-            if (pipeThing == null)
-            {
-                return;
-            }
-
-            Map map = mapOverride ?? pipeThing.MapHeld;
-            PipeRenderMapComponent component = Get(map);
-            if (component != null)
-            {
-                component.NotifyPipeChanged(pipeThing);
-            }
         }
 
         public static void NotifyVisualNodeChanged(Thing thing, Map mapOverride = null)
