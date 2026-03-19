@@ -65,11 +65,11 @@ namespace FoodSystemPipe
             switch (style)
             {
                 case PipeOverlayStyle.Selected:
-                    return new Color(1f, 0.86f, 0.32f, 0.92f);
+                    return new Color(0.32f, 0.94f, 0.88f, 0.92f);
                 case PipeOverlayStyle.Ghost:
-                    return new Color(0.40f, 0.96f, 0.78f, 0.70f);
+                    return new Color(0.40f, 0.92f, 0.98f, 0.70f);
                 default:
-                    return new Color(0.50f, 0.78f, 0.62f, 0.64f);
+                    return new Color(0.36f, 0.78f, 0.72f, 0.64f);
             }
         }
 
@@ -78,11 +78,11 @@ namespace FoodSystemPipe
             switch (style)
             {
                 case PipeOverlayStyle.Selected:
-                    return new Color(1f, 0.88f, 0.36f, 0.62f);
+                    return new Color(0.38f, 0.96f, 0.90f, 0.62f);
                 case PipeOverlayStyle.Ghost:
-                    return new Color(0.42f, 1f, 0.84f, 0.48f);
+                    return new Color(0.46f, 0.96f, 1.00f, 0.48f);
                 default:
-                    return new Color(0.56f, 0.84f, 0.68f, 0.42f);
+                    return new Color(0.42f, 0.82f, 0.76f, 0.42f);
             }
         }
     }
