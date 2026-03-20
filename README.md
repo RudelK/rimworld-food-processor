@@ -17,6 +17,7 @@ Raw food and meals can be broken down into liquid toner, stored in connected tan
 - In-game mod settings for power use, print costs, tank capacity, and related balance values
 - Harmony-based integration with RimWorld food-search logic and ingest jobs
 - Pawn-aware printer filtering based on connected ingredient provenance
+- Dynamic discovery of valid modded meal defs for simple, fine, and lavish meal tiers
 - Shared floor-level pipe rendering and architect-category overlay previews
 - Persistent right-side warning when toner-consuming buildings are not connected to toner tank storage
 - Live localization for English, Korean, Japanese, and Simplified Chinese
@@ -44,6 +45,7 @@ Toner tank unlocks are:
 3. Disintegrated food adds toner and preserves its final ingestible ingredient defs in connected tanks.
 4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically, or use a `Nutrient feeder` for adjacent beds.
 5. Pawns evaluate printers against the connected network's current ingredient profile before selecting them as a food source.
+6. The printer can automatically include valid modded meal defs from loaded mods, as long as they are real meal ingestibles and match an unlocked meal tier.
 
 ## Power And Network Notes
 
@@ -54,6 +56,8 @@ Toner tank unlocks are:
 - Food printers use the toner network as their real input source and no longer rely on nutrient paste hoppers.
 - Food printers respect research locks for meal tiers and current connected toner availability.
 - Printer food-type prediction is based on stored ingredient provenance in connected toner tanks.
+- Printer random selection excludes meal defs directly forbidden by the current pawn food policy.
+- Printer meal discovery excludes non-meal ingestibles such as insect jelly even if their preferability is high.
 - Toner-consuming buildings show a persistent `Need to connect toner tank` warning when they are not connected to a toner network with at least one tank.
 - `Deconstruct pipes` only targets placed toner pipes and ignores walls, machines, and other non-pipe buildings that merely share pipe visuals.
 
@@ -62,6 +66,8 @@ Toner tank unlocks are:
 - Vegetarian restrictions are treated as hard blocks for incompatible printers.
 - Meat and human-meat preferences can be used for printer ranking, and can optionally become hard blocks through the mod settings.
 - If Ideology is disabled, or ideology resolution is unavailable for a pawn, printer policy falls back to neutral instead of blocking use.
+- Printer category defaults follow current research state, so unavailable tiers are not shown as enabled before they are unlocked.
+- Printer mask color follows the room used at the printer interaction cell, and updates when a linked bed switches between colonist and prisoner use.
 
 ## Mod Settings
 
