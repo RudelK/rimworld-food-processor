@@ -317,6 +317,7 @@
     <graphicData>
       <texPath>Things/Building/foodsystem/printer/printer</texPath>
       <graphicClass>Graphic_Multi</graphicClass>
+      <color>(232,255,191)</color>
       <shaderType>CutoutComplex</shaderType>
       <drawSize>(4,2)</drawSize>
     </graphicData>

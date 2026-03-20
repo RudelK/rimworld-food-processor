@@ -420,11 +420,63 @@ namespace FoodPrinterSystem
             }
         }
 
+        [HarmonyPatch(typeof(Building_Bed), "set_ForPrisoners")]
+        public static class Patch_BuildingBed_set_ForPrisoners
+        {
+            public static void Postfix(Building_Bed __instance)
+            {
+                NotifyBedPrintersMaskStateChanged(__instance);
+            }
+        }
+
+        [HarmonyPatch(typeof(Building_Bed), nameof(Building_Bed.SetBedOwnerTypeByInterface))]
+        public static class Patch_BuildingBed_SetBedOwnerTypeByInterface
+        {
+            public static void Postfix(Building_Bed __instance)
+            {
+                NotifyBedPrintersMaskStateChanged(__instance);
+            }
+        }
+
         private static bool IsPrinterValidFoodSource(Building_FoodPrinter printer)
         {
             Pawn getter = currentFoodGetter;
             Pawn eater = currentFoodEater ?? getter;
             return FoodPrinterJobUtility.IsPrinterJobCandidate(printer, getter, eater, currentAllowDispenserFull, currentAllowForbidden, currentAllowSociallyImproper, false);
+        }
+
+        private static void NotifyRoomPrintersMaskStateChanged(Room room)
+        {
+            if (room == null || room.Map == null || FoodPrinterSystemDefOf.FPS_FoodPrinter == null)
+            {
+                return;
+            }
+
+            List<Thing> printers = room.Map.listerThings.ThingsOfDef(FoodPrinterSystemDefOf.FPS_FoodPrinter);
+            for (int i = 0; i < printers.Count; i++)
+            {
+                Building_FoodPrinter printer = printers[i] as Building_FoodPrinter;
+                if (printer == null || !printer.UsesRoom(room))
+                {
+                    continue;
+                }
+
+                printer.NotifyMaskStateChanged();
+            }
+        }
+
+        private static void NotifyBedPrintersMaskStateChanged(Building_Bed bed)
+        {
+            if (bed == null || !bed.Spawned || bed.Map == null)
+            {
+                return;
+            }
+
+            Room room = bed.GetRoom();
+            if (room != null)
+            {
+                NotifyRoomPrintersMaskStateChanged(room);
+            }
         }
 
         private static Building_FoodPrinter GetPrinter(Pawn pawn, TargetIndex targetIndex)

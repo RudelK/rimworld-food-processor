@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 using RimWorld;
+using UnityEngine;
 using Verse;
 
 namespace FoodPrinterSystem
 {
     public class Building_FoodPrinter : Building_NutrientPasteDispenser
     {
+        private static readonly Color ColonistMaskColor = new Color(232f / 255f, 1f, 191f / 255f, 1f);
+        private static readonly Color PrisonerMaskColor = new Color(1f, 0.78f, 0.46f, 1f);
+
         private static readonly string[] HopperWarningKeywords =
         {
             "hopper",
@@ -92,9 +96,23 @@ namespace FoodPrinterSystem
             }
         }
 
+        public override Color DrawColor
+        {
+            get
+            {
+                if (!Spawned || Map == null)
+                {
+                    return ColonistMaskColor;
+                }
+
+                return IsPrisonerServingRoom() ? PrisonerMaskColor : ColonistMaskColor;
+            }
+        }
+
         public override void SpawnSetup(Map map, bool respawningAfterLoad)
         {
             base.SpawnSetup(map, respawningAfterLoad);
+            NotifyMaskStateChanged();
             FoodPrinterAlertHarmony.NotifyConsumerRegistryChanged();
         }
 
@@ -145,6 +163,54 @@ namespace FoodPrinterSystem
         public bool CanPawnPrint(Pawn eater)
         {
             return FoodPrinterPawnUtility.IsPrinterAllowedForPawn(eater, this);
+        }
+
+        internal void NotifyMaskStateChanged()
+        {
+            MarkGraphicDirty();
+        }
+
+        private bool IsPrisonerServingRoom()
+        {
+            if (InteractionCell.IsValid && InteractionCell.InBounds(Map))
+            {
+                Room interactionRoom = InteractionCell.GetRoom(Map);
+                if (interactionRoom != null)
+                {
+                    return interactionRoom.IsPrisonCell;
+                }
+            }
+            return false;
+        }
+
+        internal bool UsesRoom(Room room)
+        {
+            if (room == null || room.Map != Map)
+            {
+                return false;
+            }
+
+            return InteractionCell.IsValid && InteractionCell.InBounds(Map) && InteractionCell.GetRoom(Map) == room;
+        }
+
+        private void MarkGraphicDirty()
+        {
+            if (Map == null || Map.mapDrawer == null)
+            {
+                return;
+            }
+
+            Notify_ColorChanged();
+
+            CellRect occupiedRect = GenAdj.OccupiedRect(Position, Rotation, def.size);
+            foreach (IntVec3 cell in occupiedRect)
+            {
+                if (cell.InBounds(Map))
+                {
+                    Map.mapDrawer.MapMeshDirty(cell, MapMeshFlagDefOf.Things);
+                    Map.mapDrawer.MapMeshDirty(cell, MapMeshFlagDefOf.Buildings);
+                }
+            }
         }
 
         private static bool IsHopperBuildGizmo(Gizmo gizmo)
