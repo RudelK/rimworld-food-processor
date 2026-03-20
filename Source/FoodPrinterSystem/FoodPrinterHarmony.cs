@@ -5,6 +5,7 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using System.Collections.Generic;
 
 namespace FoodPrinterSystem
 {
@@ -12,6 +13,15 @@ namespace FoodPrinterSystem
     public static class FoodPrinterHarmony
     {
         private static readonly AccessTools.FieldRef<Designator_Place, Rot4> DesignatorPlacePlacingRot = AccessTools.FieldRefAccess<Designator_Place, Rot4>("placingRot");
+        private const int PrinterOnlyFallbackBlockDurationTicks = 150;
+
+        private sealed class PrinterOnlyFallbackBlockState
+        {
+            public int ExpiresAtTick;
+            public int SourcePrinterId;
+        }
+
+        private static readonly Dictionary<int, PrinterOnlyFallbackBlockState> PrinterOnlyFallbackBlockByPawnId = new Dictionary<int, PrinterOnlyFallbackBlockState>();
         private static bool bestFoodSourceOnMap;
         private static Pawn currentFoodGetter;
         private static Pawn currentFoodEater;
@@ -53,8 +63,15 @@ namespace FoodPrinterSystem
                     return;
                 }
 
+                bool printerOnlyFallbackBlocked = HasActivePrinterOnlyFallbackBlock(getter);
                 Building_FoodPrinter selectedPrinter = foodSource as Building_FoodPrinter;
-                if (__result && foodSource != null && selectedPrinter == null)
+                if (__result && selectedPrinter != null)
+                {
+                    ClearPrinterOnlyFallbackBlock(getter, selectedPrinter, "printer_search_succeeded");
+                    return;
+                }
+
+                if (__result && foodSource != null && selectedPrinter == null && !printerOnlyFallbackBlocked)
                 {
                     return;
                 }
@@ -68,10 +85,27 @@ namespace FoodPrinterSystem
                         foodDef = null;
                         __result = false;
                     }
+                    else if (printerOnlyFallbackBlocked)
+                    {
+                        if (__result && foodSource != null)
+                        {
+                            LogNonPrinterFallbackSuppressed(getter, eater, null, foodSource, foodDef, "printer_only_search_active");
+                        }
+
+                        foodSource = null;
+                        foodDef = null;
+                        __result = false;
+                    }
 
                     return;
                 }
 
+                if (printerOnlyFallbackBlocked && __result && foodSource != null && selectedPrinter == null)
+                {
+                    LogNonPrinterFallbackSuppressed(getter, eater, replacementPrinter, foodSource, foodDef, "printer_only_search_active");
+                }
+
+                ClearPrinterOnlyFallbackBlock(getter, replacementPrinter, "printer_search_succeeded");
                 foodSource = replacementPrinter;
                 foodDef = FoodPrinterPawnUtility.GetResolvedMealDefForPawn(eater, replacementPrinter);
                 __result = foodDef != null;
@@ -166,6 +200,7 @@ namespace FoodPrinterSystem
 
                 TargetIndex printerInd = ind;
                 bool processingStarted = false;
+                string pendingFailureReason = null;
                 Toil toil = new Toil();
                 toil.defaultCompleteMode = ToilCompleteMode.Delay;
                 toil.defaultDuration = FoodPrinterSystemUtility.PrintingDelayTicks;
@@ -178,6 +213,7 @@ namespace FoodPrinterSystem
                     if (currentPrinter == null || comp == null)
                     {
                         LogPrinterJobEvent("printer_toil_init_failed", actor, eaterPawn, currentPrinter, "missing_printer_or_comp");
+                        ArmPrinterOnlyFallbackBlock(actor, currentPrinter, "missing_printer_or_comp");
                         actor.jobs.curDriver.EndJobWith(JobCondition.Incompletable);
                         return;
                     }
@@ -217,6 +253,8 @@ namespace FoodPrinterSystem
                     }
 
                     processingStarted = true;
+                    pendingFailureReason = null;
+                    ClearPrinterOnlyFallbackBlock(actor, currentPrinter, "processing_started");
                     comp.UpdateProcessingTicksRemaining(FoodPrinterSystemUtility.PrintingDelayTicks);
                 };
                 toil.tickAction = delegate
@@ -286,8 +324,18 @@ namespace FoodPrinterSystem
                     Pawn actor = toil.actor;
                     Building_FoodPrinter currentPrinter = GetPrinter(actor, printerInd);
                     CompFoodPrinter comp = currentPrinter == null ? null : currentPrinter.FoodPrinterComp;
+                    if (!pendingFailureReason.NullOrEmpty())
+                    {
+                        TrySwitchToAlternativePrinter(actor, printerInd, currentPrinter, pendingFailureReason);
+                    }
+
                     if (processingStarted && comp != null && comp.IsProcessingPawn(actor) && !comp.HasCompletedProcessing)
                     {
+                        if (pendingFailureReason.NullOrEmpty())
+                        {
+                            ClearPrinterOnlyFallbackBlock(actor, currentPrinter, "processing_cancelled");
+                        }
+
                         comp.CancelProcessing(currentPrinter, actor);
                     }
                 });
@@ -305,17 +353,25 @@ namespace FoodPrinterSystem
                     Building_FoodPrinter currentPrinter = GetPrinter(actor, printerInd);
                     if (currentPrinter == null || !currentPrinter.IsPowered)
                     {
+                        pendingFailureReason = "printer_lost_power";
                         return true;
                     }
 
                     CompFoodPrinter comp = currentPrinter.FoodPrinterComp;
                     if (comp == null || !comp.IsProcessingPawn(actor) || comp.IsBusyFor(actor))
                     {
+                        pendingFailureReason = "printer_processing_invalid";
                         return true;
                     }
 
                     int tonerCost = comp.ProcessingTonerCost;
-                    return tonerCost <= 0 || !TonerPipeNetManager.CanDraw(currentPrinter, tonerCost);
+                    bool failed = tonerCost <= 0 || !TonerPipeNetManager.CanDraw(currentPrinter, tonerCost);
+                    if (failed)
+                    {
+                        pendingFailureReason = tonerCost <= 0 ? "invalid_processing_toner_cost" : "processing_toner_unavailable";
+                    }
+
+                    return failed;
                 });
                 toil.WithProgressBar(printerInd, delegate
                 {
@@ -399,13 +455,14 @@ namespace FoodPrinterSystem
             return comp == null ? 0f : comp.ProcessingProgress;
         }
 
-        private static bool TrySwitchToAlternativePrinter(Pawn pawn, TargetIndex targetIndex, Building_FoodPrinter currentPrinter)
+        private static bool TrySwitchToAlternativePrinter(Pawn pawn, TargetIndex targetIndex, Building_FoodPrinter currentPrinter, string failureReason = null)
         {
             Pawn eater = GetMealConsumer(pawn);
             Building_FoodPrinter alternative = FoodPrinterJobUtility.FindClosestValidPrinter(pawn, eater, true, false, false, false, currentPrinter);
             if (alternative == null || pawn == null || pawn.CurJob == null)
             {
                 LogPrinterJobEvent("printer_switch_failed", pawn, eater, currentPrinter, "no_alternative_printer");
+                ArmPrinterOnlyFallbackBlock(pawn, currentPrinter, failureReason.NullOrEmpty() ? "no_alternative_printer" : failureReason);
                 return false;
             }
 
@@ -413,6 +470,15 @@ namespace FoodPrinterSystem
             replacementJob.SetTarget(targetIndex, alternative);
             bool switched = pawn.jobs.TryTakeOrderedJob(replacementJob, null, false);
             LogPrinterJobEvent(switched ? "printer_switch_succeeded" : "printer_switch_failed", pawn, eater, alternative, switched ? "switched" : "take_ordered_job_failed");
+            if (switched)
+            {
+                ClearPrinterOnlyFallbackBlock(pawn, alternative, "switched_to_alternative_printer");
+            }
+            else
+            {
+                ArmPrinterOnlyFallbackBlock(pawn, currentPrinter, failureReason.NullOrEmpty() ? "take_ordered_job_failed" : failureReason);
+            }
+
             return switched;
         }
 
@@ -435,6 +501,99 @@ namespace FoodPrinterSystem
                 + ", reason=" + reason);
         }
 
+        private static bool HasActivePrinterOnlyFallbackBlock(Pawn pawn)
+        {
+            if (pawn == null)
+            {
+                return false;
+            }
+
+            if (!PrinterOnlyFallbackBlockByPawnId.TryGetValue(pawn.thingIDNumber, out PrinterOnlyFallbackBlockState state) || state == null)
+            {
+                return false;
+            }
+
+            if (state.ExpiresAtTick <= GetCurrentTick())
+            {
+                PrinterOnlyFallbackBlockByPawnId.Remove(pawn.thingIDNumber);
+                LogPrinterOnlyFallbackCleared(pawn, null, "timeout");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static void ArmPrinterOnlyFallbackBlock(Pawn pawn, Building_FoodPrinter printer, string reason)
+        {
+            if (pawn == null)
+            {
+                return;
+            }
+
+            PrinterOnlyFallbackBlockByPawnId[pawn.thingIDNumber] = new PrinterOnlyFallbackBlockState
+            {
+                ExpiresAtTick = GetCurrentTick() + PrinterOnlyFallbackBlockDurationTicks,
+                SourcePrinterId = printer == null ? -1 : printer.thingIDNumber
+            };
+            LogPrinterOnlyFallbackArmed(pawn, printer, reason);
+        }
+
+        private static void ClearPrinterOnlyFallbackBlock(Pawn pawn, Building_FoodPrinter printer, string reason)
+        {
+            if (pawn == null)
+            {
+                return;
+            }
+
+            if (PrinterOnlyFallbackBlockByPawnId.Remove(pawn.thingIDNumber))
+            {
+                LogPrinterOnlyFallbackCleared(pawn, printer, reason);
+            }
+        }
+
+        private static void LogPrinterOnlyFallbackArmed(Pawn pawn, Building_FoodPrinter printer, string reason)
+        {
+            if (FoodPrinterSystemMod.Settings == null || !FoodPrinterSystemMod.Settings.DebugLoggingEnabled)
+            {
+                return;
+            }
+
+            Log.Message("[FPS] printer_only_search_armed"
+                + ": actor=" + GetPawnDebugLabel(pawn)
+                + ", printer=" + GetPrinterDebugLabel(printer)
+                + ", expiresAtTick=" + (GetCurrentTick() + PrinterOnlyFallbackBlockDurationTicks)
+                + ", reason=" + reason);
+        }
+
+        private static void LogPrinterOnlyFallbackCleared(Pawn pawn, Building_FoodPrinter printer, string reason)
+        {
+            if (FoodPrinterSystemMod.Settings == null || !FoodPrinterSystemMod.Settings.DebugLoggingEnabled)
+            {
+                return;
+            }
+
+            Log.Message("[FPS] printer_only_search_cleared"
+                + ": actor=" + GetPawnDebugLabel(pawn)
+                + ", printer=" + GetPrinterDebugLabel(printer)
+                + ", reason=" + reason);
+        }
+
+        private static void LogNonPrinterFallbackSuppressed(Pawn getter, Pawn eater, Building_FoodPrinter replacementPrinter, Thing originalFoodSource, ThingDef originalFoodDef, string reason)
+        {
+            if (FoodPrinterSystemMod.Settings == null || !FoodPrinterSystemMod.Settings.DebugLoggingEnabled)
+            {
+                return;
+            }
+
+            Log.Message("[FPS] printer_non_printer_fallback_suppressed"
+                + ": actor=" + GetPawnDebugLabel(getter)
+                + ", eater=" + GetPawnDebugLabel(eater)
+                + ", originalFoodSource=" + GetThingDebugLabel(originalFoodSource)
+                + ", originalFoodDef=" + GetMealDebugLabel(originalFoodDef)
+                + ", replacementPrinter=" + GetPrinterDebugLabel(replacementPrinter)
+                + ", reason=" + reason);
+        }
+
         private static string GetPawnDebugLabel(Pawn pawn)
         {
             return pawn == null ? "null" : pawn.LabelShortCap + " (" + pawn.thingIDNumber + ")";
@@ -448,6 +607,21 @@ namespace FoodPrinterSystem
         private static string GetMealDebugLabel(ThingDef mealDef)
         {
             return mealDef == null ? "null" : mealDef.defName;
+        }
+
+        private static string GetThingDebugLabel(Thing thing)
+        {
+            if (thing == null)
+            {
+                return "null";
+            }
+
+            return thing.LabelShortCap + " (" + thing.thingIDNumber + ")";
+        }
+
+        private static int GetCurrentTick()
+        {
+            return Find.TickManager == null ? 0 : Find.TickManager.TicksGame;
         }
     }
 }

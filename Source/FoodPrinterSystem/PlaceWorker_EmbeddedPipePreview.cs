@@ -34,7 +34,7 @@ namespace FoodSystemPipe
                 return;
             }
 
-            PipeOverlayDrawer.DrawGhostOverlay(map, def, center, rot);
+            PipeOverlayDrawer.DrawGhostOverlay(map, def, center, rot, thing);
         }
 
         private static bool ShouldDrawLocalPipeGhost(ThingDef def)

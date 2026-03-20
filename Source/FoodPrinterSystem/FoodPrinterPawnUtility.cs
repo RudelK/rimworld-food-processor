@@ -51,7 +51,57 @@ namespace FoodPrinterSystem
             public PrinterFoodCharacteristics Characteristics;
         }
 
+        private struct MealAllowanceCacheKey
+        {
+            public int PawnId;
+            public int PrinterId;
+            public int MealDefId;
+            public int FoodPolicyId;
+            public int NetworkRevision;
+            public int SettingsRevision;
+            public bool HardFoodTypeCheckEnabled;
+
+            public override int GetHashCode()
+            {
+                int hash = PawnId;
+                hash = Gen.HashCombineInt(hash, PrinterId);
+                hash = Gen.HashCombineInt(hash, MealDefId);
+                hash = Gen.HashCombineInt(hash, FoodPolicyId);
+                hash = Gen.HashCombineInt(hash, NetworkRevision);
+                hash = Gen.HashCombineInt(hash, SettingsRevision);
+                return Gen.HashCombineInt(hash, HardFoodTypeCheckEnabled ? 1 : 0);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is MealAllowanceCacheKey other))
+                {
+                    return false;
+                }
+
+                return PawnId == other.PawnId
+                    && PrinterId == other.PrinterId
+                    && MealDefId == other.MealDefId
+                    && FoodPolicyId == other.FoodPolicyId
+                    && NetworkRevision == other.NetworkRevision
+                    && SettingsRevision == other.SettingsRevision
+                    && HardFoodTypeCheckEnabled == other.HardFoodTypeCheckEnabled;
+            }
+        }
+
+        private sealed class CachedMealAllowanceVerdict
+        {
+            public int ExpiresAtTick;
+            public bool Allowed;
+            public string Reason;
+        }
+
         private static readonly Dictionary<int, CachedPrinterFoodCharacteristics> CachedCharacteristicsByPrinterId = new Dictionary<int, CachedPrinterFoodCharacteristics>();
+        private static readonly Dictionary<MealAllowanceCacheKey, CachedMealAllowanceVerdict> CachedMealAllowanceByKey = new Dictionary<MealAllowanceCacheKey, CachedMealAllowanceVerdict>();
+        private const int MealAllowanceCacheDurationTicks = 30;
+        private const int MealAllowanceCachePruneIntervalTicks = 120;
+        private const int MealAllowanceCachePruneThreshold = 256;
+        private static int lastMealAllowanceCachePruneTick;
         private static TraitDef cachedCannibalTraitDef;
         private static bool cachedCannibalTraitResolved;
 
@@ -218,7 +268,7 @@ namespace FoodPrinterSystem
         public static bool CanPawnConsumePrinterMeal(Pawn pawn, Building_FoodPrinter printer)
         {
             PawnPrinterFoodPolicy policy = ResolvePawnFoodPolicy(pawn);
-            return IsPrinterAllowedForPawn(policy, pawn, printer, true);
+            return IsPrinterAllowedForPawn(policy, pawn, printer);
         }
 
         public static bool CanPawnUsePrinter(Pawn pawn, Building_FoodPrinter printer)
@@ -234,16 +284,6 @@ namespace FoodPrinterSystem
 
         public static bool IsPrinterAllowedForPawn(PawnPrinterFoodPolicy policy, Pawn pawn, Building_FoodPrinter printer)
         {
-            return IsPrinterAllowedForPawn(policy, pawn, printer, false);
-        }
-
-        public static bool CanPawnConsumePrinterMeal(PawnPrinterFoodPolicy policy, Pawn pawn, Building_FoodPrinter printer)
-        {
-            return IsPrinterAllowedForPawn(policy, pawn, printer, true);
-        }
-
-        public static bool IsPrinterAllowedForPawn(PawnPrinterFoodPolicy policy, Pawn pawn, Building_FoodPrinter printer, bool allowVanillaFallback)
-        {
             if (pawn == null || printer == null)
             {
                 LogPrinterAllowance(pawn, printer, policy, false, "missing_pawn_or_printer");
@@ -258,16 +298,34 @@ namespace FoodPrinterSystem
             }
 
             CompFoodPrinter printerComp = printer.FoodPrinterComp;
-            ThingDef mealDef = GetResolvedMealDefForPawn(policy, pawn, printer);
-            if (printerComp == null || mealDef == null || !printerComp.IsMealResearched(mealDef))
+            if (printerComp == null)
             {
                 LogPrinterAllowance(pawn, printer, policy, false, "printer_has_no_valid_meal");
                 return false;
             }
 
-            bool allowed = IsMealAllowedForPawn(policy, pawn, printer, mealDef, false, allowVanillaFallback, characteristics, out string reason);
-            LogPrinterAllowance(pawn, printer, policy, allowed, reason);
-            return allowed;
+            ThingDef processingMeal = printerComp.ProcessingMealDef;
+            if (processingMeal != null)
+            {
+                if (!printerComp.IsMealResearched(processingMeal))
+                {
+                    LogPrinterAllowance(pawn, printer, policy, false, "printer_has_no_valid_meal");
+                    return false;
+                }
+
+                bool allowed = IsMealAllowedForPawn(policy, pawn, printer, processingMeal, false, characteristics, out string reason);
+                LogPrinterAllowance(pawn, printer, policy, allowed, reason);
+                return allowed;
+            }
+
+            bool hasConsumableMeal = printerComp.HasConsumableMealForPawn(printer, policy, pawn);
+            LogPrinterAllowance(pawn, printer, policy, hasConsumableMeal, hasConsumableMeal ? "consumable_meal_available" : "printer_has_no_valid_meal");
+            return hasConsumableMeal;
+        }
+
+        public static bool CanPawnConsumePrinterMeal(PawnPrinterFoodPolicy policy, Pawn pawn, Building_FoodPrinter printer)
+        {
+            return IsPrinterAllowedForPawn(policy, pawn, printer);
         }
 
         public static bool IsMealAllowedForPawn(Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef)
@@ -278,7 +336,7 @@ namespace FoodPrinterSystem
 
         public static bool IsMealAllowedForPawn(PawnPrinterFoodPolicy policy, Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef)
         {
-            return IsMealAllowedForPawn(policy, pawn, printer, mealDef, true, false, null, out _);
+            return IsMealAllowedForPawn(policy, pawn, printer, mealDef, true, null, out _);
         }
 
         public static bool CanPawnConsumeMeal(Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef)
@@ -289,7 +347,31 @@ namespace FoodPrinterSystem
 
         public static bool CanPawnConsumeMeal(PawnPrinterFoodPolicy policy, Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef)
         {
-            return IsMealAllowedForPawn(policy, pawn, printer, mealDef, true, true, null, out _);
+            return IsMealAllowedForPawn(policy, pawn, printer, mealDef, true, null, out _);
+        }
+
+        internal static bool TryDiagnoseMealAllowance(PawnPrinterFoodPolicy policy, Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef, out string reason)
+        {
+            return IsMealAllowedForPawn(policy, pawn, printer, mealDef, false, null, out reason);
+        }
+
+        internal static bool TryDiagnoseFoodPolicyAllowance(Pawn pawn, ThingDef mealDef, out string reason)
+        {
+            if (mealDef == null)
+            {
+                reason = "missing_meal_def";
+                return false;
+            }
+
+            FoodPolicy currentPolicy = pawn == null || pawn.foodRestriction == null ? null : pawn.foodRestriction.CurrentFoodPolicy;
+            if (currentPolicy != null && !currentPolicy.Allows(mealDef))
+            {
+                reason = "food_policy_blocks_meal_def";
+                return false;
+            }
+
+            reason = "food_policy_allows_meal_def";
+            return true;
         }
 
         public static ThingDef GetResolvedMealDefForPawn(Pawn pawn, Building_FoodPrinter printer)
@@ -323,14 +405,14 @@ namespace FoodPrinterSystem
             return printerComp.GetMealToPrint(printer, policy, pawn, false);
         }
 
-        private static bool IsMealAllowedForPawn(PawnPrinterFoodPolicy policy, Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef, bool logResult, bool allowVanillaFallback, PrinterFoodCharacteristics characteristics, out string reason)
+        private static bool IsMealAllowedForPawn(PawnPrinterFoodPolicy policy, Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef, bool logResult, PrinterFoodCharacteristics characteristics, out string reason)
         {
             if (pawn == null || printer == null || mealDef == null)
             {
                 reason = "missing_pawn_printer_or_meal";
                 if (logResult)
                 {
-                    LogPrinterAllowance(pawn, printer, policy, false, reason);
+                    LogMealAllowance(pawn, printer, mealDef, policy, false, reason);
                 }
 
                 return false;
@@ -342,19 +424,7 @@ namespace FoodPrinterSystem
                 reason = "printer_has_no_valid_meal";
                 if (logResult)
                 {
-                    LogPrinterAllowance(pawn, printer, policy, false, reason);
-                }
-
-                return false;
-            }
-
-            FoodPolicy currentPolicy = pawn.foodRestriction == null ? null : pawn.foodRestriction.CurrentFoodPolicy;
-            if (currentPolicy != null && !currentPolicy.Allows(mealDef))
-            {
-                reason = "food_policy_blocks_meal_def";
-                if (logResult)
-                {
-                    LogPrinterAllowance(pawn, printer, policy, false, reason);
+                    LogMealAllowance(pawn, printer, mealDef, policy, false, reason);
                 }
 
                 return false;
@@ -370,33 +440,30 @@ namespace FoodPrinterSystem
                 reason = hardBlockReason;
                 if (logResult)
                 {
-                    LogPrinterAllowance(pawn, printer, policy, false, reason);
+                    LogMealAllowance(pawn, printer, mealDef, policy, false, reason);
                 }
 
                 return false;
             }
 
-            // Selection uses the cached signature fast-path. The heavier vanilla
-            // ingestibility fallback is reserved for job start/completion checks so
-            // printer search does not allocate preview meals every tick.
-            if (allowVanillaFallback && !PassesVanillaMealCheck(pawn, mealDef, characteristics))
+            if (!TryGetCachedMealAllowanceVerdict(pawn, printer, mealDef, characteristics, out bool allowed, out string cachedReason))
             {
                 reason = "vanilla_will_eat_blocks_meal";
                 if (logResult)
                 {
-                    LogPrinterAllowance(pawn, printer, policy, false, reason);
+                    LogMealAllowance(pawn, printer, mealDef, policy, false, reason);
                 }
 
                 return false;
             }
 
-            reason = "allowed";
+            reason = cachedReason;
             if (logResult)
             {
-                LogPrinterAllowance(pawn, printer, policy, true, reason);
+                LogMealAllowance(pawn, printer, mealDef, policy, allowed, reason);
             }
 
-            return true;
+            return allowed;
         }
 
         public static float GetPrinterPreferenceScore(PawnPrinterFoodPolicy policy, Pawn pawn, Building_FoodPrinter printer)
@@ -447,7 +514,75 @@ namespace FoodPrinterSystem
             return score;
         }
 
-        private static bool PassesVanillaMealCheck(Pawn pawn, ThingDef mealDef, PrinterFoodCharacteristics characteristics)
+        private static bool TryGetCachedMealAllowanceVerdict(Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef, PrinterFoodCharacteristics characteristics, out bool allowed, out string reason)
+        {
+            MealAllowanceCacheKey cacheKey = CreateMealAllowanceCacheKey(pawn, printer, mealDef);
+            int currentTick = GetCurrentTick();
+            PruneMealAllowanceCacheIfNeeded(currentTick);
+            if (CachedMealAllowanceByKey.TryGetValue(cacheKey, out CachedMealAllowanceVerdict cachedVerdict)
+                && cachedVerdict != null
+                && cachedVerdict.ExpiresAtTick > currentTick)
+            {
+                allowed = cachedVerdict.Allowed;
+                reason = cachedVerdict.Reason;
+                return allowed;
+            }
+
+            allowed = EvaluateVanillaMealAllowance(pawn, printer, mealDef, characteristics);
+            reason = allowed
+                ? GetVanillaMealAllowedReason(printer, mealDef)
+                : "vanilla_will_eat_blocks_meal";
+            CachedMealAllowanceByKey[cacheKey] = new CachedMealAllowanceVerdict
+            {
+                ExpiresAtTick = currentTick + MealAllowanceCacheDurationTicks,
+                Allowed = allowed,
+                Reason = reason
+            };
+            return allowed;
+        }
+
+        internal static void NotifyPrinterDespawned(Building_FoodPrinter printer)
+        {
+            if (printer == null)
+            {
+                return;
+            }
+
+            CachedCharacteristicsByPrinterId.Remove(printer.thingIDNumber);
+
+            if (CachedMealAllowanceByKey.Count == 0)
+            {
+                return;
+            }
+
+            List<MealAllowanceCacheKey> printerKeys = null;
+            foreach (KeyValuePair<MealAllowanceCacheKey, CachedMealAllowanceVerdict> pair in CachedMealAllowanceByKey)
+            {
+                if (pair.Key.PrinterId != printer.thingIDNumber)
+                {
+                    continue;
+                }
+
+                if (printerKeys == null)
+                {
+                    printerKeys = new List<MealAllowanceCacheKey>();
+                }
+
+                printerKeys.Add(pair.Key);
+            }
+
+            if (printerKeys == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < printerKeys.Count; i++)
+            {
+                CachedMealAllowanceByKey.Remove(printerKeys[i]);
+            }
+        }
+
+        private static bool EvaluateVanillaMealAllowance(Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef, PrinterFoodCharacteristics characteristics)
         {
             if (pawn == null || mealDef == null)
             {
@@ -457,13 +592,114 @@ namespace FoodPrinterSystem
             try
             {
                 Thing previewMeal = BuildPredictedMealPreview(mealDef, characteristics);
-                return FoodUtility.WillEat(pawn, previewMeal, pawn, false, false);
+                LogMealPreviewEvaluation(pawn, printer, mealDef, previewMeal, characteristics, null, "before_will_eat");
+                bool allowed = FoodUtility.WillEat(pawn, previewMeal, pawn, false, false);
+                LogMealPreviewEvaluation(pawn, printer, mealDef, previewMeal, characteristics, allowed, "after_will_eat");
+                return allowed;
             }
             catch (Exception ex)
             {
+                LogMealPreviewException(pawn, printer, mealDef, characteristics, ex);
                 LogResolutionFallback("vanilla_will_eat", pawn, ex);
                 return true;
             }
+        }
+
+        private static string GetVanillaMealAllowedReason(Building_FoodPrinter printer, ThingDef mealDef)
+        {
+            if (printer == null || mealDef == null)
+            {
+                return "vanilla_meal_check_allowed";
+            }
+
+            CompFoodPrinter comp = printer.FoodPrinterComp;
+            return comp != null && !comp.IsBaseConfiguredMeal(mealDef)
+                ? "vanilla_meal_check_allowed_mod_meal"
+                : "vanilla_meal_check_allowed";
+        }
+
+        private static MealAllowanceCacheKey CreateMealAllowanceCacheKey(Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef)
+        {
+            FoodPolicy currentPolicy = pawn == null || pawn.foodRestriction == null ? null : pawn.foodRestriction.CurrentFoodPolicy;
+            return new MealAllowanceCacheKey
+            {
+                PawnId = pawn == null ? 0 : pawn.thingIDNumber,
+                PrinterId = printer == null ? 0 : printer.thingIDNumber,
+                MealDefId = mealDef == null ? 0 : mealDef.shortHash,
+                FoodPolicyId = GetFoodPolicyCacheId(currentPolicy),
+                NetworkRevision = printer == null ? 0 : GetPrinterNetworkRevision(printer),
+                SettingsRevision = FoodPrinterSystemMod.SettingsRevision,
+                HardFoodTypeCheckEnabled = IsHardFoodTypeCheckEnabled()
+            };
+        }
+
+        private static int GetFoodPolicyCacheId(FoodPolicy policy)
+        {
+            if (policy == null)
+            {
+                return 0;
+            }
+
+            string uniqueId = policy.GetUniqueLoadID();
+            return uniqueId.NullOrEmpty() ? policy.label.GetHashCode() : uniqueId.GetHashCode();
+        }
+
+        private static int GetPrinterNetworkRevision(Building_FoodPrinter printer)
+        {
+            if (printer == null || printer.Map == null)
+            {
+                return 0;
+            }
+
+            MapComponent_TonerNetwork networkComponent = FoodPrinterSystemUtility.GetNetworkComponent(printer.Map);
+            return networkComponent == null
+                ? 0
+                : unchecked((networkComponent.NetworkRevision * 397) ^ networkComponent.ContentsRevision);
+        }
+
+        private static int GetCurrentTick()
+        {
+            return Find.TickManager == null ? 0 : Find.TickManager.TicksGame;
+        }
+
+        private static void PruneMealAllowanceCacheIfNeeded(int currentTick)
+        {
+            if (CachedMealAllowanceByKey.Count == 0)
+            {
+                lastMealAllowanceCachePruneTick = currentTick;
+                return;
+            }
+
+            if (CachedMealAllowanceByKey.Count <= MealAllowanceCachePruneThreshold
+                && currentTick - lastMealAllowanceCachePruneTick < MealAllowanceCachePruneIntervalTicks)
+            {
+                return;
+            }
+
+            List<MealAllowanceCacheKey> expiredKeys = null;
+            foreach (KeyValuePair<MealAllowanceCacheKey, CachedMealAllowanceVerdict> pair in CachedMealAllowanceByKey)
+            {
+                CachedMealAllowanceVerdict verdict = pair.Value;
+                if (verdict == null || verdict.ExpiresAtTick <= currentTick)
+                {
+                    if (expiredKeys == null)
+                    {
+                        expiredKeys = new List<MealAllowanceCacheKey>();
+                    }
+
+                    expiredKeys.Add(pair.Key);
+                }
+            }
+
+            if (expiredKeys != null)
+            {
+                for (int i = 0; i < expiredKeys.Count; i++)
+                {
+                    CachedMealAllowanceByKey.Remove(expiredKeys[i]);
+                }
+            }
+
+            lastMealAllowanceCachePruneTick = currentTick;
         }
 
         // Hard printer checks use the cached toner-derived food characteristics so
@@ -620,6 +856,69 @@ namespace FoodPrinterSystem
                 + ", foodTypes=" + (characteristics == null ? FoodTypeFlags.None.ToString() : characteristics.PredictedFoodTypes.ToString()));
         }
 
+        private static void LogMealAllowance(Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef, PawnPrinterFoodPolicy policy, bool allowed, string reason)
+        {
+            if (!ShouldDebugLog())
+            {
+                return;
+            }
+
+            PrinterFoodCharacteristics characteristics = printer == null ? null : GetPredictedFoodCharacteristics(printer);
+            FoodPolicy currentPolicy = pawn == null || pawn.foodRestriction == null ? null : pawn.foodRestriction.CurrentFoodPolicy;
+            Log.Message("[FPS] Printer meal allow check for " + GetPawnDebugLabel(pawn)
+                + " -> " + GetPrinterDebugLabel(printer)
+                + ": meal=" + GetMealDebugLabel(mealDef)
+                + ", mealLabel=" + GetMealLabelDebug(mealDef)
+                + ", mealOrigin=" + GetMealOriginDebugLabel(printer, mealDef)
+                + ", mealCategory=" + GetMealCategoryDebugLabel(mealDef)
+                + ", allowed=" + allowed
+                + ", reason=" + reason
+                + ", foodPolicy=" + GetFoodPolicyDebugLabel(currentPolicy)
+                + ", policy=" + (policy == null ? "null" : policy.ToDebugString())
+                + ", hardCheckFoodType=" + IsHardFoodTypeCheckEnabled()
+                + ", foodTypes=" + (characteristics == null ? FoodTypeFlags.None.ToString() : characteristics.PredictedFoodTypes.ToString()));
+        }
+
+        private static void LogMealPreviewEvaluation(Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef, Thing previewMeal, PrinterFoodCharacteristics characteristics, bool? allowed, string stage)
+        {
+            if (!ShouldDebugLog())
+            {
+                return;
+            }
+
+            FoodPolicy currentPolicy = pawn == null || pawn.foodRestriction == null ? null : pawn.foodRestriction.CurrentFoodPolicy;
+
+            Log.Message("[FPS] Printer meal preview " + stage + " for " + GetPawnDebugLabel(pawn)
+                + " -> " + GetPrinterDebugLabel(printer)
+                + ": allowed=" + (allowed.HasValue ? allowed.Value.ToString() : "pending")
+                + ", foodPolicy=" + GetFoodPolicyDebugLabel(currentPolicy)
+                + ", policyAllowsMealDef=" + GetFoodPolicyAllowsMealDefDebugLabel(currentPolicy, mealDef)
+                + ", meal=" + GetMealDebugLabel(mealDef)
+                + ", mealDetail={" + GetMealFullDebug(mealDef) + "}"
+                + ", previewDetail={" + GetPreviewMealFullDebug(previewMeal) + "}"
+                + ", predictedCharacteristics={" + GetPredictedCharacteristicsDebug(characteristics) + "}");
+        }
+
+        private static void LogMealPreviewException(Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef, PrinterFoodCharacteristics characteristics, Exception ex)
+        {
+            if (!ShouldDebugLog())
+            {
+                return;
+            }
+
+            FoodPolicy currentPolicy = pawn == null || pawn.foodRestriction == null ? null : pawn.foodRestriction.CurrentFoodPolicy;
+
+            Log.Message("[FPS] Printer meal preview exception for " + GetPawnDebugLabel(pawn)
+                + " -> " + GetPrinterDebugLabel(printer)
+                + ": foodPolicy=" + GetFoodPolicyDebugLabel(currentPolicy)
+                + ", policyAllowsMealDef=" + GetFoodPolicyAllowsMealDefDebugLabel(currentPolicy, mealDef)
+                + ": meal=" + GetMealDebugLabel(mealDef)
+                + ", mealDetail={" + GetMealFullDebug(mealDef) + "}"
+                + ", predictedCharacteristics={" + GetPredictedCharacteristicsDebug(characteristics) + "}"
+                + ", exception=" + ex.GetType().Name
+                + ", message=" + ex.Message);
+        }
+
         private static void LogPrinterPreference(Pawn pawn, Building_FoodPrinter printer, PawnPrinterFoodPolicy policy, float score, string modifiers)
         {
             if (!ShouldDebugLog())
@@ -648,6 +947,205 @@ namespace FoodPrinterSystem
         private static string GetPrinterDebugLabel(Building_FoodPrinter printer)
         {
             return printer == null ? "null" : printer.LabelShortCap + " (" + printer.thingIDNumber + ")";
+        }
+
+        private static string GetMealDebugLabel(ThingDef mealDef)
+        {
+            return mealDef == null ? "null" : mealDef.defName;
+        }
+
+        private static string GetMealLabelDebug(ThingDef mealDef)
+        {
+            return mealDef == null ? "null" : mealDef.LabelCap.ToString();
+        }
+
+        private static string GetMealOriginDebugLabel(Building_FoodPrinter printer, ThingDef mealDef)
+        {
+            if (printer == null || mealDef == null)
+            {
+                return "unknown";
+            }
+
+            CompFoodPrinter comp = printer.FoodPrinterComp;
+            return comp != null && comp.IsBaseConfiguredMeal(mealDef) ? "base" : "discovered";
+        }
+
+        private static string GetMealCategoryDebugLabel(ThingDef mealDef)
+        {
+            if (mealDef == null || mealDef.ingestible == null)
+            {
+                return "none";
+            }
+
+            if (mealDef.defName == "MealNutrientPaste")
+            {
+                return FoodPreferability.MealAwful.ToString();
+            }
+
+            return mealDef.ingestible.preferability.ToString();
+        }
+
+        private static string GetFoodPolicyDebugLabel(FoodPolicy policy)
+        {
+            if (policy == null)
+            {
+                return "null";
+            }
+
+            return policy.label.NullOrEmpty() ? policy.GetUniqueLoadID() : policy.label;
+        }
+
+        private static string GetFoodPolicyAllowsMealDefDebugLabel(FoodPolicy policy, ThingDef mealDef)
+        {
+            if (policy == null)
+            {
+                return "no_policy";
+            }
+
+            if (mealDef == null)
+            {
+                return "no_meal_def";
+            }
+
+            try
+            {
+                return policy.Allows(mealDef).ToString();
+            }
+            catch (Exception ex)
+            {
+                return "error:" + ex.GetType().Name + ":" + ex.Message;
+            }
+        }
+
+        private static string GetMealFullDebug(ThingDef mealDef)
+        {
+            if (mealDef == null)
+            {
+                return "null";
+            }
+
+            IngestibleProperties ingestible = mealDef.ingestible;
+            return "defName=" + mealDef.defName
+                + ", label=" + GetMealLabelDebug(mealDef)
+                + ", origin=" + GetMealDefSourceDebugLabel(mealDef)
+                + ", thingClass=" + GetTypeDebugLabel(mealDef.thingClass)
+                + ", category=" + GetMealCategoryDebugLabel(mealDef)
+                + ", stackLimit=" + mealDef.stackLimit
+                + ", isNutritionGiving=" + mealDef.IsNutritionGivingIngestible
+                + ", foodType=" + (ingestible == null ? FoodTypeFlags.None.ToString() : ingestible.foodType.ToString())
+                + ", preferability=" + (ingestible == null ? "none" : ingestible.preferability.ToString())
+                + ", drugCategory=" + (ingestible == null ? "none" : ingestible.drugCategory.ToString())
+                + ", joyKind=" + (ingestible == null || ingestible.joyKind == null ? "none" : ingestible.joyKind.defName)
+                + ", compProps=" + GetCompPropsDebugLabel(mealDef.comps);
+        }
+
+        private static string GetPreviewMealFullDebug(Thing previewMeal)
+        {
+            if (previewMeal == null)
+            {
+                return "null";
+            }
+
+            ThingDef previewDef = previewMeal.def;
+            CompIngredients compIngredients = previewMeal.TryGetComp<CompIngredients>();
+            return "defName=" + (previewDef == null ? "null" : previewDef.defName)
+                + ", label=" + (previewMeal.LabelCap == null ? "null" : previewMeal.LabelCap.ToString())
+                + ", thingClass=" + GetTypeDebugLabel(previewMeal.GetType())
+                + ", defThingClass=" + GetTypeDebugLabel(previewDef == null ? null : previewDef.thingClass)
+                + ", stackCount=" + previewMeal.stackCount
+                + ", stuff=" + (previewMeal.Stuff == null ? "null" : previewMeal.Stuff.defName)
+                + ", hitPoints=" + previewMeal.HitPoints
+                + ", comps=" + GetThingCompDebugLabel(previewMeal)
+                + ", ingredientCompPresent=" + (compIngredients != null)
+                + ", ingredientDefs=" + GetIngredientListDebugLabel(compIngredients == null ? null : compIngredients.ingredients)
+                + ", sourceDefInfo={" + GetMealFullDebug(previewDef) + "}";
+        }
+
+        private static string GetPredictedCharacteristicsDebug(PrinterFoodCharacteristics characteristics)
+        {
+            if (characteristics == null)
+            {
+                return "null";
+            }
+
+            return "foodTypes=" + characteristics.PredictedFoodTypes
+                + ", sourceFoodKind=" + characteristics.PredictedSourceFoodKind
+                + ", containsVegetarianForbiddenIngredients=" + characteristics.ContainsVegetarianForbiddenIngredients
+                + ", containsHumanMeatIngredient=" + characteristics.ContainsHumanMeatIngredient
+                + ", ingredientDefs=" + GetIngredientListDebugLabel(characteristics.PredictedIngredientDefs);
+        }
+
+        private static string GetIngredientListDebugLabel(List<ThingDef> ingredientDefs)
+        {
+            if (ingredientDefs == null || ingredientDefs.Count == 0)
+            {
+                return "[]";
+            }
+
+            List<string> parts = new List<string>();
+            for (int i = 0; i < ingredientDefs.Count; i++)
+            {
+                ThingDef ingredientDef = ingredientDefs[i];
+                if (ingredientDef == null)
+                {
+                    parts.Add("null");
+                    continue;
+                }
+
+                parts.Add(ingredientDef.defName + "(" + ingredientDef.LabelCap + ")");
+            }
+
+            return "[" + string.Join(", ", parts.ToArray()) + "]";
+        }
+
+        private static string GetMealDefSourceDebugLabel(ThingDef mealDef)
+        {
+            if (mealDef == null || mealDef.modContentPack == null)
+            {
+                return "unknown";
+            }
+
+            return mealDef.modContentPack.Name;
+        }
+
+        private static string GetCompPropsDebugLabel(List<CompProperties> compProps)
+        {
+            if (compProps == null || compProps.Count == 0)
+            {
+                return "[]";
+            }
+
+            List<string> names = new List<string>();
+            for (int i = 0; i < compProps.Count; i++)
+            {
+                CompProperties compProp = compProps[i];
+                names.Add(compProp == null ? "null" : GetTypeDebugLabel(compProp.GetType()));
+            }
+
+            return "[" + string.Join(", ", names.ToArray()) + "]";
+        }
+
+        private static string GetThingCompDebugLabel(Thing thing)
+        {
+            ThingWithComps thingWithComps = thing as ThingWithComps;
+            if (thingWithComps == null || thingWithComps.AllComps == null || thingWithComps.AllComps.Count == 0)
+            {
+                return "[]";
+            }
+
+            List<string> names = new List<string>();
+            for (int i = 0; i < thingWithComps.AllComps.Count; i++)
+            {
+                ThingComp comp = thingWithComps.AllComps[i];
+                names.Add(comp == null ? "null" : GetTypeDebugLabel(comp.GetType()));
+            }
+
+            return "[" + string.Join(", ", names.ToArray()) + "]";
+        }
+
+        private static string GetTypeDebugLabel(Type type)
+        {
+            return type == null ? "null" : type.FullName;
         }
     }
 }

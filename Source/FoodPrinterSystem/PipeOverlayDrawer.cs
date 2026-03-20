@@ -47,7 +47,7 @@ namespace FoodSystemPipe
             DrawNetwork(state, PipeOverlayStyle.Selected);
         }
 
-        public static void DrawGhostOverlay(Map map, ThingDef def, IntVec3 center, Rot4 rotation)
+        public static void DrawGhostOverlay(Map map, ThingDef def, IntVec3 center, Rot4 rotation, Thing placingThing = null)
         {
             if (map == null || def == null || !PipeVisualNodeResolver.HasVisualPipeSupport(def))
             {
@@ -60,7 +60,8 @@ namespace FoodSystemPipe
             foreach (IntVec3 cell in localCells)
             {
                 PipeDirectionMask mask = PipeMaskUtility.BuildGhostMask(map, def, center, rotation, cell);
-                if (!PipeGraphicResolver.TryResolveGraphicKey(overlaySourceDef, mask, out PipeGraphicKey baseGraphicKey))
+                Thing stuffSourceThing = isStandalonePipe ? placingThing : null;
+                if (!PipeGraphicResolver.TryResolveGraphicKey(overlaySourceDef, stuffSourceThing, mask, out PipeGraphicKey baseGraphicKey))
                 {
                     continue;
                 }

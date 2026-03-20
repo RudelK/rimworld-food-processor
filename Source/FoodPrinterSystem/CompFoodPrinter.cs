@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -20,11 +21,64 @@ namespace FoodPrinterSystem
     [StaticConstructorOnStartup]
     public class CompFoodPrinter : ThingComp
     {
+        private static readonly Dictionary<FoodPreferability, List<ThingDef>> DiscoveredMealsByCategory = new Dictionary<FoodPreferability, List<ThingDef>>();
+        private static bool discoveredMealsInitialized;
+
         private sealed class CachedAffordableMeals
         {
             public int SettingsRevision;
             public int ResearchStateMask;
             public int NetworkRevision;
+            public List<ThingDef> Meals;
+        }
+
+        private struct ConsumableMealsCacheKey
+        {
+            public int PrinterId;
+            public int PawnId;
+            public int FoodPolicyId;
+            public int PolicyStateHash;
+            public FoodPreferability Category;
+            public int NetworkRevision;
+            public int SettingsRevision;
+            public int ResearchStateMask;
+            public bool HardFoodTypeCheckEnabled;
+
+            public override int GetHashCode()
+            {
+                int hash = PrinterId;
+                hash = Gen.HashCombineInt(hash, PawnId);
+                hash = Gen.HashCombineInt(hash, FoodPolicyId);
+                hash = Gen.HashCombineInt(hash, PolicyStateHash);
+                hash = Gen.HashCombineInt(hash, (int)Category);
+                hash = Gen.HashCombineInt(hash, NetworkRevision);
+                hash = Gen.HashCombineInt(hash, SettingsRevision);
+                hash = Gen.HashCombineInt(hash, ResearchStateMask);
+                return Gen.HashCombineInt(hash, HardFoodTypeCheckEnabled ? 1 : 0);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is ConsumableMealsCacheKey other))
+                {
+                    return false;
+                }
+
+                return PrinterId == other.PrinterId
+                    && PawnId == other.PawnId
+                    && FoodPolicyId == other.FoodPolicyId
+                    && PolicyStateHash == other.PolicyStateHash
+                    && Category == other.Category
+                    && NetworkRevision == other.NetworkRevision
+                    && SettingsRevision == other.SettingsRevision
+                    && ResearchStateMask == other.ResearchStateMask
+                    && HardFoodTypeCheckEnabled == other.HardFoodTypeCheckEnabled;
+            }
+        }
+
+        private sealed class CachedConsumableMeals
+        {
+            public int LastAccessTick;
             public List<ThingDef> Meals;
         }
 
@@ -39,10 +93,18 @@ namespace FoodPrinterSystem
         private static readonly Material ProcessingBarBackgroundMat = SolidColorMaterials.SimpleSolidColorMaterial(new Color(0.08f, 0.08f, 0.08f, 0.85f));
         private static readonly Material ProcessingBarFillMat = SolidColorMaterials.SimpleSolidColorMaterial(new Color(0.87f, 0.62f, 0.18f, 0.95f));
 
+        private sealed class CategorySelectionContext
+        {
+            public FoodPreferability? RequestedCategory;
+            public FoodPreferability? ResolvedCategory;
+            public string FallbackReason;
+        }
+
         private bool initialized;
         private bool autoMode = true;
         private string manualMealDefName;
-        private List<string> enabledCategoryIds = new List<string>();
+        private List<string> disabledCategoryIds = new List<string>();
+        private List<string> legacyEnabledCategoryIds;
         private List<string> legacyAllowedMealDefNames;
         private string processingMealDefName;
         private int processingTicksRemaining;
@@ -54,6 +116,11 @@ namespace FoodPrinterSystem
         private ThingDef cachedProcessingMealDef;
         private readonly Dictionary<FoodPreferability, List<ThingDef>> configuredMealsByCategory = new Dictionary<FoodPreferability, List<ThingDef>>();
         private readonly Dictionary<FoodPreferability, CachedAffordableMeals> affordableMealsByCategory = new Dictionary<FoodPreferability, CachedAffordableMeals>();
+        private readonly Dictionary<ConsumableMealsCacheKey, CachedConsumableMeals> consumableMealsByCategory = new Dictionary<ConsumableMealsCacheKey, CachedConsumableMeals>();
+        private const int ConsumableMealCacheRetentionTicks = 600;
+        private const int ConsumableMealCachePruneIntervalTicks = 120;
+        private const int ConsumableMealCachePruneThreshold = 128;
+        private int lastConsumableMealCachePruneTick;
 
         public CompProperties_FoodPrinter Props
         {
@@ -152,13 +219,14 @@ namespace FoodPrinterSystem
             Scribe_Values.Look(ref initialized, "initialized", false);
             Scribe_Values.Look(ref autoMode, "autoMode", true);
             Scribe_Values.Look(ref manualMealDefName, "manualMealDefName");
-            Scribe_Collections.Look(ref enabledCategoryIds, "enabledCategoryIds", LookMode.Value);
+            Scribe_Collections.Look(ref disabledCategoryIds, "disabledCategoryIds", LookMode.Value);
             Scribe_Values.Look(ref processingMealDefName, "processingMealDefName");
             Scribe_Values.Look(ref processingTicksRemaining, "processingTicksRemaining", 0);
             Scribe_Values.Look(ref processingTonerCost, "processingTonerCost", 0);
             Scribe_References.Look(ref currentProcessingPawn, "currentProcessingPawn");
             if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
+                Scribe_Collections.Look(ref legacyEnabledCategoryIds, "enabledCategoryIds", LookMode.Value);
                 Scribe_Collections.Look(ref legacyAllowedMealDefNames, "allowedMealDefNames", LookMode.Value);
             }
 
@@ -229,7 +297,26 @@ namespace FoodPrinterSystem
         public bool IsCategoryEnabled(FoodPreferability category)
         {
             EnsureInitialized();
-            return enabledCategoryIds.Contains(category.ToString());
+            return IsCategoryResearched(category) && !IsCategoryExplicitlyDisabled(category);
+        }
+
+        private bool IsCategoryExplicitlyDisabled(FoodPreferability category)
+        {
+            string categoryId = category.ToString();
+            if (disabledCategoryIds == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < disabledCategoryIds.Count; i++)
+            {
+                if (string.Equals(disabledCategoryIds[i], categoryId, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public void SetCategoryEnabled(FoodPreferability category, bool enabled)
@@ -238,14 +325,11 @@ namespace FoodPrinterSystem
             string categoryId = category.ToString();
             if (enabled)
             {
-                if (!enabledCategoryIds.Contains(categoryId))
-                {
-                    enabledCategoryIds.Add(categoryId);
-                }
+                RemoveDisabledCategory(categoryId);
             }
             else
             {
-                enabledCategoryIds.Remove(categoryId);
+                AddDisabledCategory(categoryId);
                 FoodPreferability? manualCategory = GetCategoryForMealDef(ManualMealDef);
                 if (manualCategory == category)
                 {
@@ -377,8 +461,8 @@ namespace FoodPrinterSystem
                 return ProcessingMealDef;
             }
 
-            FoodPreferability? category = autoMode ? GetBestAvailableCategory(printer) : GetSelectedManualCategory();
-            return GetMealForCategory(category, printer, false);
+            CategorySelectionContext categorySelection = ResolveCategorySelection(printer);
+            return GetMealForCategory(categorySelection, printer, false);
         }
 
         public string GetPreviewOutputLabel(Building printer)
@@ -389,7 +473,8 @@ namespace FoodPrinterSystem
                 return ProcessingMealDef == null ? null : ProcessingMealDef.LabelCap.ToString();
             }
 
-            FoodPreferability? category = autoMode ? GetBestAvailableCategory(printer) : GetSelectedManualCategory();
+            CategorySelectionContext categorySelection = ResolveCategorySelection(printer);
+            FoodPreferability? category = categorySelection == null ? null : categorySelection.ResolvedCategory;
             if (category == null)
             {
                 return null;
@@ -401,7 +486,7 @@ namespace FoodPrinterSystem
                 return GetCategoryLabel(category.Value);
             }
 
-            ThingDef previewMeal = GetMealForCategory(category, printer, false);
+            ThingDef previewMeal = GetMealForCategory(categorySelection, printer, false);
             return previewMeal == null ? GetCategoryLabel(category.Value) : previewMeal.LabelCap.ToString();
         }
 
@@ -411,6 +496,11 @@ namespace FoodPrinterSystem
         }
 
         public ThingDef GetMealToPrint(Building printer, PawnPrinterFoodPolicy policy, Pawn eater, bool randomize)
+        {
+            return GetMealToPrint(printer, policy, eater, randomize, null);
+        }
+
+        private ThingDef GetMealToPrint(Building printer, PawnPrinterFoodPolicy policy, Pawn eater, bool randomize, CategorySelectionContext categorySelection)
         {
             EnsureInitialized();
             if (HasActiveProcessing)
@@ -423,12 +513,11 @@ namespace FoodPrinterSystem
                 return ProcessingMealDef;
             }
 
-            FoodPreferability? category = autoMode
-                ? (eater == null ? GetBestAvailableCategory(printer) : GetBestAvailableCategory(printer, policy, eater))
-                : GetSelectedManualCategory();
+            CategorySelectionContext resolvedSelection = categorySelection
+                ?? (eater == null ? ResolveCategorySelection(printer) : ResolveCategorySelection(printer, policy, eater));
             return eater == null
-                ? GetMealForCategory(category, printer, randomize)
-                : GetMealForCategory(category, printer, policy, eater, randomize);
+                ? GetMealForCategory(resolvedSelection, printer, randomize)
+                : GetMealForCategory(resolvedSelection, printer, policy, eater, randomize);
         }
 
         public bool TryStartProcessing(Building printer, Pawn pawn)
@@ -455,22 +544,24 @@ namespace FoodPrinterSystem
                 return false;
             }
 
-            ThingDef mealDef = GetMealToPrint(printer, eaterPolicy, eaterPawn, true);
+            CategorySelectionContext categorySelection = ResolveCategorySelection(printer, eaterPolicy, eaterPawn);
+            LogCategorySelection(printer, eaterPawn, categorySelection);
+            ThingDef mealDef = GetMealToPrint(printer, eaterPolicy, eaterPawn, true, categorySelection);
             if (mealDef == null || !IsMealResearched(mealDef))
             {
-                LogProcessingEvent("printer_start_failed", printer, reservationPawn, eaterPawn, mealDef, 0, "no_valid_meal_selected");
+                LogProcessingEvent("printer_start_failed", printer, reservationPawn, eaterPawn, mealDef, 0, "no_valid_meal_selected", categorySelection);
                 return false;
             }
 
             if (foodPrinter != null && !FoodPrinterPawnUtility.CanPawnConsumeMeal(eaterPolicy, eaterPawn, foodPrinter, mealDef))
             {
-                LogProcessingEvent("printer_start_failed", printer, reservationPawn, eaterPawn, mealDef, 0, "selected_meal_policy_blocked");
+                LogProcessingEvent("printer_start_failed", printer, reservationPawn, eaterPawn, mealDef, 0, "selected_meal_policy_blocked", categorySelection);
                 return false;
             }
 
             if (!TryReservePrinterForProcessing(printer, reservationPawn))
             {
-                LogProcessingEvent("printer_start_failed", printer, reservationPawn, eaterPawn, null, 0, "reservation_failed");
+                LogProcessingEvent("printer_start_failed", printer, reservationPawn, eaterPawn, null, 0, "reservation_failed", categorySelection);
                 return false;
             }
 
@@ -478,7 +569,7 @@ namespace FoodPrinterSystem
             if (tonerCost <= 0 || !TonerPipeNetManager.CanDraw(printer, tonerCost))
             {
                 ReleasePrinterReservation(printer, reservationPawn);
-                LogProcessingEvent("printer_start_failed", printer, reservationPawn, eaterPawn, mealDef, tonerCost, "insufficient_toner");
+                LogProcessingEvent("printer_start_failed", printer, reservationPawn, eaterPawn, mealDef, tonerCost, "insufficient_toner", categorySelection);
                 return false;
             }
 
@@ -486,7 +577,7 @@ namespace FoodPrinterSystem
             processingMealDefName = mealDef.defName;
             processingTonerCost = tonerCost;
             processingTicksRemaining = FoodPrinterSystemUtility.PrintingDelayTicks;
-            LogProcessingEvent("printer_start_succeeded", printer, reservationPawn, eaterPawn, mealDef, tonerCost, "started");
+            LogProcessingEvent("printer_start_succeeded", printer, reservationPawn, eaterPawn, mealDef, tonerCost, "started", categorySelection);
             return true;
         }
 
@@ -642,20 +733,12 @@ namespace FoodPrinterSystem
 
             initialized = true;
             InvalidateMealCaches();
-            if (enabledCategoryIds == null)
+            if (disabledCategoryIds == null)
             {
-                enabledCategoryIds = new List<string>();
+                disabledCategoryIds = new List<string>();
             }
 
-            if (enabledCategoryIds.Count == 0)
-            {
-                List<FoodPreferability> categories = GetKnownCategories();
-                for (int i = 0; i < categories.Count; i++)
-                {
-                    enabledCategoryIds.Add(categories[i].ToString());
-                }
-            }
-
+            MigrateLegacyEnabledCategories();
             EnsureManualMealSelection();
         }
 
@@ -695,6 +778,45 @@ namespace FoodPrinterSystem
             }
         }
 
+        private void MigrateLegacyEnabledCategories()
+        {
+            if (legacyEnabledCategoryIds == null)
+            {
+                return;
+            }
+
+            if (disabledCategoryIds == null)
+            {
+                disabledCategoryIds = new List<string>();
+            }
+
+            HashSet<string> legacyEnabled = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            for (int i = 0; i < legacyEnabledCategoryIds.Count; i++)
+            {
+                string categoryId = legacyEnabledCategoryIds[i];
+                if (!categoryId.NullOrEmpty())
+                {
+                    legacyEnabled.Add(categoryId);
+                }
+            }
+
+            for (int i = 0; i < CategoryOrder.Length; i++)
+            {
+                FoodPreferability category = CategoryOrder[i];
+                if (!HasConfiguredMeals(category) || !IsCategoryResearched(category))
+                {
+                    continue;
+                }
+
+                if (!legacyEnabled.Contains(category.ToString()))
+                {
+                    AddDisabledCategory(category.ToString());
+                }
+            }
+
+            legacyEnabledCategoryIds = null;
+        }
+
         private FoodPreferability? GetBestAvailableCategory(Building printer)
         {
             for (int i = CategoryOrder.Length - 1; i >= 0; i--)
@@ -724,7 +846,7 @@ namespace FoodPrinterSystem
                     continue;
                 }
 
-                if (GetAffordableMealsForCategory(printer, category, policy, eater).Count > 0)
+                if (GetConsumableMealsForCategory(printer, category, policy, eater, false).Count > 0)
                 {
                     return category;
                 }
@@ -763,8 +885,98 @@ namespace FoodPrinterSystem
             return null;
         }
 
-        private ThingDef GetMealForCategory(FoodPreferability? category, Building printer, bool randomize)
+        private FoodPreferability? GetHighestPreferredCategory()
         {
+            for (int i = CategoryOrder.Length - 1; i >= 0; i--)
+            {
+                FoodPreferability category = CategoryOrder[i];
+                if (!IsCategoryExplicitlyDisabled(category) && HasConfiguredMeals(category))
+                {
+                    return category;
+                }
+            }
+
+            return null;
+        }
+
+        private CategorySelectionContext ResolveCategorySelection(Building printer)
+        {
+            FoodPreferability? requestedCategory = autoMode ? GetHighestPreferredCategory() : GetCategoryForMealDef(ManualMealDef);
+            FoodPreferability? resolvedCategory = autoMode ? GetBestAvailableCategory(printer) : GetSelectedManualCategory();
+            return new CategorySelectionContext
+            {
+                RequestedCategory = requestedCategory,
+                ResolvedCategory = resolvedCategory,
+                FallbackReason = GetCategoryFallbackReason(requestedCategory, resolvedCategory, printer, null, null)
+            };
+        }
+
+        private CategorySelectionContext ResolveCategorySelection(Building printer, PawnPrinterFoodPolicy policy, Pawn eater)
+        {
+            FoodPreferability? requestedCategory = autoMode ? GetHighestPreferredCategory() : GetCategoryForMealDef(ManualMealDef);
+            FoodPreferability? resolvedCategory = autoMode ? GetBestAvailableCategory(printer, policy, eater) : GetSelectedManualCategory();
+            return new CategorySelectionContext
+            {
+                RequestedCategory = requestedCategory,
+                ResolvedCategory = resolvedCategory,
+                FallbackReason = GetCategoryFallbackReason(requestedCategory, resolvedCategory, printer, policy, eater)
+            };
+        }
+
+        private string GetCategoryFallbackReason(FoodPreferability? requestedCategory, FoodPreferability? resolvedCategory, Building printer, PawnPrinterFoodPolicy policy, Pawn eater)
+        {
+            if (requestedCategory == resolvedCategory)
+            {
+                return null;
+            }
+
+            if (requestedCategory == null)
+            {
+                return "target_category_unset";
+            }
+
+            FoodPreferability category = requestedCategory.Value;
+            if (!HasConfiguredMeals(category))
+            {
+                return "target_category_no_configured_meals";
+            }
+
+            if (IsCategoryExplicitlyDisabled(category))
+            {
+                return "target_category_disabled";
+            }
+
+            if (!IsCategoryResearched(category))
+            {
+                return "target_category_unresearched";
+            }
+
+            if (printer == null)
+            {
+                return "target_category_unavailable";
+            }
+
+            List<ThingDef> affordableMeals = GetAffordableMealsForCategory(printer, category);
+            if (affordableMeals.Count == 0)
+            {
+                return "target_category_no_affordable_meals";
+            }
+
+            if (eater != null)
+            {
+                List<ThingDef> consumableMeals = GetConsumableMealsForCategory(printer, category, policy, eater, false);
+                if (consumableMeals.Count == 0)
+                {
+                    return "target_category_all_candidates_blocked";
+                }
+            }
+
+            return "target_category_unavailable";
+        }
+
+        private ThingDef GetMealForCategory(CategorySelectionContext categorySelection, Building printer, bool randomize)
+        {
+            FoodPreferability? category = categorySelection == null ? null : categorySelection.ResolvedCategory;
             if (category == null || !IsCategoryResearched(category.Value))
             {
                 return null;
@@ -778,25 +990,54 @@ namespace FoodPrinterSystem
                 return null;
             }
 
-            return randomize && FoodPrinterSystemUtility.RandomMealSelectionEnabled ? GetWeightedRandomMeal(candidates) : GetRepresentativeMeal(candidates);
+            if (randomize && FoodPrinterSystemUtility.RandomMealSelectionEnabled)
+            {
+                ThingDef selectedMeal = GetWeightedRandomMeal(candidates);
+                LogRandomMealSelection(printer, null, categorySelection, candidates, candidates, selectedMeal);
+                return selectedMeal;
+            }
+
+            return GetRepresentativeMeal(candidates);
         }
 
-        private ThingDef GetMealForCategory(FoodPreferability? category, Building printer, PawnPrinterFoodPolicy policy, Pawn eater, bool randomize)
+        private ThingDef GetMealForCategory(CategorySelectionContext categorySelection, Building printer, PawnPrinterFoodPolicy policy, Pawn eater, bool randomize)
         {
+            FoodPreferability? category = categorySelection == null ? null : categorySelection.ResolvedCategory;
             if (category == null || !IsCategoryResearched(category.Value))
             {
                 return null;
             }
 
+            if (randomize && FoodPrinterSystemUtility.RandomMealSelectionEnabled)
+            {
+                List<ThingDef> allCandidates = printer == null
+                    ? GetConfiguredMealsForCategory(category.Value)
+                    : GetAffordableMealsForCategory(printer, category.Value);
+                if (allCandidates.Count == 0)
+                {
+                    return null;
+                }
+
+                List<ThingDef> finalCandidates = GetConsumableMealsForCategory(printer, category.Value, policy, eater, true);
+                if (finalCandidates.Count == 0)
+                {
+                    return null;
+                }
+
+                ThingDef selectedMeal = GetWeightedRandomMeal(finalCandidates);
+                LogRandomMealSelection(printer, eater, categorySelection, allCandidates, finalCandidates, selectedMeal);
+                return selectedMeal;
+            }
+
             List<ThingDef> candidates = printer == null
                 ? GetConfiguredMealsForCategory(category.Value)
-                : GetAffordableMealsForCategory(printer, category.Value, policy, eater);
+                : GetConsumableMealsForCategory(printer, category.Value, policy, eater, false);
             if (candidates.Count == 0)
             {
                 return null;
             }
 
-            return randomize && FoodPrinterSystemUtility.RandomMealSelectionEnabled ? GetWeightedRandomMeal(candidates) : GetRepresentativeMeal(candidates);
+            return GetRepresentativeMeal(candidates);
         }
 
         private List<ThingDef> GetConfiguredMealsForCategory(FoodPreferability category)
@@ -808,24 +1049,28 @@ namespace FoodPrinterSystem
 
             List<ThingDef> meals = new List<ThingDef>();
             configuredMealsByCategory[category] = meals;
-            if (Props.defaultMealDefs == null)
+            if (Props.defaultMealDefs != null)
             {
-                return meals;
+                for (int i = 0; i < Props.defaultMealDefs.Count; i++)
+                {
+                    string mealDefName = Props.defaultMealDefs[i];
+                    if (mealDefName.NullOrEmpty())
+                    {
+                        continue;
+                    }
+
+                    ThingDef mealDef = DefDatabase<ThingDef>.GetNamedSilentFail(mealDefName);
+                    if (IsValidMealDef(mealDef) && GetCategoryForMealDef(mealDef) == category)
+                    {
+                        AddMealIfMissing(meals, mealDef);
+                    }
+                }
             }
 
-            for (int i = 0; i < Props.defaultMealDefs.Count; i++)
+            List<ThingDef> discoveredMeals = GetDiscoveredMealsForCategory(category);
+            for (int i = 0; i < discoveredMeals.Count; i++)
             {
-                string mealDefName = Props.defaultMealDefs[i];
-                if (mealDefName.NullOrEmpty())
-                {
-                    continue;
-                }
-
-                ThingDef mealDef = DefDatabase<ThingDef>.GetNamedSilentFail(mealDefName);
-                if (IsValidMealDef(mealDef) && GetCategoryForMealDef(mealDef) == category && !meals.Contains(mealDef))
-                {
-                    meals.Add(mealDef);
-                }
+                AddMealIfMissing(meals, discoveredMeals[i]);
             }
 
             return meals;
@@ -872,23 +1117,72 @@ namespace FoodPrinterSystem
             return affordable;
         }
 
-        private List<ThingDef> GetAffordableMealsForCategory(Building printer, FoodPreferability category, PawnPrinterFoodPolicy policy, Pawn eater)
+        private List<ThingDef> GetConsumableMealsForCategory(Building printer, FoodPreferability category, PawnPrinterFoodPolicy policy, Pawn eater, bool logDiagnostics)
         {
+            if (printer == null)
+            {
+                return GetConfiguredMealsForCategory(category);
+            }
+
             List<ThingDef> meals = GetAffordableMealsForCategory(printer, category);
-            List<ThingDef> affordable = new List<ThingDef>(meals.Count);
             Building_FoodPrinter foodPrinter = printer as Building_FoodPrinter;
+            if (foodPrinter == null || eater == null)
+            {
+                return meals;
+            }
+
+            int currentTick = GetCurrentTick();
+            PruneConsumableMealCacheIfNeeded(currentTick);
+            ConsumableMealsCacheKey cacheKey = new ConsumableMealsCacheKey
+            {
+                PrinterId = printer.thingIDNumber,
+                PawnId = eater.thingIDNumber,
+                FoodPolicyId = GetFoodPolicyCacheId(eater),
+                PolicyStateHash = GetResolvedPolicyStateHash(policy),
+                Category = category,
+                NetworkRevision = GetNetworkRevision(printer),
+                SettingsRevision = FoodPrinterSystemMod.SettingsRevision,
+                ResearchStateMask = GetResearchStateMask(),
+                HardFoodTypeCheckEnabled = IsHardFoodTypeCheckEnabledForCache()
+            };
+            if (consumableMealsByCategory.TryGetValue(cacheKey, out CachedConsumableMeals cachedMeals)
+                && cachedMeals != null
+                && cachedMeals.Meals != null)
+            {
+                cachedMeals.LastAccessTick = currentTick;
+                return cachedMeals.Meals;
+            }
+
+            List<ThingDef> consumable = new List<ThingDef>(meals.Count);
             for (int i = 0; i < meals.Count; i++)
             {
                 ThingDef mealDef = meals[i];
-                if (foodPrinter != null && eater != null && !FoodPrinterPawnUtility.IsMealAllowedForPawn(policy, eater, foodPrinter, mealDef))
+                if (!FoodPrinterPawnUtility.TryDiagnoseFoodPolicyAllowance(eater, mealDef, out string reason))
                 {
+                    if (logDiagnostics)
+                    {
+                        LogRandomCandidateRejected(printer, eater, mealDef, reason);
+                    }
+
                     continue;
                 }
 
-                affordable.Add(mealDef);
+                if (FoodPrinterPawnUtility.TryDiagnoseMealAllowance(policy, eater, foodPrinter, mealDef, out reason))
+                {
+                    consumable.Add(mealDef);
+                }
+                else if (logDiagnostics)
+                {
+                    LogRandomCandidateRejected(printer, eater, mealDef, reason);
+                }
             }
 
-            return affordable;
+            consumableMealsByCategory[cacheKey] = new CachedConsumableMeals
+            {
+                LastAccessTick = currentTick,
+                Meals = consumable
+            };
+            return consumable;
         }
 
         private ThingDef GetRepresentativeMealForCategory(FoodPreferability? category)
@@ -983,7 +1277,265 @@ namespace FoodPrinterSystem
             return mealDef != null
                 && mealDef.IsNutritionGivingIngestible
                 && FoodPrinterSystemUtility.GetPrintCost(mealDef) > 0
-                && mealDef.ingestible != null;
+                && mealDef.ingestible != null
+                && (mealDef.defName == "MealNutrientPaste" || IsPrinterMealFoodType(mealDef));
+        }
+
+        private static bool IsPrinterMealFoodType(ThingDef mealDef)
+        {
+            return mealDef != null
+                && mealDef.ingestible != null
+                && (mealDef.ingestible.foodType & FoodTypeFlags.Meal) != FoodTypeFlags.None;
+        }
+
+        private static List<ThingDef> GetDiscoveredMealsForCategory(FoodPreferability category)
+        {
+            EnsureDiscoveredMealsInitialized();
+            return DiscoveredMealsByCategory.TryGetValue(category, out List<ThingDef> meals)
+                ? meals
+                : DiscoveredMealsByCategory[FoodPreferability.MealAwful];
+        }
+
+        private static void EnsureDiscoveredMealsInitialized()
+        {
+            if (discoveredMealsInitialized)
+            {
+                return;
+            }
+
+            discoveredMealsInitialized = true;
+            DiscoveredMealsByCategory.Clear();
+            DiscoveredMealsByCategory[FoodPreferability.MealAwful] = new List<ThingDef>();
+            DiscoveredMealsByCategory[FoodPreferability.MealSimple] = new List<ThingDef>();
+            DiscoveredMealsByCategory[FoodPreferability.MealFine] = new List<ThingDef>();
+            DiscoveredMealsByCategory[FoodPreferability.MealLavish] = new List<ThingDef>();
+
+            List<ThingDef> allDefs = DefDatabase<ThingDef>.AllDefsListForReading;
+            for (int i = 0; i < allDefs.Count; i++)
+            {
+                ThingDef mealDef = allDefs[i];
+                FoodPreferability? category = GetCategoryForMealDef(mealDef);
+                if (category == null || category == FoodPreferability.MealAwful)
+                {
+                    continue;
+                }
+
+                AddMealIfMissing(DiscoveredMealsByCategory[category.Value], mealDef);
+            }
+
+            foreach (KeyValuePair<FoodPreferability, List<ThingDef>> pair in DiscoveredMealsByCategory)
+            {
+                pair.Value.Sort(CompareMealDefsForDisplay);
+            }
+        }
+
+        private static int CompareMealDefsForDisplay(ThingDef left, ThingDef right)
+        {
+            string leftLabel = left == null ? string.Empty : left.LabelCap.ToString();
+            string rightLabel = right == null ? string.Empty : right.LabelCap.ToString();
+            int labelComparison = string.Compare(leftLabel, rightLabel, StringComparison.CurrentCultureIgnoreCase);
+            if (labelComparison != 0)
+            {
+                return labelComparison;
+            }
+
+            string leftDefName = left == null ? string.Empty : left.defName;
+            string rightDefName = right == null ? string.Empty : right.defName;
+            return string.Compare(leftDefName, rightDefName, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool HasConfiguredMeals(FoodPreferability category)
+        {
+            return GetConfiguredMealsForCategory(category).Count > 0;
+        }
+
+        private void AddDisabledCategory(string categoryId)
+        {
+            if (categoryId.NullOrEmpty())
+            {
+                return;
+            }
+
+            if (disabledCategoryIds == null)
+            {
+                disabledCategoryIds = new List<string>();
+            }
+
+            for (int i = 0; i < disabledCategoryIds.Count; i++)
+            {
+                if (string.Equals(disabledCategoryIds[i], categoryId, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+            }
+
+            disabledCategoryIds.Add(categoryId);
+        }
+
+        private void RemoveDisabledCategory(string categoryId)
+        {
+            if (categoryId.NullOrEmpty() || disabledCategoryIds == null)
+            {
+                return;
+            }
+
+            for (int i = disabledCategoryIds.Count - 1; i >= 0; i--)
+            {
+                if (string.Equals(disabledCategoryIds[i], categoryId, StringComparison.OrdinalIgnoreCase))
+                {
+                    disabledCategoryIds.RemoveAt(i);
+                }
+            }
+        }
+
+        private static void AddMealIfMissing(List<ThingDef> meals, ThingDef mealDef)
+        {
+            if (meals == null || mealDef == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < meals.Count; i++)
+            {
+                ThingDef existing = meals[i];
+                if (existing == mealDef
+                    || (existing != null
+                        && !existing.defName.NullOrEmpty()
+                        && string.Equals(existing.defName, mealDef.defName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return;
+                }
+            }
+
+            meals.Add(mealDef);
+        }
+
+        public bool IsBaseConfiguredMeal(ThingDef mealDef)
+        {
+            if (mealDef == null || Props == null || Props.defaultMealDefs == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < Props.defaultMealDefs.Count; i++)
+            {
+                string mealDefName = Props.defaultMealDefs[i];
+                if (!mealDefName.NullOrEmpty() && string.Equals(mealDefName, mealDef.defName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void LogRandomMealSelection(Building printer, Pawn eater, CategorySelectionContext categorySelection, List<ThingDef> allCandidates, List<ThingDef> finalCandidates, ThingDef selectedMeal)
+        {
+            if (!ShouldDebugLog() || allCandidates == null || allCandidates.Count == 0)
+            {
+                return;
+            }
+
+            bool hasDiscoveredCandidate = HasDiscoveredMeal(allCandidates) || HasDiscoveredMeal(finalCandidates) || IsDiscoveredMeal(selectedMeal);
+            if (!hasDiscoveredCandidate)
+            {
+                return;
+            }
+
+            List<string> allCandidateDescriptions = BuildCandidateDebugDescriptions(allCandidates);
+            List<string> finalCandidateDescriptions = BuildCandidateDebugDescriptions(finalCandidates);
+
+            Log.Message("[FPS] printer_random_meal_pool"
+                + ": printer=" + GetPrinterDebugLabel(printer)
+                + ", eaterPawn=" + GetPawnDebugLabel(eater)
+                + ", requestedCategory=" + GetCategoryDebugLabel(categorySelection == null ? null : categorySelection.RequestedCategory)
+                + ", resolvedCategory=" + GetCategoryDebugLabel(categorySelection == null ? null : categorySelection.ResolvedCategory)
+                + ", categoryFallbackReason=" + GetCategoryFallbackReasonDebug(categorySelection)
+                + ", selected=" + GetMealDebugLabel(selectedMeal)
+                + ", selectedLabel=" + GetMealLabelDebug(selectedMeal)
+                + ", selectedOrigin=" + (IsDiscoveredMeal(selectedMeal) ? "discovered" : "base")
+                + ", foodPolicy=" + GetFoodPolicyDebugLabel(eater)
+                + ", allCandidates=" + string.Join(", ", allCandidateDescriptions.ToArray())
+                + ", finalCandidates=" + string.Join(", ", finalCandidateDescriptions.ToArray()));
+
+            if (IsDiscoveredMeal(selectedMeal))
+            {
+                Log.Message("[FPS] printer_random_selected_mod_meal"
+                    + ": printer=" + GetPrinterDebugLabel(printer)
+                    + ", eaterPawn=" + GetPawnDebugLabel(eater)
+                    + ", requestedCategory=" + GetCategoryDebugLabel(categorySelection == null ? null : categorySelection.RequestedCategory)
+                    + ", resolvedCategory=" + GetCategoryDebugLabel(categorySelection == null ? null : categorySelection.ResolvedCategory)
+                    + ", categoryFallbackReason=" + GetCategoryFallbackReasonDebug(categorySelection)
+                    + ", foodPolicy=" + GetFoodPolicyDebugLabel(eater)
+                    + ", meal=" + GetMealDebugLabel(selectedMeal)
+                    + ", mealLabel=" + GetMealLabelDebug(selectedMeal));
+            }
+        }
+
+        private void LogRandomCandidateRejected(Building printer, Pawn eater, ThingDef mealDef, string reason)
+        {
+            if (!ShouldDebugLog() || mealDef == null)
+            {
+                return;
+            }
+
+            Log.Message("[FPS] printer_random_candidate_rejected"
+                + ": printer=" + GetPrinterDebugLabel(printer)
+                + ", eaterPawn=" + GetPawnDebugLabel(eater)
+                + ", foodPolicy=" + GetFoodPolicyDebugLabel(eater)
+                + ", meal=" + GetMealDebugLabel(mealDef)
+                + ", mealLabel=" + GetMealLabelDebug(mealDef)
+                + ", mealOrigin=" + (IsDiscoveredMeal(mealDef) ? "discovered" : "base")
+                + ", mealCategory=" + GetMealCategoryDebugLabel(mealDef)
+                + ", reason=" + reason);
+        }
+
+        private List<string> BuildCandidateDebugDescriptions(List<ThingDef> meals)
+        {
+            List<string> descriptions = new List<string>(meals == null ? 0 : meals.Count);
+            if (meals == null)
+            {
+                return descriptions;
+            }
+
+            for (int i = 0; i < meals.Count; i++)
+            {
+                ThingDef mealDef = meals[i];
+                descriptions.Add(GetMealDebugLabel(mealDef)
+                    + "[" + (IsDiscoveredMeal(mealDef) ? "discovered" : "base")
+                    + ",cat=" + GetMealCategoryDebugLabel(mealDef)
+                    + ",w=" + GetMealSelectionWeight(mealDef).ToString("0.##") + "]");
+            }
+
+            return descriptions;
+        }
+
+        private bool HasDiscoveredMeal(List<ThingDef> meals)
+        {
+            if (meals == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < meals.Count; i++)
+            {
+                if (IsDiscoveredMeal(meals[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsDiscoveredMeal(ThingDef mealDef)
+        {
+            return mealDef != null && !IsBaseConfiguredMeal(mealDef);
+        }
+
+        private static bool ShouldDebugLog()
+        {
+            return FoodPrinterSystemMod.Settings != null && FoodPrinterSystemMod.Settings.DebugLoggingEnabled;
         }
 
         public bool IsBusyFor(Pawn pawn)
@@ -1030,7 +1582,7 @@ namespace FoodPrinterSystem
             currentProcessingPawn = null;
         }
 
-        private static void LogProcessingEvent(string eventName, Building printer, Pawn reservationPawn, Pawn eaterPawn, ThingDef mealDef, int tonerCost, string reason)
+        private static void LogProcessingEvent(string eventName, Building printer, Pawn reservationPawn, Pawn eaterPawn, ThingDef mealDef, int tonerCost, string reason, CategorySelectionContext categorySelection = null)
         {
             if (FoodPrinterSystemMod.Settings == null || !FoodPrinterSystemMod.Settings.DebugLoggingEnabled)
             {
@@ -1042,11 +1594,34 @@ namespace FoodPrinterSystem
                 + ": printer=" + GetPrinterDebugLabel(printer)
                 + ", reservationPawn=" + GetPawnDebugLabel(reservationPawn)
                 + ", eaterPawn=" + GetPawnDebugLabel(eaterPawn)
+                + ", requestedCategory=" + GetCategoryDebugLabel(categorySelection == null ? null : categorySelection.RequestedCategory)
+                + ", resolvedCategory=" + GetCategoryDebugLabel(categorySelection == null ? null : categorySelection.ResolvedCategory)
+                + ", categoryFallbackReason=" + GetCategoryFallbackReasonDebug(categorySelection)
                 + ", meal=" + GetMealDebugLabel(mealDef)
                 + ", tonerCost=" + tonerCost
                 + ", networkStored=" + summary.Stored
                 + ", networkCapacity=" + summary.Capacity
                 + ", reason=" + reason);
+        }
+
+        private static void LogCategorySelection(Building printer, Pawn eaterPawn, CategorySelectionContext categorySelection)
+        {
+            if (!ShouldDebugLog()
+                || categorySelection == null
+                || (categorySelection.RequestedCategory == categorySelection.ResolvedCategory
+                    && categorySelection.FallbackReason.NullOrEmpty()))
+            {
+                return;
+            }
+
+            Log.Message("[FPS] printer_category_resolution"
+                + ": printer=" + GetPrinterDebugLabel(printer)
+                + ", eaterPawn=" + GetPawnDebugLabel(eaterPawn)
+                + ", foodPolicy=" + GetFoodPolicyDebugLabel(eaterPawn)
+                + ", autoMode=" + (printer != null && printer.GetComp<CompFoodPrinter>() != null && printer.GetComp<CompFoodPrinter>().AutoMode)
+                + ", requestedCategory=" + GetCategoryDebugLabel(categorySelection.RequestedCategory)
+                + ", resolvedCategory=" + GetCategoryDebugLabel(categorySelection.ResolvedCategory)
+                + ", categoryFallbackReason=" + GetCategoryFallbackReasonDebug(categorySelection));
         }
 
         private static string GetPrinterDebugLabel(Building printer)
@@ -1062,6 +1637,62 @@ namespace FoodPrinterSystem
         private static string GetMealDebugLabel(ThingDef mealDef)
         {
             return mealDef == null ? "null" : mealDef.defName;
+        }
+
+        private static string GetMealLabelDebug(ThingDef mealDef)
+        {
+            return mealDef == null ? "null" : mealDef.LabelCap.ToString();
+        }
+
+        private static string GetMealCategoryDebugLabel(ThingDef mealDef)
+        {
+            if (mealDef == null || mealDef.ingestible == null)
+            {
+                return "none";
+            }
+
+            if (mealDef.defName == "MealNutrientPaste")
+            {
+                return FoodPreferability.MealAwful.ToString();
+            }
+
+            return mealDef.ingestible.preferability.ToString();
+        }
+
+        private static string GetFoodPolicyDebugLabel(Pawn pawn)
+        {
+            FoodPolicy currentPolicy = pawn == null || pawn.foodRestriction == null ? null : pawn.foodRestriction.CurrentFoodPolicy;
+            if (currentPolicy == null)
+            {
+                return "null";
+            }
+
+            return currentPolicy.label.NullOrEmpty() ? "unnamed_policy" : currentPolicy.label;
+        }
+
+        internal bool HasConsumableMealForPawn(Building printer, PawnPrinterFoodPolicy policy, Pawn eater)
+        {
+            if (printer == null)
+            {
+                return false;
+            }
+
+            CategorySelectionContext categorySelection = ResolveCategorySelection(printer, policy, eater);
+            FoodPreferability? category = categorySelection == null ? null : categorySelection.ResolvedCategory;
+            return category != null
+                && GetConsumableMealsForCategory(printer, category.Value, policy, eater, false).Count > 0;
+        }
+
+        private static string GetCategoryDebugLabel(FoodPreferability? category)
+        {
+            return category == null ? "null" : category.Value.ToString();
+        }
+
+        private static string GetCategoryFallbackReasonDebug(CategorySelectionContext categorySelection)
+        {
+            return categorySelection == null || categorySelection.FallbackReason.NullOrEmpty()
+                ? "none"
+                : categorySelection.FallbackReason;
         }
 
         private void DrawProcessingBar()
@@ -1107,6 +1738,8 @@ namespace FoodPrinterSystem
         {
             configuredMealsByCategory.Clear();
             affordableMealsByCategory.Clear();
+            consumableMealsByCategory.Clear();
+            lastConsumableMealCachePruneTick = 0;
             cachedManualMealDefName = null;
             cachedManualMealDef = null;
             cachedProcessingMealDefName = null;
@@ -1157,6 +1790,73 @@ namespace FoodPrinterSystem
             return networkComponent == null
                 ? 0
                 : unchecked((networkComponent.NetworkRevision * 397) ^ networkComponent.ContentsRevision);
+        }
+
+        private static int GetCurrentTick()
+        {
+            return Find.TickManager == null ? 0 : Find.TickManager.TicksGame;
+        }
+
+        private static int GetFoodPolicyCacheId(Pawn pawn)
+        {
+            FoodPolicy currentPolicy = pawn == null || pawn.foodRestriction == null ? null : pawn.foodRestriction.CurrentFoodPolicy;
+            if (currentPolicy == null)
+            {
+                return 0;
+            }
+
+            string uniqueId = currentPolicy.GetUniqueLoadID();
+            return uniqueId.NullOrEmpty() ? currentPolicy.label.GetHashCode() : uniqueId.GetHashCode();
+        }
+
+        private static int GetResolvedPolicyStateHash(PawnPrinterFoodPolicy policy)
+        {
+            return policy == null ? 0 : policy.ToDebugString().GetHashCode();
+        }
+
+        private static bool IsHardFoodTypeCheckEnabledForCache()
+        {
+            return FoodPrinterSystemMod.Settings == null || FoodPrinterSystemMod.Settings.HardCheckFoodType;
+        }
+
+        private void PruneConsumableMealCacheIfNeeded(int currentTick)
+        {
+            if (consumableMealsByCategory.Count == 0)
+            {
+                lastConsumableMealCachePruneTick = currentTick;
+                return;
+            }
+
+            if (consumableMealsByCategory.Count <= ConsumableMealCachePruneThreshold
+                && currentTick - lastConsumableMealCachePruneTick < ConsumableMealCachePruneIntervalTicks)
+            {
+                return;
+            }
+
+            List<ConsumableMealsCacheKey> expiredKeys = null;
+            foreach (KeyValuePair<ConsumableMealsCacheKey, CachedConsumableMeals> pair in consumableMealsByCategory)
+            {
+                CachedConsumableMeals cachedMeals = pair.Value;
+                if (cachedMeals == null || cachedMeals.LastAccessTick + ConsumableMealCacheRetentionTicks <= currentTick)
+                {
+                    if (expiredKeys == null)
+                    {
+                        expiredKeys = new List<ConsumableMealsCacheKey>();
+                    }
+
+                    expiredKeys.Add(pair.Key);
+                }
+            }
+
+            if (expiredKeys != null)
+            {
+                for (int i = 0; i < expiredKeys.Count; i++)
+                {
+                    consumableMealsByCategory.Remove(expiredKeys[i]);
+                }
+            }
+
+            lastConsumableMealCachePruneTick = currentTick;
         }
     }
 }

@@ -11,10 +11,15 @@ namespace FoodSystemPipe
 
         public static bool TryResolveGraphicKey(Thing thing, PipeDirectionMask mask, out PipeGraphicKey key)
         {
-            return TryResolveGraphicKey(thing == null ? null : thing.def, mask, out key);
+            return TryResolveGraphicKey(thing == null ? null : thing.def, thing, mask, out key);
         }
 
         public static bool TryResolveGraphicKey(ThingDef def, PipeDirectionMask mask, out PipeGraphicKey key)
+        {
+            return TryResolveGraphicKey(def, null, mask, out key);
+        }
+
+        public static bool TryResolveGraphicKey(ThingDef def, Thing stuffSourceThing, PipeDirectionMask mask, out PipeGraphicKey key)
         {
             key = default(PipeGraphicKey);
             GraphicData graphicData = def == null ? null : def.graphicData;
@@ -29,7 +34,7 @@ namespace FoodSystemPipe
                 shader = ShaderDatabase.CutoutComplex;
             }
 
-            key = new PipeGraphicKey(graphicData.texPath, mask, shader, (Color32)graphicData.color);
+            key = new PipeGraphicKey(graphicData.texPath, mask, shader, ResolveGraphicColor(graphicData, stuffSourceThing));
             return key.IsValid;
         }
 
@@ -98,6 +103,29 @@ namespace FoodSystemPipe
         public static bool TryGetPreferredPipeThingAt(Map map, IntVec3 cell, out Thing pipeThing)
         {
             return PipeCellQueryUtility.TryGetPreferredPipeThingAt(map, cell, out pipeThing);
+        }
+
+        private static Color32 ResolveGraphicColor(GraphicData graphicData, Thing stuffSourceThing)
+        {
+            Color baseColor = graphicData.color;
+            if (baseColor.a <= 0f)
+            {
+                return (Color32)baseColor;
+            }
+
+            ThingDef stuffDef = stuffSourceThing == null ? null : stuffSourceThing.Stuff;
+            if (stuffDef?.stuffProps == null)
+            {
+                return (Color32)baseColor;
+            }
+
+            Color stuffColor = stuffDef.stuffProps.color;
+            Color resolvedColor = new Color(
+                baseColor.r * stuffColor.r,
+                baseColor.g * stuffColor.g,
+                baseColor.b * stuffColor.b,
+                baseColor.a);
+            return (Color32)resolvedColor;
         }
     }
 }

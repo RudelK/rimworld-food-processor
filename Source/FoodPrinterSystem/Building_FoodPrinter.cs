@@ -100,6 +100,7 @@ namespace FoodPrinterSystem
 
         public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
         {
+            FoodPrinterPawnUtility.NotifyPrinterDespawned(this);
             base.DeSpawn(mode);
             FoodPrinterAlertHarmony.NotifyConsumerRegistryChanged();
         }

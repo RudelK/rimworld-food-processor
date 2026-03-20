@@ -17,6 +17,11 @@
     </graphicData>
     <uiIconPath>Things/Building/Linked/PowerConduit_MenuIcon</uiIconPath>
     <uiIconScale>0.7</uiIconScale>
+    <stuffCategories>
+      <li>Metallic</li>
+      <li>Woody</li>
+      <li>Stony</li>
+    </stuffCategories>
     <building>
       <ai_chillDestination>false</ai_chillDestination>
       <isInert>true</isInert>
@@ -44,7 +49,6 @@
     <neverMultiSelect>true</neverMultiSelect>
     <soundImpactDefault>BulletImpact_Metal</soundImpactDefault>
     <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
-    <constructEffect>ConstructMetal</constructEffect>
     <clearBuildingArea>false</clearBuildingArea>
     <replaceTags>
       <li>FoodPrinterSystemPipe</li>
@@ -63,9 +67,7 @@
     <description>Transfers liquid toner between food system buildings. Connectivity matters, not flow rate.</description>
     <uiIconPath>UI/foodprocess/UI_PipeBuild</uiIconPath>
     <uiIconScale>0.85</uiIconScale>
-    <costList>
-      <Steel>1</Steel>
-    </costList>
+    <costStuffCount>1</costStuffCount>
     <designationCategory>FPS_FoodProcessingCategory</designationCategory>
     <uiOrder>2010</uiOrder>
     <designationHotKey>Misc1</designationHotKey>
@@ -78,18 +80,16 @@
     <defName>FPS_HiddenPipe</defName>
     <label>Underground toner pipe</label>
     <description>Hidden underground piping for routing toner beneath walls and machines.</description>
-    <uiIconScale>0.7</uiIconScale>
+    <uiIconPath>UI/foodprocess/UI_PipeHiddenBuild</uiIconPath>
+    <uiIconScale>0.85</uiIconScale>
     <graphicData>
       <color>(0,0,0,0)</color>
       <shaderType>Transparent</shaderType>
     </graphicData>
-    <costList>
-      <Steel>2</Steel>
-    </costList>
+    <costStuffCount>2</costStuffCount>
     <designationCategory>FPS_FoodProcessingCategory</designationCategory>
     <uiOrder>2011</uiOrder>
     <designationHotKey>Misc9</designationHotKey>
-    <constructEffect>ConstructDirt</constructEffect>
     <building>
       <ai_neverTrashThis>true</ai_neverTrashThis>
       <isTargetable>false</isTargetable>
@@ -231,7 +231,7 @@
       <drawSize>(2,2)</drawSize>
     </graphicData>
     <uiIconPath>Things/Building/foodsystem/toner/toner_tank</uiIconPath>
-    <uiIconScale>0.85</uiIconScale>
+    <uiIconScale>1</uiIconScale>
     <altitudeLayer>Building</altitudeLayer>
     <passability>Impassable</passability>
     <blockWind>true</blockWind>
@@ -321,7 +321,7 @@
       <drawSize>(4,2)</drawSize>
     </graphicData>
     <uiIconPath>Things/Building/foodsystem/printer/printer_south</uiIconPath>
-    <uiIconScale>0.8</uiIconScale>
+    <uiIconScale>0.9</uiIconScale>
     <altitudeLayer>Building</altitudeLayer>
     <passability>Impassable</passability>
     <blockWind>true</blockWind>
