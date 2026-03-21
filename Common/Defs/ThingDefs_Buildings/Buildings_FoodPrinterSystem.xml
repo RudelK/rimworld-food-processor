@@ -103,7 +103,7 @@
 
   <ThingDef ParentName="BuildingBase">
     <defName>FPS_FoodDisintegrator</defName>
-    <label>INGR disintegrator</label>
+    <label>INGR Disintegrator</label>
     <description>Breaks down adjacent food items and transfers their nutrition into the connected toner network. Processes one item every 250 ticks.</description>
     <thingClass>FoodPrinterSystem.Building_FoodDisintegrator</thingClass>
     <tickerType>Rare</tickerType>

@@ -48,7 +48,7 @@ Other notable unlock gates:
 
 ## How It Works
 
-1. Place a `Food Disintegrator` next to stored or loose ingestible food.
+1. Place an `INGR Disintegrator` next to stored or loose ingestible food.
 2. Connect it to `Toner Tanks`, `Food Printers`, `Animal Feeders`, and `Nutrient feeders` with toner pipes.
 3. Disintegrated food adds toner and preserves its final ingestible ingredient defs in connected tanks.
 4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically, or use a `Nutrient feeder` for adjacent beds.
