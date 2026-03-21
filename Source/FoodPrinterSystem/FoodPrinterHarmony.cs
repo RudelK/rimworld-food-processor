@@ -68,11 +68,13 @@ namespace FoodPrinterSystem
                 if (__result && selectedPrinter != null)
                 {
                     ClearPrinterOnlyFallbackBlock(getter, selectedPrinter, "printer_search_succeeded");
+                    LogFoodSearchResult(getter, eater, foodSource, foodDef, __result, "existing_printer_source");
                     return;
                 }
 
                 if (__result && foodSource != null && selectedPrinter == null && !printerOnlyFallbackBlocked)
                 {
+                    LogFoodSearchResult(getter, eater, foodSource, foodDef, __result, "existing_non_printer_source");
                     return;
                 }
 
@@ -84,6 +86,7 @@ namespace FoodPrinterSystem
                         foodSource = null;
                         foodDef = null;
                         __result = false;
+                        LogFoodSearchResult(getter, eater, foodSource, foodDef, __result, "printer_source_invalidated_no_replacement");
                     }
                     else if (printerOnlyFallbackBlocked)
                     {
@@ -95,6 +98,7 @@ namespace FoodPrinterSystem
                         foodSource = null;
                         foodDef = null;
                         __result = false;
+                        LogFoodSearchResult(getter, eater, foodSource, foodDef, __result, "printer_only_search_blocked");
                     }
 
                     return;
@@ -109,6 +113,7 @@ namespace FoodPrinterSystem
                 foodSource = replacementPrinter;
                 foodDef = FoodPrinterPawnUtility.GetResolvedMealDefForPawn(eater, replacementPrinter);
                 __result = foodDef != null;
+                LogFoodSearchResult(getter, eater, foodSource, foodDef, __result, "replacement_printer_selected");
             }
         }
 
@@ -199,7 +204,9 @@ namespace FoodPrinterSystem
                 }
 
                 TargetIndex printerInd = ind;
+                Building_FoodPrinter activePrinter = printer;
                 bool processingStarted = false;
+                bool processingCompleted = false;
                 string pendingFailureReason = null;
                 Toil toil = new Toil();
                 toil.defaultCompleteMode = ToilCompleteMode.Delay;
@@ -207,9 +214,14 @@ namespace FoodPrinterSystem
                 toil.initAction = delegate
                 {
                     Pawn actor = toil.actor;
-                    Building_FoodPrinter currentPrinter = GetPrinter(actor, printerInd);
+                    Building_FoodPrinter currentPrinter = activePrinter ?? GetPrinter(actor, printerInd);
                     CompFoodPrinter comp = currentPrinter == null ? null : currentPrinter.FoodPrinterComp;
                     Pawn eaterPawn = GetMealConsumer(actor);
+                    if (actor != null && actor.carryTracker != null && actor.carryTracker.CarriedThing != null)
+                    {
+                        LogPrinterJobEvent("printer_toil_init_with_carried_thing", actor, eaterPawn, currentPrinter, "already_carrying");
+                    }
+
                     if (currentPrinter == null || comp == null)
                     {
                         LogPrinterJobEvent("printer_toil_init_failed", actor, eaterPawn, currentPrinter, "missing_printer_or_comp");
@@ -252,7 +264,9 @@ namespace FoodPrinterSystem
                         return;
                     }
 
+                    activePrinter = currentPrinter;
                     processingStarted = true;
+                    processingCompleted = false;
                     pendingFailureReason = null;
                     ClearPrinterOnlyFallbackBlock(actor, currentPrinter, "processing_started");
                     comp.UpdateProcessingTicksRemaining(FoodPrinterSystemUtility.PrintingDelayTicks);
@@ -260,14 +274,14 @@ namespace FoodPrinterSystem
                 toil.tickAction = delegate
                 {
                     Pawn actor = toil.actor;
-                    Building_FoodPrinter currentPrinter = GetPrinter(actor, printerInd);
+                    Building_FoodPrinter currentPrinter = activePrinter;
                     if (currentPrinter != null)
                     {
                         actor.rotationTracker.FaceTarget(currentPrinter);
                     }
 
                     CompFoodPrinter comp = currentPrinter == null ? null : currentPrinter.FoodPrinterComp;
-                    if (processingStarted && comp != null && comp.IsProcessingPawn(actor) && actor.jobs != null && actor.jobs.curDriver != null)
+                    if (processingStarted && !processingCompleted && comp != null && comp.IsProcessingPawn(actor) && actor.jobs != null && actor.jobs.curDriver != null)
                     {
                         int ticksLeft = Math.Max(0, actor.jobs.curDriver.ticksLeftThisToil);
                         comp.UpdateProcessingTicksRemaining(ticksLeft);
@@ -297,6 +311,10 @@ namespace FoodPrinterSystem
                                 if (actor.carryTracker.TryStartCarry(meal))
                                 {
                                     actor.CurJob.SetTarget(printerInd, actor.carryTracker.CarriedThing);
+                                    processingCompleted = true;
+                                    processingStarted = false;
+                                    pendingFailureReason = null;
+                                    LogPrinterJobEvent("printer_meal_carried", actor, eaterPawn, currentPrinter, "carried_printed_meal");
                                 }
                                 else
                                 {
@@ -322,14 +340,14 @@ namespace FoodPrinterSystem
                 toil.AddFinishAction(delegate
                 {
                     Pawn actor = toil.actor;
-                    Building_FoodPrinter currentPrinter = GetPrinter(actor, printerInd);
+                    Building_FoodPrinter currentPrinter = activePrinter;
                     CompFoodPrinter comp = currentPrinter == null ? null : currentPrinter.FoodPrinterComp;
-                    if (!pendingFailureReason.NullOrEmpty())
+                    if (!processingCompleted && !pendingFailureReason.NullOrEmpty())
                     {
                         TrySwitchToAlternativePrinter(actor, printerInd, currentPrinter, pendingFailureReason);
                     }
 
-                    if (processingStarted && comp != null && comp.IsProcessingPawn(actor) && !comp.HasCompletedProcessing)
+                    if (processingStarted && !processingCompleted && comp != null && comp.IsProcessingPawn(actor) && !comp.HasCompletedProcessing)
                     {
                         if (pendingFailureReason.NullOrEmpty())
                         {
@@ -340,18 +358,29 @@ namespace FoodPrinterSystem
                     }
                 });
                 toil.handlingFacing = true;
-                toil.FailOnDespawnedNullOrForbidden(printerInd);
-                toil.FailOnCannotTouch(printerInd, PathEndMode.InteractionCell);
+                toil.FailOnCannotTouch(printerInd, PathEndMode.Touch);
                 toil.FailOn(delegate(Toil t)
                 {
-                    if (!processingStarted)
+                    if (!processingStarted || processingCompleted)
                     {
                         return false;
                     }
 
                     Pawn actor = t.actor;
-                    Building_FoodPrinter currentPrinter = GetPrinter(actor, printerInd);
-                    if (currentPrinter == null || !currentPrinter.IsPowered)
+                    Building_FoodPrinter currentPrinter = activePrinter;
+                    if (currentPrinter == null || currentPrinter.DestroyedOrNull() || !currentPrinter.SpawnedOrAnyParentSpawned)
+                    {
+                        pendingFailureReason = "printer_missing";
+                        return true;
+                    }
+
+                    if (currentPrinter.IsForbidden(actor))
+                    {
+                        pendingFailureReason = "printer_forbidden";
+                        return true;
+                    }
+
+                    if (!currentPrinter.IsPowered)
                     {
                         pendingFailureReason = "printer_lost_power";
                         return true;
@@ -546,10 +575,34 @@ namespace FoodPrinterSystem
                 + ": actor=" + GetPawnDebugLabel(actor)
                 + ", eater=" + GetPawnDebugLabel(eater)
                 + ", printer=" + GetPrinterDebugLabel(printer)
+                + ", currentJob=" + GetJobDebugLabel(actor)
+                + ", targetA=" + GetThingDebugLabel(actor == null || actor.CurJob == null ? null : actor.CurJob.targetA.Thing)
+                + ", targetB=" + GetThingDebugLabel(actor == null || actor.CurJob == null ? null : actor.CurJob.targetB.Thing)
+                + ", carried=" + GetThingDebugLabel(actor == null || actor.carryTracker == null ? null : actor.carryTracker.CarriedThing)
                 + ", canPrintNow=" + (printer != null && printer.CanPrintNow)
                 + ", isPrinting=" + (printer != null && printer.IsPrinting)
                 + ", processingMeal=" + GetMealDebugLabel(comp == null ? null : comp.ProcessingMealDef)
                 + ", processingCost=" + (comp == null ? 0 : comp.ProcessingTonerCost)
+                + ", reason=" + reason);
+        }
+
+        private static void LogFoodSearchResult(Pawn getter, Pawn eater, Thing foodSource, ThingDef foodDef, bool result, string reason)
+        {
+            if (!ShouldLogFoodSearchForPawn(getter, eater))
+            {
+                return;
+            }
+
+            Log.Message("[FPS] printer_food_search_result"
+                + ": getter=" + GetPawnDebugLabel(getter)
+                + ", eater=" + GetPawnDebugLabel(eater)
+                + ", currentJob=" + GetJobDebugLabel(getter)
+                + ", targetA=" + GetThingDebugLabel(getter == null || getter.CurJob == null ? null : getter.CurJob.targetA.Thing)
+                + ", targetB=" + GetThingDebugLabel(getter == null || getter.CurJob == null ? null : getter.CurJob.targetB.Thing)
+                + ", carried=" + GetThingDebugLabel(getter == null || getter.carryTracker == null ? null : getter.carryTracker.CarriedThing)
+                + ", foodSource=" + GetThingDebugLabel(foodSource)
+                + ", foodDef=" + GetMealDebugLabel(foodDef)
+                + ", result=" + result
                 + ", reason=" + reason);
         }
 
@@ -632,7 +685,7 @@ namespace FoodPrinterSystem
 
         private static void LogNonPrinterFallbackSuppressed(Pawn getter, Pawn eater, Building_FoodPrinter replacementPrinter, Thing originalFoodSource, ThingDef originalFoodDef, string reason)
         {
-            if (FoodPrinterSystemMod.Settings == null || !FoodPrinterSystemMod.Settings.DebugLoggingEnabled)
+            if (!ShouldLogFoodSearchForPawn(getter, eater))
             {
                 return;
             }
@@ -646,9 +699,40 @@ namespace FoodPrinterSystem
                 + ", reason=" + reason);
         }
 
+        private static bool ShouldLogFoodSearchForPawn(Pawn getter, Pawn eater)
+        {
+            if (FoodPrinterSystemMod.Settings == null || !FoodPrinterSystemMod.Settings.DebugLoggingEnabled)
+            {
+                return false;
+            }
+
+            return FoodPrinterPawnUtility.CanPawnUsePrinter(getter)
+                || FoodPrinterPawnUtility.CanPawnUsePrinter(eater);
+        }
+
         private static string GetPawnDebugLabel(Pawn pawn)
         {
             return pawn == null ? "null" : pawn.LabelShortCap + " (" + pawn.thingIDNumber + ")";
+        }
+
+        private static string GetThingDebugLabel(Thing thing)
+        {
+            if (thing == null)
+            {
+                return "null";
+            }
+
+            return thing.LabelShortCap + " (" + thing.thingIDNumber + "," + thing.def.defName + ")";
+        }
+
+        private static string GetJobDebugLabel(Pawn pawn)
+        {
+            if (pawn == null || pawn.CurJob == null || pawn.CurJob.def == null)
+            {
+                return "null";
+            }
+
+            return pawn.CurJob.def.defName;
         }
 
         private static string GetPrinterDebugLabel(Building_FoodPrinter printer)
@@ -659,16 +743,6 @@ namespace FoodPrinterSystem
         private static string GetMealDebugLabel(ThingDef mealDef)
         {
             return mealDef == null ? "null" : mealDef.defName;
-        }
-
-        private static string GetThingDebugLabel(Thing thing)
-        {
-            if (thing == null)
-            {
-                return "null";
-            }
-
-            return thing.LabelShortCap + " (" + thing.thingIDNumber + ")";
         }
 
         private static int GetCurrentTick()

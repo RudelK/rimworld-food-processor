@@ -13,6 +13,7 @@ Raw food and meals can be broken down into liquid toner, stored in connected tan
 - Nutrient feeder that directly feeds humanlike bed occupants from the toner network
 - Toner pipes and underground toner pipes for network routing
 - Pipe-specific build and deconstruct tools
+- Dedicated `Food Processing` research tab for the full progression
 - Grouped toner tank build menu with size-based research progression
 - In-game mod settings for power use, print costs, tank capacity, and related balance values
 - Harmony-based integration with RimWorld food-search logic and ingest jobs
@@ -29,21 +30,27 @@ The current research chain is:
 
 - `Food Processing` -> requires `Electricity` and `Nutrient paste meal`
 - `Simple Meal Printing` -> requires `Food Processing` and `Electricity`
-- `Fine Meal Printing` -> requires `Simple Meal Printing` and `MicroelectronicsBasics`
-- `Lavish Meal Printing` -> requires `Fine Meal Printing` and `MultiAnalyzer`
+- `Advanced Food Processing` -> requires `Food Processing` and `MicroelectronicsBasics`
+- `Fine Meal Printing` -> requires `Advanced Food Processing`
+- `Lavish Meal Printing` -> requires `Fine Meal Printing` and `MultiAnalyzer` and is now a spacer-tier research
+- `Expanded Toner Storage` -> requires `Advanced Food Processing` and `MultiAnalyzer`
 
 Toner tank unlocks are:
 
 - `Small toner tank` -> requires `Food Processing`
-- `Medium toner tank` -> requires `Food Processing` and `Machining`
-- `Large toner tank` -> requires `Food Processing` and `MicroelectronicsBasics`
+- `Medium toner tank` -> requires `Advanced Food Processing`
+- `Large toner tank` -> requires `Expanded Toner Storage`
+
+Other notable unlock gates:
+
+- `Bedside feeder` -> requires `Advanced Food Processing`
 
 ## How It Works
 
 1. Place a `Food Disintegrator` next to stored or loose ingestible food.
 2. Connect it to `Toner Tanks`, `Food Printers`, `Animal Feeders`, and `Nutrient feeders` with toner pipes.
 3. Disintegrated food adds toner and preserves its final ingestible ingredient defs in connected tanks.
-4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically, or use a `Nutrient feeder` for adjacent beds.
+4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically, or use a `Nutrient feeder` / bedside feeder for adjacent beds.
 5. Pawns evaluate printers against the connected network's current ingredient profile before selecting them as a food source.
 6. The printer can automatically include valid modded meal defs from loaded mods, as long as they are real meal ingestibles and match an unlocked meal tier.
 

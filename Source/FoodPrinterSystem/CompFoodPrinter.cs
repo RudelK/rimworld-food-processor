@@ -28,7 +28,7 @@ namespace FoodPrinterSystem
         {
             public int SettingsRevision;
             public int ResearchStateMask;
-            public int NetworkRevision;
+            public int AffordabilityRevision;
             public List<ThingDef> Meals;
         }
 
@@ -39,7 +39,8 @@ namespace FoodPrinterSystem
             public int FoodPolicyId;
             public int PolicyStateHash;
             public FoodPreferability Category;
-            public int NetworkRevision;
+            public int AffordabilityRevision;
+            public int CharacteristicsRevision;
             public int SettingsRevision;
             public int ResearchStateMask;
             public bool HardFoodTypeCheckEnabled;
@@ -51,7 +52,8 @@ namespace FoodPrinterSystem
                 hash = Gen.HashCombineInt(hash, FoodPolicyId);
                 hash = Gen.HashCombineInt(hash, PolicyStateHash);
                 hash = Gen.HashCombineInt(hash, (int)Category);
-                hash = Gen.HashCombineInt(hash, NetworkRevision);
+                hash = Gen.HashCombineInt(hash, AffordabilityRevision);
+                hash = Gen.HashCombineInt(hash, CharacteristicsRevision);
                 hash = Gen.HashCombineInt(hash, SettingsRevision);
                 hash = Gen.HashCombineInt(hash, ResearchStateMask);
                 return Gen.HashCombineInt(hash, HardFoodTypeCheckEnabled ? 1 : 0);
@@ -69,7 +71,8 @@ namespace FoodPrinterSystem
                     && FoodPolicyId == other.FoodPolicyId
                     && PolicyStateHash == other.PolicyStateHash
                     && Category == other.Category
-                    && NetworkRevision == other.NetworkRevision
+                    && AffordabilityRevision == other.AffordabilityRevision
+                    && CharacteristicsRevision == other.CharacteristicsRevision
                     && SettingsRevision == other.SettingsRevision
                     && ResearchStateMask == other.ResearchStateMask
                     && HardFoodTypeCheckEnabled == other.HardFoodTypeCheckEnabled;
@@ -117,10 +120,20 @@ namespace FoodPrinterSystem
         private readonly Dictionary<FoodPreferability, List<ThingDef>> configuredMealsByCategory = new Dictionary<FoodPreferability, List<ThingDef>>();
         private readonly Dictionary<FoodPreferability, CachedAffordableMeals> affordableMealsByCategory = new Dictionary<FoodPreferability, CachedAffordableMeals>();
         private readonly Dictionary<ConsumableMealsCacheKey, CachedConsumableMeals> consumableMealsByCategory = new Dictionary<ConsumableMealsCacheKey, CachedConsumableMeals>();
+        private const int PendingMealSelectionRetentionTicks = 180;
         private const int ConsumableMealCacheRetentionTicks = 600;
         private const int ConsumableMealCachePruneIntervalTicks = 120;
         private const int ConsumableMealCachePruneThreshold = 128;
         private int lastConsumableMealCachePruneTick;
+        private string pendingSelectedMealDefName;
+        private int pendingSelectedMealPawnId;
+        private int pendingSelectedMealFoodPolicyId;
+        private int pendingSelectedMealPolicyStateHash;
+        private int pendingSelectedMealAffordabilityRevision;
+        private int pendingSelectedMealCharacteristicsRevision;
+        private int pendingSelectedMealResearchStateMask;
+        private int pendingSelectedMealSettingsRevision;
+        private int pendingSelectedMealExpiresAtTick;
 
         public CompProperties_FoodPrinter Props
         {
@@ -577,6 +590,7 @@ namespace FoodPrinterSystem
             processingMealDefName = mealDef.defName;
             processingTonerCost = tonerCost;
             processingTicksRemaining = FoodPrinterSystemUtility.PrintingDelayTicks;
+            ClearPendingMealSelection();
             ApplyPowerSetting();
             LogProcessingEvent("printer_start_succeeded", printer, reservationPawn, eaterPawn, mealDef, tonerCost, "started", categorySelection);
             return true;
@@ -1028,7 +1042,13 @@ namespace FoodPrinterSystem
                     return null;
                 }
 
-                ThingDef selectedMeal = GetWeightedRandomMeal(finalCandidates);
+                ThingDef selectedMeal = GetPendingMealSelection(printer, policy, eater, finalCandidates);
+                if (selectedMeal == null)
+                {
+                    selectedMeal = GetWeightedRandomMeal(finalCandidates);
+                    CachePendingMealSelection(printer, policy, eater, selectedMeal);
+                }
+
                 LogRandomMealSelection(printer, eater, categorySelection, allCandidates, finalCandidates, selectedMeal);
                 return selectedMeal;
             }
@@ -1074,7 +1094,11 @@ namespace FoodPrinterSystem
             List<ThingDef> discoveredMeals = GetDiscoveredMealsForCategory(category);
             for (int i = 0; i < discoveredMeals.Count; i++)
             {
-                AddMealIfMissing(meals, discoveredMeals[i]);
+                ThingDef discoveredMeal = discoveredMeals[i];
+                if (IsValidMealDef(discoveredMeal) && GetCategoryForMealDef(discoveredMeal) == category)
+                {
+                    AddMealIfMissing(meals, discoveredMeal);
+                }
             }
 
             return meals;
@@ -1089,12 +1113,12 @@ namespace FoodPrinterSystem
 
             int settingsRevision = FoodPrinterSystemMod.SettingsRevision;
             int researchStateMask = GetResearchStateMask();
-            int networkRevision = GetNetworkRevision(printer);
+            int affordabilityRevision = GetAffordabilityRevision(printer);
             if (affordableMealsByCategory.TryGetValue(category, out CachedAffordableMeals cachedMeals)
                 && cachedMeals != null
                 && cachedMeals.SettingsRevision == settingsRevision
                 && cachedMeals.ResearchStateMask == researchStateMask
-                && cachedMeals.NetworkRevision == networkRevision
+                && cachedMeals.AffordabilityRevision == affordabilityRevision
                 && cachedMeals.Meals != null)
             {
                 return cachedMeals.Meals;
@@ -1115,7 +1139,7 @@ namespace FoodPrinterSystem
             {
                 SettingsRevision = settingsRevision,
                 ResearchStateMask = researchStateMask,
-                NetworkRevision = networkRevision,
+                AffordabilityRevision = affordabilityRevision,
                 Meals = affordable
             };
             return affordable;
@@ -1144,7 +1168,8 @@ namespace FoodPrinterSystem
                 FoodPolicyId = GetFoodPolicyCacheId(eater),
                 PolicyStateHash = GetResolvedPolicyStateHash(policy),
                 Category = category,
-                NetworkRevision = GetNetworkRevision(printer),
+                AffordabilityRevision = GetAffordabilityRevision(printer),
+                CharacteristicsRevision = GetCharacteristicsRevision(printer),
                 SettingsRevision = FoodPrinterSystemMod.SettingsRevision,
                 ResearchStateMask = GetResearchStateMask(),
                 HardFoodTypeCheckEnabled = IsHardFoodTypeCheckEnabledForCache()
@@ -1282,7 +1307,7 @@ namespace FoodPrinterSystem
                 && mealDef.IsNutritionGivingIngestible
                 && FoodPrinterSystemUtility.GetPrintCost(mealDef) > 0
                 && mealDef.ingestible != null
-                && (mealDef.defName == "MealNutrientPaste" || IsPrinterMealFoodType(mealDef));
+                && (mealDef.defName == "MealNutrientPaste" || (IsPrinterMealFoodType(mealDef) && IsPrintableMealItem(mealDef)));
         }
 
         private static bool IsPrinterMealFoodType(ThingDef mealDef)
@@ -1290,6 +1315,25 @@ namespace FoodPrinterSystem
             return mealDef != null
                 && mealDef.ingestible != null
                 && (mealDef.ingestible.foodType & FoodTypeFlags.Meal) != FoodTypeFlags.None;
+        }
+
+        private static bool IsPrintableMealItem(ThingDef mealDef)
+        {
+            if (mealDef == null || mealDef.thingCategories == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < mealDef.thingCategories.Count; i++)
+            {
+                ThingCategoryDef category = mealDef.thingCategories[i];
+                if (category != null && string.Equals(category.defName, "FoodMeals", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static List<ThingDef> GetDiscoveredMealsForCategory(FoodPreferability category)
@@ -1318,6 +1362,11 @@ namespace FoodPrinterSystem
             for (int i = 0; i < allDefs.Count; i++)
             {
                 ThingDef mealDef = allDefs[i];
+                if (!IsValidMealDef(mealDef))
+                {
+                    continue;
+                }
+
                 FoodPreferability? category = GetCategoryForMealDef(mealDef);
                 if (category == null || category == FoodPreferability.MealAwful)
                 {
@@ -1584,6 +1633,7 @@ namespace FoodPrinterSystem
             processingTicksRemaining = 0;
             processingTonerCost = 0;
             currentProcessingPawn = null;
+            ClearPendingMealSelection();
             ApplyPowerSetting();
         }
 
@@ -1749,6 +1799,65 @@ namespace FoodPrinterSystem
             cachedManualMealDef = null;
             cachedProcessingMealDefName = null;
             cachedProcessingMealDef = null;
+            ClearPendingMealSelection();
+        }
+
+        private ThingDef GetPendingMealSelection(Building printer, PawnPrinterFoodPolicy policy, Pawn eater, List<ThingDef> validCandidates)
+        {
+            if (printer == null
+                || eater == null
+                || validCandidates == null
+                || validCandidates.Count == 0
+                || pendingSelectedMealExpiresAtTick <= GetCurrentTick()
+                || pendingSelectedMealPawnId != eater.thingIDNumber
+                || pendingSelectedMealFoodPolicyId != GetFoodPolicyCacheId(eater)
+                || pendingSelectedMealPolicyStateHash != GetResolvedPolicyStateHash(policy)
+                || pendingSelectedMealAffordabilityRevision != GetAffordabilityRevision(printer)
+                || pendingSelectedMealCharacteristicsRevision != GetCharacteristicsRevision(printer)
+                || pendingSelectedMealResearchStateMask != GetResearchStateMask()
+                || pendingSelectedMealSettingsRevision != FoodPrinterSystemMod.SettingsRevision)
+            {
+                return null;
+            }
+
+            ThingDef selectedMeal = DefDatabase<ThingDef>.GetNamedSilentFail(pendingSelectedMealDefName);
+            if (selectedMeal == null || !validCandidates.Contains(selectedMeal))
+            {
+                return null;
+            }
+
+            return selectedMeal;
+        }
+
+        private void CachePendingMealSelection(Building printer, PawnPrinterFoodPolicy policy, Pawn eater, ThingDef mealDef)
+        {
+            if (printer == null || eater == null || mealDef == null)
+            {
+                return;
+            }
+
+            pendingSelectedMealDefName = mealDef.defName;
+            pendingSelectedMealPawnId = eater.thingIDNumber;
+            pendingSelectedMealFoodPolicyId = GetFoodPolicyCacheId(eater);
+            pendingSelectedMealPolicyStateHash = GetResolvedPolicyStateHash(policy);
+            pendingSelectedMealAffordabilityRevision = GetAffordabilityRevision(printer);
+            pendingSelectedMealCharacteristicsRevision = GetCharacteristicsRevision(printer);
+            pendingSelectedMealResearchStateMask = GetResearchStateMask();
+            pendingSelectedMealSettingsRevision = FoodPrinterSystemMod.SettingsRevision;
+            pendingSelectedMealExpiresAtTick = GetCurrentTick() + PendingMealSelectionRetentionTicks;
+        }
+
+        private void ClearPendingMealSelection()
+        {
+            pendingSelectedMealDefName = null;
+            pendingSelectedMealPawnId = 0;
+            pendingSelectedMealFoodPolicyId = 0;
+            pendingSelectedMealPolicyStateHash = 0;
+            pendingSelectedMealAffordabilityRevision = 0;
+            pendingSelectedMealCharacteristicsRevision = 0;
+            pendingSelectedMealResearchStateMask = 0;
+            pendingSelectedMealSettingsRevision = 0;
+            pendingSelectedMealExpiresAtTick = 0;
         }
 
         private static ThingDef ResolveCachedMealDef(string mealDefName, ref string cachedMealDefName, ref ThingDef cachedMealDef)
@@ -1784,7 +1893,7 @@ namespace FoodPrinterSystem
             return mask;
         }
 
-        private static int GetNetworkRevision(Building printer)
+        private static int GetAffordabilityRevision(Building printer)
         {
             if (printer == null || printer.Map == null)
             {
@@ -1794,7 +1903,13 @@ namespace FoodPrinterSystem
             MapComponent_TonerNetwork networkComponent = FoodPrinterSystemUtility.GetNetworkComponent(printer.Map);
             return networkComponent == null
                 ? 0
-                : unchecked((networkComponent.NetworkRevision * 397) ^ networkComponent.ContentsRevision);
+                : unchecked((networkComponent.NetworkRevision * 397) ^ networkComponent.StorageRevision);
+        }
+
+        private static int GetCharacteristicsRevision(Building printer)
+        {
+            Building_FoodPrinter foodPrinter = printer as Building_FoodPrinter;
+            return foodPrinter == null ? 0 : FoodPrinterPawnUtility.GetPrinterCharacteristicsRevisionForCaching(foodPrinter);
         }
 
         private static int GetCurrentTick()
@@ -1816,7 +1931,7 @@ namespace FoodPrinterSystem
 
         private static int GetResolvedPolicyStateHash(PawnPrinterFoodPolicy policy)
         {
-            return policy == null ? 0 : policy.ToDebugString().GetHashCode();
+            return FoodPrinterPawnUtility.GetPolicyStateHash(policy);
         }
 
         private static bool IsHardFoodTypeCheckEnabledForCache()

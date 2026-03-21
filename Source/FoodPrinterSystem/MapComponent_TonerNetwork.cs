@@ -5,7 +5,8 @@ namespace FoodPrinterSystem
     public class MapComponent_TonerNetwork : PipeMapComponent
     {
         public System.Collections.Generic.HashSet<CompTonerTank> AllTanks = new System.Collections.Generic.HashSet<CompTonerTank>();
-        private int contentsRevision = 1;
+        private int ingredientRevision = 1;
+        private int storageRevision = 1;
         private int cachedNutritionRevision = -1;
         private float cachedTotalTonerNutrition;
 
@@ -15,14 +16,24 @@ namespace FoodPrinterSystem
 
         public int ContentsRevision
         {
-            get { return contentsRevision; }
+            get { return unchecked((ingredientRevision * 397) ^ storageRevision); }
+        }
+
+        public int IngredientRevision
+        {
+            get { return ingredientRevision; }
+        }
+
+        public int StorageRevision
+        {
+            get { return storageRevision; }
         }
 
         public void RegisterTank(CompTonerTank tank)
         {
             if (tank != null && AllTanks.Add(tank))
             {
-                NotifyContentsChanged();
+                NotifyTankConfigurationChanged();
             }
         }
 
@@ -30,27 +41,36 @@ namespace FoodPrinterSystem
         {
             if (tank != null && AllTanks.Remove(tank))
             {
-                NotifyContentsChanged();
+                NotifyTankConfigurationChanged();
             }
         }
 
         public void NotifyContentsChanged()
         {
-            if (contentsRevision == int.MaxValue)
-            {
-                contentsRevision = 1;
-            }
-            else
-            {
-                contentsRevision++;
-            }
+            NotifyTankConfigurationChanged();
+        }
 
+        public void NotifyIngredientStateChanged()
+        {
+            ingredientRevision = BumpRevision(ingredientRevision);
+        }
+
+        public void NotifyStorageStateChanged()
+        {
+            storageRevision = BumpRevision(storageRevision);
+            cachedNutritionRevision = -1;
+        }
+
+        public void NotifyTankConfigurationChanged()
+        {
+            ingredientRevision = BumpRevision(ingredientRevision);
+            storageRevision = BumpRevision(storageRevision);
             cachedNutritionRevision = -1;
         }
 
         public float GetTotalTonerNutrition()
         {
-            if (cachedNutritionRevision == contentsRevision)
+            if (cachedNutritionRevision == storageRevision)
             {
                 return cachedTotalTonerNutrition;
             }
@@ -65,8 +85,13 @@ namespace FoodPrinterSystem
             }
 
             cachedTotalTonerNutrition = total;
-            cachedNutritionRevision = contentsRevision;
+            cachedNutritionRevision = storageRevision;
             return total;
+        }
+
+        private static int BumpRevision(int revision)
+        {
+            return revision == int.MaxValue ? 1 : revision + 1;
         }
     }
 
@@ -95,6 +120,16 @@ namespace FoodPrinterSystem
         public static System.Collections.Generic.List<ThingDef> GetAllIngredients(Thing node)
         {
             return TonerPipeNetManager.GetAllIngredients(node);
+        }
+
+        public static void NotifyIngredientStateChanged(Map map)
+        {
+            TonerPipeNetManager.NotifyIngredientStateChanged(map);
+        }
+
+        public static void NotifyStorageStateChanged(Map map)
+        {
+            TonerPipeNetManager.NotifyStorageStateChanged(map);
         }
 
         public static void NotifyContentsChanged(Map map)

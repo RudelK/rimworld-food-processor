@@ -12,7 +12,13 @@ namespace FoodPrinterSystem
 
         public static Building_FoodPrinter FindClosestValidPrinter(Pawn getter, Pawn eater, bool allowDispenserFull, bool allowForbidden, bool allowSociallyImproper, bool ignoreReservations, Building_FoodPrinter excludedPrinter = null)
         {
-            if (getter == null || eater == null || getter.Map == null || !allowDispenserFull || FoodPrinterSystemDefOf.FPS_FoodPrinter == null)
+            if (getter == null
+                || eater == null
+                || getter.Map == null
+                || !allowDispenserFull
+                || FoodPrinterSystemDefOf.FPS_FoodPrinter == null
+                || !CanGetterOperatePrinter(getter)
+                || !FoodPrinterPawnUtility.CanPawnUsePrinter(eater))
             {
                 return null;
             }
@@ -56,6 +62,11 @@ namespace FoodPrinterSystem
 
         public static bool IsPrinterJobCandidate(Building_FoodPrinter printer, Pawn getter, Pawn eater, bool allowDispenserFull, bool allowForbidden, bool allowSociallyImproper, bool ignoreReservations, Building_FoodPrinter excludedPrinter = null)
         {
+            if (!CanGetterOperatePrinter(getter) || !FoodPrinterPawnUtility.CanPawnUsePrinter(eater))
+            {
+                return false;
+            }
+
             return IsPrinterJobCandidate(
                 printer,
                 getter,
@@ -80,6 +91,7 @@ namespace FoodPrinterSystem
                 || getter.IsWildMan()
                 || !getter.RaceProps.ToolUser
                 || !getter.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation)
+                || !FoodPrinterPawnUtility.CanPawnUsePrinter(eater)
                 || !printer.CanPrintNow)
             {
                 return false;
@@ -158,6 +170,17 @@ namespace FoodPrinterSystem
         {
             bool animalsCare = !getter.RaceProps.Animal;
             return thing.IsSociallyProper(getter) || thing.IsSociallyProper(eater, eater.IsPrisonerOfColony, animalsCare);
+        }
+
+        private static bool CanGetterOperatePrinter(Pawn getter)
+        {
+            return getter != null
+                && getter.RaceProps != null
+                && getter.RaceProps.ToolUser
+                && !getter.IsWildMan()
+                && getter.health != null
+                && getter.health.capacities != null
+                && getter.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation);
         }
 
         private static bool IsBetterPrinterCandidate(float adjustedDistance, float rawDistance, float preferenceScore, float bestAdjustedDistance, float bestRawDistance, float bestPreferenceScore)

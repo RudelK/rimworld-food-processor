@@ -47,8 +47,14 @@ namespace FoodPrinterSystem
     {
         private sealed class CachedPrinterFoodCharacteristics
         {
-            public int NetworkRevision;
+            public int CharacteristicsRevision;
             public PrinterFoodCharacteristics Characteristics;
+        }
+
+        private sealed class CachedPawnPrinterFoodPolicy
+        {
+            public int ExpiresAtTick;
+            public PawnPrinterFoodPolicy Policy;
         }
 
         private struct MealAllowanceCacheKey
@@ -57,7 +63,7 @@ namespace FoodPrinterSystem
             public int PrinterId;
             public int MealDefId;
             public int FoodPolicyId;
-            public int NetworkRevision;
+            public int CharacteristicsRevision;
             public int SettingsRevision;
             public bool HardFoodTypeCheckEnabled;
 
@@ -67,7 +73,7 @@ namespace FoodPrinterSystem
                 hash = Gen.HashCombineInt(hash, PrinterId);
                 hash = Gen.HashCombineInt(hash, MealDefId);
                 hash = Gen.HashCombineInt(hash, FoodPolicyId);
-                hash = Gen.HashCombineInt(hash, NetworkRevision);
+                hash = Gen.HashCombineInt(hash, CharacteristicsRevision);
                 hash = Gen.HashCombineInt(hash, SettingsRevision);
                 return Gen.HashCombineInt(hash, HardFoodTypeCheckEnabled ? 1 : 0);
             }
@@ -83,7 +89,7 @@ namespace FoodPrinterSystem
                     && PrinterId == other.PrinterId
                     && MealDefId == other.MealDefId
                     && FoodPolicyId == other.FoodPolicyId
-                    && NetworkRevision == other.NetworkRevision
+                    && CharacteristicsRevision == other.CharacteristicsRevision
                     && SettingsRevision == other.SettingsRevision
                     && HardFoodTypeCheckEnabled == other.HardFoodTypeCheckEnabled;
             }
@@ -97,13 +103,27 @@ namespace FoodPrinterSystem
         }
 
         private static readonly Dictionary<int, CachedPrinterFoodCharacteristics> CachedCharacteristicsByPrinterId = new Dictionary<int, CachedPrinterFoodCharacteristics>();
+        private static readonly Dictionary<int, CachedPawnPrinterFoodPolicy> CachedPolicyByPawnId = new Dictionary<int, CachedPawnPrinterFoodPolicy>();
         private static readonly Dictionary<MealAllowanceCacheKey, CachedMealAllowanceVerdict> CachedMealAllowanceByKey = new Dictionary<MealAllowanceCacheKey, CachedMealAllowanceVerdict>();
+        private const int PawnPolicyCacheDurationTicks = 30;
+        private const int PawnPolicyCachePruneIntervalTicks = 120;
+        private const int PawnPolicyCachePruneThreshold = 256;
         private const int MealAllowanceCacheDurationTicks = 30;
         private const int MealAllowanceCachePruneIntervalTicks = 120;
         private const int MealAllowanceCachePruneThreshold = 256;
+        private static int lastPawnPolicyCachePruneTick;
         private static int lastMealAllowanceCachePruneTick;
         private static TraitDef cachedCannibalTraitDef;
         private static bool cachedCannibalTraitResolved;
+
+        public static bool CanPawnUsePrinter(Pawn pawn)
+        {
+            return pawn != null
+                && pawn.RaceProps != null
+                && pawn.RaceProps.Humanlike
+                && pawn.needs != null
+                && pawn.needs.food != null;
+        }
 
         public static PrinterFoodCharacteristics GetPredictedFoodCharacteristics(Building_FoodPrinter printer)
         {
@@ -113,16 +133,16 @@ namespace FoodPrinterSystem
             }
 
             MapComponent_TonerNetwork networkComponent = FoodPrinterSystemUtility.GetNetworkComponent(printer.Map);
-            int networkRevision = networkComponent == null
+            int characteristicsRevision = networkComponent == null
                 ? 0
-                : unchecked((networkComponent.NetworkRevision * 397) ^ networkComponent.ContentsRevision);
+                : unchecked((networkComponent.NetworkRevision * 397) ^ networkComponent.IngredientRevision);
             // Cache by combined toner network topology/content revision so both
             // pipe connectivity changes and ingredient/storage mutations invalidate
             // stale printer food predictions without recomputing every search.
             CachedPrinterFoodCharacteristics cachedCharacteristics;
             if (CachedCharacteristicsByPrinterId.TryGetValue(printer.thingIDNumber, out cachedCharacteristics)
                 && cachedCharacteristics != null
-                && cachedCharacteristics.NetworkRevision == networkRevision
+                && cachedCharacteristics.CharacteristicsRevision == characteristicsRevision
                 && cachedCharacteristics.Characteristics != null)
             {
                 return cachedCharacteristics.Characteristics;
@@ -187,7 +207,7 @@ namespace FoodPrinterSystem
                 containsHumanMeatIngredient);
             CachedCharacteristicsByPrinterId[printer.thingIDNumber] = new CachedPrinterFoodCharacteristics
             {
-                NetworkRevision = networkRevision,
+                CharacteristicsRevision = characteristicsRevision,
                 Characteristics = characteristics
             };
             return characteristics;
@@ -195,8 +215,28 @@ namespace FoodPrinterSystem
 
         public static PawnPrinterFoodPolicy ResolvePawnFoodPolicy(Pawn pawn)
         {
+            if (pawn != null)
+            {
+                int currentTick = GetCurrentTick();
+                PrunePawnPolicyCacheIfNeeded(currentTick);
+                if (CachedPolicyByPawnId.TryGetValue(pawn.thingIDNumber, out CachedPawnPrinterFoodPolicy cachedPolicy)
+                    && cachedPolicy != null
+                    && cachedPolicy.ExpiresAtTick > currentTick
+                    && cachedPolicy.Policy != null)
+                {
+                    return cachedPolicy.Policy;
+                }
+            }
+
             PawnPrinterFoodPolicy policy = new PawnPrinterFoodPolicy();
             if (pawn == null)
+            {
+                policy.UsedNeutralFallback = true;
+                LogPolicyResolution(pawn, policy);
+                return policy;
+            }
+
+            if (!CanPawnUsePrinter(pawn))
             {
                 policy.UsedNeutralFallback = true;
                 LogPolicyResolution(pawn, policy);
@@ -256,6 +296,14 @@ namespace FoodPrinterSystem
             }
 
             LogPolicyResolution(pawn, policy);
+            if (pawn != null)
+            {
+                CachedPolicyByPawnId[pawn.thingIDNumber] = new CachedPawnPrinterFoodPolicy
+                {
+                    ExpiresAtTick = GetCurrentTick() + PawnPolicyCacheDurationTicks,
+                    Policy = policy
+                };
+            }
             return policy;
         }
 
@@ -287,6 +335,12 @@ namespace FoodPrinterSystem
             if (pawn == null || printer == null)
             {
                 LogPrinterAllowance(pawn, printer, policy, false, "missing_pawn_or_printer");
+                return false;
+            }
+
+            if (!CanPawnUsePrinter(pawn))
+            {
+                LogPrinterAllowance(pawn, printer, policy, false, "pawn_cannot_use_printer");
                 return false;
             }
 
@@ -402,7 +456,12 @@ namespace FoodPrinterSystem
                 return printerComp.ProcessingMealDef;
             }
 
-            return printerComp.GetMealToPrint(printer, policy, pawn, false);
+            if (!CanPawnUsePrinter(pawn))
+            {
+                return null;
+            }
+
+            return printerComp.GetMealToPrint(printer, policy, pawn, FoodPrinterSystemUtility.RandomMealSelectionEnabled);
         }
 
         private static bool IsMealAllowedForPawn(PawnPrinterFoodPolicy policy, Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef, bool logResult, PrinterFoodCharacteristics characteristics, out string reason)
@@ -627,7 +686,7 @@ namespace FoodPrinterSystem
                 PrinterId = printer == null ? 0 : printer.thingIDNumber,
                 MealDefId = mealDef == null ? 0 : mealDef.shortHash,
                 FoodPolicyId = GetFoodPolicyCacheId(currentPolicy),
-                NetworkRevision = printer == null ? 0 : GetPrinterNetworkRevision(printer),
+                CharacteristicsRevision = printer == null ? 0 : GetPrinterCharacteristicsRevisionForCaching(printer),
                 SettingsRevision = FoodPrinterSystemMod.SettingsRevision,
                 HardFoodTypeCheckEnabled = IsHardFoodTypeCheckEnabled()
             };
@@ -644,7 +703,23 @@ namespace FoodPrinterSystem
             return uniqueId.NullOrEmpty() ? policy.label.GetHashCode() : uniqueId.GetHashCode();
         }
 
-        private static int GetPrinterNetworkRevision(Building_FoodPrinter printer)
+        internal static int GetPolicyStateHash(PawnPrinterFoodPolicy policy)
+        {
+            if (policy == null)
+            {
+                return 0;
+            }
+
+            int hash = 17;
+            hash = Gen.HashCombineInt(hash, policy.IdeologyResolutionSucceeded ? 1 : 0);
+            hash = Gen.HashCombineInt(hash, policy.TraitResolutionSucceeded ? 1 : 0);
+            hash = Gen.HashCombineInt(hash, policy.UsedNeutralFallback ? 1 : 0);
+            hash = Gen.HashCombineInt(hash, policy.RequiresVegetarianFood ? 1 : 0);
+            hash = Gen.HashCombineInt(hash, policy.PrefersMeat ? 1 : 0);
+            return Gen.HashCombineInt(hash, policy.PrefersHumanMeat ? 1 : 0);
+        }
+
+        internal static int GetPrinterCharacteristicsRevisionForCaching(Building_FoodPrinter printer)
         {
             if (printer == null || printer.Map == null)
             {
@@ -654,7 +729,7 @@ namespace FoodPrinterSystem
             MapComponent_TonerNetwork networkComponent = FoodPrinterSystemUtility.GetNetworkComponent(printer.Map);
             return networkComponent == null
                 ? 0
-                : unchecked((networkComponent.NetworkRevision * 397) ^ networkComponent.ContentsRevision);
+                : unchecked((networkComponent.NetworkRevision * 397) ^ networkComponent.IngredientRevision);
         }
 
         private static int GetCurrentTick()
@@ -700,6 +775,46 @@ namespace FoodPrinterSystem
             }
 
             lastMealAllowanceCachePruneTick = currentTick;
+        }
+
+        private static void PrunePawnPolicyCacheIfNeeded(int currentTick)
+        {
+            if (CachedPolicyByPawnId.Count == 0)
+            {
+                lastPawnPolicyCachePruneTick = currentTick;
+                return;
+            }
+
+            if (CachedPolicyByPawnId.Count <= PawnPolicyCachePruneThreshold
+                && currentTick - lastPawnPolicyCachePruneTick < PawnPolicyCachePruneIntervalTicks)
+            {
+                return;
+            }
+
+            List<int> expiredPawnIds = null;
+            foreach (KeyValuePair<int, CachedPawnPrinterFoodPolicy> pair in CachedPolicyByPawnId)
+            {
+                CachedPawnPrinterFoodPolicy cachedPolicy = pair.Value;
+                if (cachedPolicy == null || cachedPolicy.ExpiresAtTick <= currentTick)
+                {
+                    if (expiredPawnIds == null)
+                    {
+                        expiredPawnIds = new List<int>();
+                    }
+
+                    expiredPawnIds.Add(pair.Key);
+                }
+            }
+
+            if (expiredPawnIds != null)
+            {
+                for (int i = 0; i < expiredPawnIds.Count; i++)
+                {
+                    CachedPolicyByPawnId.Remove(expiredPawnIds[i]);
+                }
+            }
+
+            lastPawnPolicyCachePruneTick = currentTick;
         }
 
         // Hard printer checks use the cached toner-derived food characteristics so

@@ -351,5 +351,23 @@ namespace FoodPrinterSystem
                 component.NotifyContentsChanged();
             }
         }
+
+        public static void NotifyIngredientStateChanged(Map map)
+        {
+            MapComponent_TonerNetwork component = FoodPrinterSystemUtility.GetNetworkComponent(map);
+            if (component != null)
+            {
+                component.NotifyIngredientStateChanged();
+            }
+        }
+
+        public static void NotifyStorageStateChanged(Map map)
+        {
+            MapComponent_TonerNetwork component = FoodPrinterSystemUtility.GetNetworkComponent(map);
+            if (component != null)
+            {
+                component.NotifyStorageStateChanged();
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using FoodSystemPipe;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -331,15 +332,20 @@ namespace FoodPrinterSystem
 
         private void ZeroAllTanks()
         {
+            HashSet<IntVec3> dirtyCells = null;
+            Map dirtyMap = null;
+            bool storageChanged = false;
             for (int i = 0; i < tanks.Count; i++)
             {
                 CompTonerTank tank = tanks[i];
-                if (tank != null)
+                if (tank != null && tank.SetStoredTonerFromNetwork(0, true))
                 {
-                    tank.SetStoredTonerFromNetwork(0);
+                    storageChanged = true;
+                    CollectDirtyCells(tank, ref dirtyMap, ref dirtyCells);
                 }
             }
 
+            FinalizeBatchedTankRefresh(dirtyMap, dirtyCells, storageChanged);
             storageStateDirty = false;
         }
 
@@ -396,16 +402,68 @@ namespace FoodPrinterSystem
                 leftover--;
             }
 
+            HashSet<IntVec3> dirtyCells = null;
+            Map dirtyMap = null;
+            bool storageChanged = false;
             for (int i = 0; i < tanks.Count; i++)
             {
                 CompTonerTank tank = tanks[i];
-                if (tank != null && tank.StoredToner != targets[i])
+                if (tank != null && tank.StoredToner != targets[i] && tank.SetStoredTonerFromNetwork(targets[i], true))
                 {
-                    tank.SetStoredTonerFromNetwork(targets[i]);
+                    storageChanged = true;
+                    CollectDirtyCells(tank, ref dirtyMap, ref dirtyCells);
                 }
             }
 
+            FinalizeBatchedTankRefresh(dirtyMap, dirtyCells, storageChanged);
             storageStateDirty = false;
+        }
+
+        private static void CollectDirtyCells(CompTonerTank tank, ref Map dirtyMap, ref HashSet<IntVec3> dirtyCells)
+        {
+            if (tank == null || tank.parent == null || !tank.parent.Spawned || tank.parent.Map == null)
+            {
+                return;
+            }
+
+            dirtyMap = tank.parent.Map;
+            if (dirtyCells == null)
+            {
+                dirtyCells = new HashSet<IntVec3>();
+            }
+
+            CellRect occupiedRect = GenAdj.OccupiedRect(tank.parent.Position, tank.parent.Rotation, tank.parent.def.size);
+            foreach (IntVec3 cell in occupiedRect)
+            {
+                if (cell.InBounds(dirtyMap))
+                {
+                    dirtyCells.Add(cell);
+                }
+            }
+        }
+
+        private static void FinalizeBatchedTankRefresh(Map map, HashSet<IntVec3> dirtyCells, bool storageChanged)
+        {
+            if (map == null)
+            {
+                return;
+            }
+
+            if (storageChanged)
+            {
+                TonerNetworkUtility.NotifyStorageStateChanged(map);
+            }
+
+            if (dirtyCells == null || map.mapDrawer == null)
+            {
+                return;
+            }
+
+            foreach (IntVec3 cell in dirtyCells)
+            {
+                map.mapDrawer.MapMeshDirty(cell, MapMeshFlagDefOf.Things);
+                map.mapDrawer.MapMeshDirty(cell, MapMeshFlagDefOf.Buildings);
+            }
         }
     }
 }

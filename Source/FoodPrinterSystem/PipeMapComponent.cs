@@ -224,7 +224,7 @@ namespace FoodPrinterSystem
                 bool success = net != null && net.TryDraw(amount);
                 if (success)
                 {
-                    NotifyContentsChangedLocked();
+                    NotifyStorageStateChangedLocked();
                 }
 
                 return success;
@@ -244,7 +244,7 @@ namespace FoodPrinterSystem
                 bool success = net != null && net.TryAdd(amount);
                 if (success)
                 {
-                    NotifyContentsChangedLocked();
+                    NotifyStorageStateChangedLocked();
                 }
 
                 return success;
@@ -528,12 +528,12 @@ namespace FoodPrinterSystem
             return current;
         }
 
-        private void NotifyContentsChangedLocked()
+        private void NotifyStorageStateChangedLocked()
         {
             MapComponent_TonerNetwork tonerNetwork = this as MapComponent_TonerNetwork;
             if (tonerNetwork != null)
             {
-                tonerNetwork.NotifyContentsChanged();
+                tonerNetwork.NotifyStorageStateChanged();
             }
         }
     }

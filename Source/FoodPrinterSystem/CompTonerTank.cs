@@ -20,8 +20,16 @@ namespace FoodPrinterSystem
     public class CompTonerTank : ThingComp
     {
         private const int PowerLossSpoilTicks = 80000;
-        private static readonly Material TankBarBackgroundMat = SolidColorMaterials.SimpleSolidColorMaterial(new Color(0.08f, 0.08f, 0.08f, 0.85f));
-        private static readonly Material TankBarFillMat = SolidColorMaterials.SimpleSolidColorMaterial(new Color(0.24f, 0.77f, 0.36f, 0.95f));
+        private const string TankFillPath = "Things/Building/foodsystem/toner/toner_tank_fill";
+        private const float TankFillTextureSize = 256f;
+        private const int FillMeshSteps = 256;
+        private const float TankFillAltitudeOffset = 0.001f;
+        // The fill sprite only occupies the tank's internal window, not the whole texture sheet.
+        // Keep the visible fill mapped to that opaque region so 100% lines up with the tank body.
+        private static readonly Rect TankFillVisibleUvRect = new Rect(52f / TankFillTextureSize, 47f / TankFillTextureSize, 156f / TankFillTextureSize, 120f / TankFillTextureSize);
+        private static readonly Color TankFillColor = new Color(0.92f, 0.43f, 0.08f, 0.7f);
+        private static readonly Material TankFillMaterial = MaterialPool.MatFrom(TankFillPath, ShaderDatabase.Transparent, TankFillColor);
+        private static readonly Mesh[] TankFillMeshes = new Mesh[FillMeshSteps + 1];
 
         private int storedToner;
         private int unpoweredTicks;
@@ -128,10 +136,15 @@ namespace FoodPrinterSystem
             }
         }
 
-        public override void PostDraw()
+        public override void PostPrintOnto(SectionLayer layer)
         {
-            base.PostDraw();
-            DrawStorageBar();
+            base.PostPrintOnto(layer);
+            if (!(layer is SectionLayer_Things) && !(layer is SectionLayer_ThingsGeneral))
+            {
+                return;
+            }
+
+            PrintTankFillOverlay(layer);
         }
 
         public override IEnumerable<Gizmo> CompGetGizmosExtra()
@@ -193,9 +206,9 @@ namespace FoodPrinterSystem
             SetStoredTonerInternal(amount, true);
         }
 
-        internal void SetStoredTonerFromNetwork(int amount)
+        internal bool SetStoredTonerFromNetwork(int amount, bool deferVisualRefresh = false)
         {
-            SetStoredTonerInternal(amount, false);
+            return SetStoredTonerInternal(amount, false, !deferVisualRefresh);
         }
 
         public void NotifySettingsChanged()
@@ -214,7 +227,7 @@ namespace FoodPrinterSystem
             }
         }
 
-        private void SetStoredTonerInternal(int amount, bool notifyNetwork)
+        private bool SetStoredTonerInternal(int amount, bool notifyNetwork, bool notifyVisualRefresh = true)
         {
             int previousStored = storedToner;
             storedToner = amount < 0 ? 0 : amount;
@@ -230,9 +243,16 @@ namespace FoodPrinterSystem
                 {
                     NotifyStoredTonerChanged();
                 }
+                else if (notifyVisualRefresh)
+                {
+                    NotifyStoredTonerVisualChanged(true);
+                }
 
                 FoodPrinterAlertHarmony.InvalidateAlertCache();
+                return true;
             }
+
+            return false;
         }
 
         public void ApplyPowerSetting()
@@ -349,7 +369,7 @@ namespace FoodPrinterSystem
             // without forcing a full pipe topology rebuild.
             if (parent != null && parent.MapHeld != null)
             {
-                TonerNetworkUtility.NotifyContentsChanged(parent.MapHeld);
+                TonerNetworkUtility.NotifyIngredientStateChanged(parent.MapHeld);
             }
         }
 
@@ -368,8 +388,22 @@ namespace FoodPrinterSystem
 
             if (parent.MapHeld != null)
             {
-                TonerNetworkUtility.NotifyContentsChanged(parent.MapHeld);
+                NotifyStoredTonerVisualChanged(true);
             }
+        }
+
+        private void NotifyStoredTonerVisualChanged(bool notifyStorageRevision)
+        {
+            if (parent == null || parent.MapHeld == null)
+            {
+                return;
+            }
+
+            if (notifyStorageRevision)
+            {
+                TonerNetworkUtility.NotifyStorageStateChanged(parent.MapHeld);
+            }
+            MarkTankMeshDirty();
         }
 
         private void RebuildIngredientCharacteristics()
@@ -437,9 +471,9 @@ namespace FoodPrinterSystem
             return FoodKind.Any;
         }
 
-        private void DrawStorageBar()
+        private void PrintTankFillOverlay(SectionLayer layer)
         {
-            if (parent.Map == null || Capacity <= 0)
+            if (layer == null || parent.Map == null || Capacity <= 0)
             {
                 return;
             }
@@ -454,26 +488,110 @@ namespace FoodPrinterSystem
                 fillPercent = 1f;
             }
 
-            Vector2 barSize = new Vector2(parent.def.size.x * 0.78f, 0.12f);
-            Vector3 barCenter = parent.TrueCenter();
-            barCenter.y = Altitudes.AltitudeFor(AltitudeLayer.MetaOverlays);
-            barCenter.z -= parent.def.size.z * 0.44f;
-
-            DrawBar(barCenter, barSize, TankBarBackgroundMat);
-            if (fillPercent > 0f)
+            if (fillPercent <= 0f)
             {
-                Vector2 fillSize = new Vector2(barSize.x * fillPercent, barSize.y * 0.72f);
-                Vector3 fillCenter = barCenter;
-                fillCenter.x -= (barSize.x - fillSize.x) * 0.5f;
-                fillCenter.y += 0.002f;
-                DrawBar(fillCenter, fillSize, TankBarFillMat);
+                return;
+            }
+
+            Vector2 drawSize = GetTankDrawSize();
+            if (drawSize.x <= 0f || drawSize.y <= 0f)
+            {
+                return;
+            }
+
+            int fillStep = Mathf.Clamp(Mathf.CeilToInt(fillPercent * FillMeshSteps), 1, FillMeshSteps);
+            float quantizedFillPercent = fillStep / (float)FillMeshSteps;
+            Rect fillUvRect = new Rect(
+                TankFillVisibleUvRect.x,
+                TankFillVisibleUvRect.y,
+                TankFillVisibleUvRect.width,
+                TankFillVisibleUvRect.height * quantizedFillPercent);
+            Vector2[] uvs = GetUvCorners(fillUvRect);
+            if (uvs == null || TankFillMaterial == null)
+            {
+                return;
+            }
+
+            float fillWorldWidth = drawSize.x * TankFillVisibleUvRect.width;
+            float fillWorldHeight = drawSize.y * TankFillVisibleUvRect.height * quantizedFillPercent;
+            if (fillWorldWidth <= 0f || fillWorldHeight <= 0f)
+            {
+                return;
+            }
+
+            Vector3 drawPos = parent.TrueCenter();
+            drawPos.y = Altitudes.AltitudeFor(AltitudeLayer.MetaOverlays) + TankFillAltitudeOffset;
+            drawPos.x += ((TankFillVisibleUvRect.x + (TankFillVisibleUvRect.width * 0.5f)) - 0.5f) * drawSize.x;
+            drawPos.z += ((TankFillVisibleUvRect.y + (TankFillVisibleUvRect.height * quantizedFillPercent * 0.5f)) - 0.5f) * drawSize.y;
+
+            layer.GetSubMesh(TankFillMaterial);
+            Printer_Plane.PrintPlane(layer, drawPos, new Vector2(fillWorldWidth, fillWorldHeight), TankFillMaterial, 0f, false, uvs, null, 0f, 0f);
+        }
+
+        private Vector2 GetTankDrawSize()
+        {
+            GraphicData graphicData = parent == null || parent.def == null ? null : parent.def.graphicData;
+            if (graphicData != null && graphicData.drawSize.x > 0f && graphicData.drawSize.y > 0f)
+            {
+                return graphicData.drawSize;
+            }
+
+            IntVec2 size = parent == null || parent.def == null ? IntVec2.Zero : parent.def.size;
+            return new Vector2(Mathf.Max(1f, size.x), Mathf.Max(1f, size.z));
+        }
+
+        private void MarkTankMeshDirty()
+        {
+            if (parent == null || !parent.Spawned || parent.Map == null || parent.Map.mapDrawer == null)
+            {
+                return;
+            }
+
+            CellRect occupiedRect = GenAdj.OccupiedRect(parent.Position, parent.Rotation, parent.def.size);
+            foreach (IntVec3 cell in occupiedRect)
+            {
+                if (!cell.InBounds(parent.Map))
+                {
+                    continue;
+                }
+
+                parent.Map.mapDrawer.MapMeshDirty(cell, MapMeshFlagDefOf.Things);
+                parent.Map.mapDrawer.MapMeshDirty(cell, MapMeshFlagDefOf.Buildings);
             }
         }
 
-        private static void DrawBar(Vector3 center, Vector2 size, Material material)
+        private static Vector2[] GetUvCorners(Rect rect)
         {
-            Matrix4x4 matrix = Matrix4x4.TRS(center, Quaternion.identity, new Vector3(size.x, 1f, size.y));
-            Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+            int fillStep = Mathf.Clamp(Mathf.RoundToInt(rect.height * FillMeshSteps), 0, FillMeshSteps);
+            if (fillStep <= 0)
+            {
+                return null;
+            }
+
+            Vector2[] corners = TankFillMeshes[fillStep] == null ? null : TankFillMeshes[fillStep].uv;
+            if (corners != null && corners.Length == 4)
+            {
+                return corners;
+            }
+
+            corners = new[]
+            {
+                new Vector2(rect.xMin, rect.yMin),
+                new Vector2(rect.xMin, rect.yMax),
+                new Vector2(rect.xMax, rect.yMax),
+                new Vector2(rect.xMax, rect.yMin)
+            };
+
+            Mesh uvCacheMesh = TankFillMeshes[fillStep];
+            if (uvCacheMesh == null)
+            {
+                uvCacheMesh = Object.Instantiate(MeshPool.plane10);
+                uvCacheMesh.name = "TonerTankFillMaskUvs_" + fillStep;
+                TankFillMeshes[fillStep] = uvCacheMesh;
+            }
+
+            uvCacheMesh.uv = corners;
+            return corners;
         }
     }
 }
