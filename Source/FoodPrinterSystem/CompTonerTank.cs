@@ -27,7 +27,7 @@ namespace FoodPrinterSystem
         // The fill sprite only occupies the tank's internal window, not the whole texture sheet.
         // Keep the visible fill mapped to that opaque region so 100% lines up with the tank body.
         private static readonly Rect TankFillVisibleUvRect = new Rect(52f / TankFillTextureSize, 47f / TankFillTextureSize, 156f / TankFillTextureSize, 120f / TankFillTextureSize);
-        private static readonly Color TankFillColor = new Color(0.92f, 0.43f, 0.08f, 0.7f);
+        private static readonly Color TankFillColor = new Color(0.92f, 0.43f, 0.08f, 0.5f);
         private static readonly Material TankFillMaterial = MaterialPool.MatFrom(TankFillPath, ShaderDatabase.Transparent, TankFillColor);
         private static readonly Mesh[] TankFillMeshes = new Mesh[FillMeshSteps + 1];
 
