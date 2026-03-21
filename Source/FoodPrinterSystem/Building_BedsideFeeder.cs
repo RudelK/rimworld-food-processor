@@ -11,6 +11,7 @@ namespace FoodPrinterSystem
         private const int BedSearchRetryTicks = GenTicks.TickRareInterval * 4;
         private Building_Bed linkedBed;
         private CompPowerTrader powerComp;
+        private int activeTicksRemaining;
         private int nextBedSearchTick;
 
         public Building_Bed LinkedBed => linkedBed;
@@ -20,6 +21,7 @@ namespace FoodPrinterSystem
             base.SpawnSetup(map, respawningAfterLoad);
             powerComp = GetComp<CompPowerTrader>();
             FindLinkedBed();
+            ApplyPowerSetting();
             FoodPrinterAlertHarmony.NotifyConsumerRegistryChanged();
         }
 
@@ -38,6 +40,21 @@ namespace FoodPrinterSystem
         public override void TickRare()
         {
             base.TickRare();
+
+            bool wasActive = activeTicksRemaining > 0;
+            if (activeTicksRemaining > 0)
+            {
+                activeTicksRemaining -= GenTicks.TickRareInterval;
+                if (activeTicksRemaining < 0)
+                {
+                    activeTicksRemaining = 0;
+                }
+            }
+
+            if (wasActive != (activeTicksRemaining > 0))
+            {
+                ApplyPowerSetting();
+            }
 
             if (powerComp != null && !powerComp.PowerOn)
                 return;
@@ -82,7 +99,23 @@ namespace FoodPrinterSystem
             if (TonerNetworkUtility.TryConsumeToner(this, (int)tonerCost))
             {
                 pawn.needs.food.CurLevel = Mathf.Min(pawn.needs.food.MaxLevel, pawn.needs.food.CurLevel + nutritionToFeed);
-                // Optional: Play a sound or effect? Building_NutrientPasteDispenser.DispenseSound is a thing but we are direct-feeding.
+                activeTicksRemaining = GenTicks.TickRareInterval;
+                ApplyPowerSetting();
+            }
+        }
+
+        public void ApplyPowerSetting()
+        {
+            if (powerComp == null)
+            {
+                powerComp = GetComp<CompPowerTrader>();
+            }
+
+            if (powerComp != null)
+            {
+                powerComp.PowerOutput = activeTicksRemaining > 0
+                    ? -FoodPrinterSystemUtility.GetBedsideFeederActivePowerDraw()
+                    : -FoodPrinterSystemUtility.GetBedsideFeederIdlePowerDraw();
             }
         }
 

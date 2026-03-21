@@ -62,10 +62,18 @@
   <FPS_SettingsMediumTankPowerDesc>中型墨浆储罐运行时的耗电量。</FPS_SettingsMediumTankPowerDesc>
   <FPS_SettingsLargeTankPower>大型储罐功耗 (W)</FPS_SettingsLargeTankPower>
   <FPS_SettingsLargeTankPowerDesc>大型墨浆储罐运行时的耗电量。</FPS_SettingsLargeTankPowerDesc>
-  <FPS_SettingsPrinterPower>食物打印机功耗 (W)</FPS_SettingsPrinterPower>
-  <FPS_SettingsPrinterPowerDesc>食物打印机通电时的耗电量。</FPS_SettingsPrinterPowerDesc>
-  <FPS_SettingsFeederPower>动物喂食器功耗 (W)</FPS_SettingsFeederPower>
-  <FPS_SettingsFeederPowerDesc>动物喂食器通电时的耗电量。</FPS_SettingsFeederPowerDesc>
+  <FPS_SettingsPrinterIdlePower>食物打印机空闲功耗 (W)</FPS_SettingsPrinterIdlePower>
+  <FPS_SettingsPrinterIdlePowerDesc>食物打印机通电但未主动打印餐食时的耗电量。</FPS_SettingsPrinterIdlePowerDesc>
+  <FPS_SettingsPrinterPower>食物打印机工作功耗 (W)</FPS_SettingsPrinterPower>
+  <FPS_SettingsPrinterPowerDesc>食物打印机实际打印餐食时的耗电量。</FPS_SettingsPrinterPowerDesc>
+  <FPS_SettingsFeederIdlePower>动物喂食器空闲功耗 (W)</FPS_SettingsFeederIdlePower>
+  <FPS_SettingsFeederIdlePowerDesc>动物喂食器通电但当前未生产饲料时的耗电量。</FPS_SettingsFeederIdlePowerDesc>
+  <FPS_SettingsFeederPower>动物喂食器工作功耗 (W)</FPS_SettingsFeederPower>
+  <FPS_SettingsFeederPowerDesc>动物喂食器实际生产饲料时的耗电量。</FPS_SettingsFeederPowerDesc>
+  <FPS_SettingsBedsideFeederIdlePower>营养喂食器空闲功耗 (W)</FPS_SettingsBedsideFeederIdlePower>
+  <FPS_SettingsBedsideFeederIdlePowerDesc>营养喂食器通电但当前未喂食任何人时的耗电量。</FPS_SettingsBedsideFeederIdlePowerDesc>
+  <FPS_SettingsBedsideFeederPower>营养喂食器工作功耗 (W)</FPS_SettingsBedsideFeederPower>
+  <FPS_SettingsBedsideFeederPowerDesc>营养喂食器正在为已连接床位的占用者供餐时的耗电量。</FPS_SettingsBedsideFeederPowerDesc>
   <FPS_SettingsBedsideFeederCost>营养喂食器每餐墨浆消耗</FPS_SettingsBedsideFeederCost>
   <FPS_SettingsBedsideFeederCostDesc>营养喂食器每提供一次进食时消耗的墨浆量。</FPS_SettingsBedsideFeederCostDesc>
   <FPS_SettingsRandomization>启用随机餐食选择</FPS_SettingsRandomization>

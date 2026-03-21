@@ -577,6 +577,7 @@ namespace FoodPrinterSystem
             processingMealDefName = mealDef.defName;
             processingTonerCost = tonerCost;
             processingTicksRemaining = FoodPrinterSystemUtility.PrintingDelayTicks;
+            ApplyPowerSetting();
             LogProcessingEvent("printer_start_succeeded", printer, reservationPawn, eaterPawn, mealDef, tonerCost, "started", categorySelection);
             return true;
         }
@@ -589,6 +590,7 @@ namespace FoodPrinterSystem
             }
 
             processingTicksRemaining = Mathf.Clamp(ticksRemaining, 0, FoodPrinterSystemUtility.PrintingDelayTicks);
+            ApplyPowerSetting();
         }
 
         public Thing CompleteProcessing(Building printer, Pawn pawn)
@@ -715,7 +717,9 @@ namespace FoodPrinterSystem
             CompPowerTrader powerComp = parent == null ? null : parent.TryGetComp<CompPowerTrader>();
             if (powerComp != null)
             {
-                powerComp.PowerOutput = -FoodPrinterSystemUtility.GetConstantPowerDraw(parent.def);
+                powerComp.PowerOutput = HasActiveProcessing
+                    ? -FoodPrinterSystemUtility.GetFoodPrinterActivePowerDraw()
+                    : -FoodPrinterSystemUtility.GetFoodPrinterIdlePowerDraw();
             }
         }
 
@@ -1580,6 +1584,7 @@ namespace FoodPrinterSystem
             processingTicksRemaining = 0;
             processingTonerCost = 0;
             currentProcessingPawn = null;
+            ApplyPowerSetting();
         }
 
         private static void LogProcessingEvent(string eventName, Building printer, Pawn reservationPawn, Pawn eaterPawn, ThingDef mealDef, int tonerCost, string reason, CategorySelectionContext categorySelection = null)

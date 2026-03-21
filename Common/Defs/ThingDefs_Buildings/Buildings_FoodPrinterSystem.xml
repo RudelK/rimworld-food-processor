@@ -120,7 +120,7 @@
     <fillPercent>1</fillPercent>
     <blockWind>true</blockWind>
     <statBases>
-      <WorkToBuild>900</WorkToBuild>
+      <WorkToBuild>1900</WorkToBuild>
       <MaxHitPoints>180</MaxHitPoints>
       <Flammability>0.2</Flammability>
       <Beauty>-2</Beauty>
@@ -134,8 +134,8 @@
     <comps>
       <li Class="CompProperties_Power">
         <compClass>CompPowerTrader</compClass>
-        <basePowerConsumption>500</basePowerConsumption>
-        <idlePowerDraw>50</idlePowerDraw>
+        <basePowerConsumption>300</basePowerConsumption>
+        <idlePowerDraw>80</idlePowerDraw>
       </li>
       <li Class="CompProperties_Flickable"/>
       <li Class="CompProperties_Breakdownable"/>
@@ -143,8 +143,10 @@
     </comps>
     <size>(2,2)</size>
     <costList>
-      <Steel>50</Steel>
+      <Steel>110</Steel>
+      <ComponentIndustrial>2</ComponentIndustrial>
     </costList>
+    <constructionSkillPrerequisite>6</constructionSkillPrerequisite>
     <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
     <designationCategory>FPS_FoodProcessingCategory</designationCategory>
     <uiOrder>2140</uiOrder>
@@ -194,25 +196,27 @@
     <blockWind>true</blockWind>
     <fillPercent>1</fillPercent>
     <statBases>
-      <WorkToBuild>350</WorkToBuild>
+      <WorkToBuild>1500</WorkToBuild>
       <MaxHitPoints>120</MaxHitPoints>
       <Flammability>0.1</Flammability>
     </statBases>
     <comps>
       <li Class="CompProperties_Power">
         <compClass>CompPowerTrader</compClass>
-        <basePowerConsumption>200</basePowerConsumption>
+        <basePowerConsumption>250</basePowerConsumption>
       </li>
       <li Class="CompProperties_Flickable"/>
       <li Class="FoodPrinterSystem.CompProperties_TonerNode"/>
       <li Class="FoodPrinterSystem.CompProperties_TonerTank">
-        <capacity>500</capacity>
+        <capacity>100</capacity>
       </li>
     </comps>
     <size>(1,1)</size>
     <costList>
-      <Steel>50</Steel>
+      <Steel>120</Steel>
+      <ComponentIndustrial>1</ComponentIndustrial>
     </costList>
+    <constructionSkillPrerequisite>6</constructionSkillPrerequisite>
     <designatorDropdown>FPS_TonerTank</designatorDropdown>
     <uiOrder>2145</uiOrder>
     <researchPrerequisites Inherit="False">
@@ -237,25 +241,27 @@
     <blockWind>true</blockWind>
     <fillPercent>1</fillPercent>
     <statBases>
-      <WorkToBuild>900</WorkToBuild>
+      <WorkToBuild>3200</WorkToBuild>
       <MaxHitPoints>240</MaxHitPoints>
       <Flammability>0.1</Flammability>
     </statBases>
     <comps>
       <li Class="CompProperties_Power">
         <compClass>CompPowerTrader</compClass>
-        <basePowerConsumption>700</basePowerConsumption>
+        <basePowerConsumption>800</basePowerConsumption>
       </li>
       <li Class="CompProperties_Flickable"/>
       <li Class="FoodPrinterSystem.CompProperties_TonerNode"/>
       <li Class="FoodPrinterSystem.CompProperties_TonerTank">
-        <capacity>1900</capacity>
+        <capacity>500</capacity>
       </li>
     </comps>
     <size>(2,2)</size>
     <costList>
-      <Steel>240</Steel>
+      <Steel>260</Steel>
+      <ComponentIndustrial>4</ComponentIndustrial>
     </costList>
+    <constructionSkillPrerequisite>8</constructionSkillPrerequisite>
     <uiOrder>2146</uiOrder>
     <designatorDropdown>FPS_TonerTank</designatorDropdown>
     <researchPrerequisites Inherit="False">
@@ -281,25 +287,27 @@
     <blockWind>true</blockWind>
     <fillPercent>1</fillPercent>
     <statBases>
-      <WorkToBuild>1800</WorkToBuild>
+      <WorkToBuild>6500</WorkToBuild>
       <MaxHitPoints>360</MaxHitPoints>
       <Flammability>0.1</Flammability>
     </statBases>
     <comps>
       <li Class="CompProperties_Power">
         <compClass>CompPowerTrader</compClass>
-        <basePowerConsumption>1500</basePowerConsumption>
+        <basePowerConsumption>1600</basePowerConsumption>
       </li>
       <li Class="CompProperties_Flickable"/>
       <li Class="FoodPrinterSystem.CompProperties_TonerNode"/>
       <li Class="FoodPrinterSystem.CompProperties_TonerTank">
-        <capacity>4300</capacity>
+        <capacity>1200</capacity>
       </li>
     </comps>
     <size>(3,3)</size>
     <costList>
-      <Steel>500</Steel>
+      <Steel>520</Steel>
+      <ComponentIndustrial>10</ComponentIndustrial>
     </costList>
+    <constructionSkillPrerequisite>12</constructionSkillPrerequisite>
     <uiOrder>2147</uiOrder>
     <designatorDropdown>FPS_TonerTank</designatorDropdown>
     <researchPrerequisites Inherit="False">
@@ -328,7 +336,7 @@
     <blockWind>true</blockWind>
     <fillPercent>1</fillPercent>
     <statBases>
-      <WorkToBuild>950</WorkToBuild>
+      <WorkToBuild>2300</WorkToBuild>
       <MaxHitPoints>180</MaxHitPoints>
       <Flammability>0.2</Flammability>
       <Beauty>-1</Beauty>
@@ -352,7 +360,8 @@
     <comps>
       <li Class="CompProperties_Power">
         <compClass>CompPowerTrader</compClass>
-        <basePowerConsumption>200</basePowerConsumption>
+        <basePowerConsumption>300</basePowerConsumption>
+        <idlePowerDraw>30</idlePowerDraw>
       </li>
       <li Class="CompProperties_Flickable"/>
       <li Class="CompProperties_Breakdownable"/>
@@ -372,8 +381,10 @@
     </comps>
     <size>(3,1)</size>
     <costList>
-      <Steel>50</Steel>
+      <Steel>140</Steel>
+      <ComponentIndustrial>4</ComponentIndustrial>
     </costList>
+    <constructionSkillPrerequisite>6</constructionSkillPrerequisite>
     <socialPropernessMatters>true</socialPropernessMatters>
     <hasInteractionCell>true</hasInteractionCell>
     <interactionCellOffset>(0,0,-1)</interactionCellOffset>
@@ -412,7 +423,7 @@
     <surfaceType>Item</surfaceType>
     <canOverlapZones>false</canOverlapZones>
     <statBases>
-      <WorkToBuild>700</WorkToBuild>
+      <WorkToBuild>1200</WorkToBuild>
       <MaxHitPoints>140</MaxHitPoints>
       <Flammability>0.2</Flammability>
       <Beauty>-1</Beauty>
@@ -455,7 +466,8 @@
     <comps>
       <li Class="CompProperties_Power">
         <compClass>CompPowerTrader</compClass>
-        <basePowerConsumption>100</basePowerConsumption>
+        <basePowerConsumption>150</basePowerConsumption>
+        <idlePowerDraw>20</idlePowerDraw>
       </li>
       <li Class="CompProperties_Flickable"/>
       <li Class="CompProperties_Breakdownable"/>
@@ -463,8 +475,10 @@
     </comps>
     <size>(1,1)</size>
     <costList>
-      <Steel>50</Steel>
+      <Steel>70</Steel>
+      <ComponentIndustrial>2</ComponentIndustrial>
     </costList>
+    <constructionSkillPrerequisite>4</constructionSkillPrerequisite>
     <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
     <designationCategory>FPS_FoodProcessingCategory</designationCategory>
     <uiOrder>2151</uiOrder>
@@ -500,7 +514,7 @@
     <pathCost>42</pathCost>
     <blockWind>false</blockWind>
     <statBases>
-      <WorkToBuild>600</WorkToBuild>
+      <WorkToBuild>1400</WorkToBuild>
       <MaxHitPoints>100</MaxHitPoints>
       <Flammability>0.2</Flammability>
       <Beauty>-1</Beauty>
@@ -519,7 +533,8 @@
     <comps>
       <li Class="CompProperties_Power">
         <compClass>CompPowerTrader</compClass>
-        <basePowerConsumption>50</basePowerConsumption>
+        <basePowerConsumption>200</basePowerConsumption>
+        <idlePowerDraw>20</idlePowerDraw>
       </li>
       <li Class="CompProperties_Flickable"/>
       <li Class="CompProperties_Breakdownable"/>
@@ -527,9 +542,10 @@
     </comps>
     <size>(1,1)</size>
     <costList>
-      <Steel>30</Steel>
-      <ComponentIndustrial>1</ComponentIndustrial>
+      <Steel>60</Steel>
+      <ComponentIndustrial>2</ComponentIndustrial>
     </costList>
+    <constructionSkillPrerequisite>6</constructionSkillPrerequisite>
     <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
     <designationCategory>FPS_FoodProcessingCategory</designationCategory>
     <uiOrder>2152</uiOrder>

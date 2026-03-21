@@ -10,6 +10,7 @@ namespace FoodPrinterSystem
         private const int KibbleRecountIntervalTicks = GenTicks.TickRareInterval * 4;
 
         private CompPowerTrader powerComp;
+        private int activeTicksRemaining;
         private int cachedStoredKibble = -1;
         private int nextKibbleRecountTick;
 
@@ -30,6 +31,21 @@ namespace FoodPrinterSystem
         public override void TickRare()
         {
             base.TickRare();
+
+            bool wasActive = activeTicksRemaining > 0;
+            if (activeTicksRemaining > 0)
+            {
+                activeTicksRemaining -= GenTicks.TickRareInterval;
+                if (activeTicksRemaining < 0)
+                {
+                    activeTicksRemaining = 0;
+                }
+            }
+
+            if (wasActive != (activeTicksRemaining > 0))
+            {
+                ApplyPowerSetting();
+            }
 
             if (powerComp == null || !powerComp.PowerOn)
             {
@@ -69,6 +85,9 @@ namespace FoodPrinterSystem
             {
                 cachedStoredKibble += batchSize;
             }
+
+            activeTicksRemaining = GenTicks.TickRareInterval;
+            ApplyPowerSetting();
         }
 
         public void ApplyPowerSetting()
@@ -80,7 +99,9 @@ namespace FoodPrinterSystem
 
             if (powerComp != null)
             {
-                powerComp.PowerOutput = -FoodPrinterSystemUtility.GetConstantPowerDraw(def);
+                powerComp.PowerOutput = activeTicksRemaining > 0
+                    ? -FoodPrinterSystemUtility.GetAnimalFeederActivePowerDraw()
+                    : -FoodPrinterSystemUtility.GetAnimalFeederIdlePowerDraw();
             }
         }
 

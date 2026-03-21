@@ -11,16 +11,20 @@ namespace FoodPrinterSystem
         public int fineMealPrintCost = 7;
         public int lavishMealPrintCost = 10;
         public int feederOutputLimit = 75;
-        public int smallTankCapacity = 500;
-        public int mediumTankCapacity = 1900;
-        public int largeTankCapacity = 4300;
-        public int disintegratorIdlePower = 50;
-        public int disintegratorActivePower = 500;
-        public int smallTankPower = 200;
-        public int mediumTankPower = 700;
-        public int largeTankPower = 1500;
-        public int foodPrinterPower = 200;
-        public int animalFeederPower = 100;
+        public int smallTankCapacity = 100;
+        public int mediumTankCapacity = 500;
+        public int largeTankCapacity = 1200;
+        public int disintegratorIdlePower = 80;
+        public int disintegratorActivePower = 300;
+        public int smallTankPower = 250;
+        public int mediumTankPower = 800;
+        public int largeTankPower = 1600;
+        public int foodPrinterIdlePower = 30;
+        public int foodPrinterPower = 300;
+        public int animalFeederIdlePower = 20;
+        public int animalFeederPower = 150;
+        public int bedsideFeederIdlePower = 20;
+        public int bedsideFeederPower = 200;
         public float bedsideFeederTonerCost = 3.0f;
         public bool randomMealSelection = true;
         public bool debugLoggingEnabled = false;
@@ -33,16 +37,20 @@ namespace FoodPrinterSystem
             fineMealPrintCost = 7;
             lavishMealPrintCost = 10;
             feederOutputLimit = 75;
-            smallTankCapacity = 500;
-            mediumTankCapacity = 1900;
-            largeTankCapacity = 4300;
-            disintegratorIdlePower = 50;
-            disintegratorActivePower = 500;
-            smallTankPower = 200;
-            mediumTankPower = 700;
-            largeTankPower = 1500;
-            foodPrinterPower = 200;
-            animalFeederPower = 100;
+            smallTankCapacity = 100;
+            mediumTankCapacity = 500;
+            largeTankCapacity = 1200;
+            disintegratorIdlePower = 80;
+            disintegratorActivePower = 300;
+            smallTankPower = 250;
+            mediumTankPower = 800;
+            largeTankPower = 1600;
+            foodPrinterIdlePower = 30;
+            foodPrinterPower = 300;
+            animalFeederIdlePower = 20;
+            animalFeederPower = 150;
+            bedsideFeederIdlePower = 20;
+            bedsideFeederPower = 200;
             bedsideFeederTonerCost = 3.0f;
             randomMealSelection = true;
             debugLoggingEnabled = false;
@@ -76,16 +84,20 @@ namespace FoodPrinterSystem
             Scribe_Values.Look(ref lavishMealPrintCost, "lavishMealPrintCost", 10);
             Scribe_Values.Look(ref feederOutputLimit, "feederOutputLimit", 75);
             Scribe_Values.Look(ref legacyFeederBatchSize, "feederBatchSize", 10);
-            Scribe_Values.Look(ref smallTankCapacity, "smallTankCapacity", 500);
-            Scribe_Values.Look(ref mediumTankCapacity, "mediumTankCapacity", 1900);
-            Scribe_Values.Look(ref largeTankCapacity, "largeTankCapacity", 4300);
-            Scribe_Values.Look(ref disintegratorIdlePower, "disintegratorIdlePower", 50);
-            Scribe_Values.Look(ref disintegratorActivePower, "disintegratorActivePower", 500);
-            Scribe_Values.Look(ref smallTankPower, "smallTankPower", 200);
-            Scribe_Values.Look(ref mediumTankPower, "mediumTankPower", 700);
-            Scribe_Values.Look(ref largeTankPower, "largeTankPower", 1500);
-            Scribe_Values.Look(ref foodPrinterPower, "foodPrinterPower", 200);
-            Scribe_Values.Look(ref animalFeederPower, "animalFeederPower", 100);
+            Scribe_Values.Look(ref smallTankCapacity, "smallTankCapacity", 100);
+            Scribe_Values.Look(ref mediumTankCapacity, "mediumTankCapacity", 500);
+            Scribe_Values.Look(ref largeTankCapacity, "largeTankCapacity", 1200);
+            Scribe_Values.Look(ref disintegratorIdlePower, "disintegratorIdlePower", 80);
+            Scribe_Values.Look(ref disintegratorActivePower, "disintegratorActivePower", 300);
+            Scribe_Values.Look(ref smallTankPower, "smallTankPower", 250);
+            Scribe_Values.Look(ref mediumTankPower, "mediumTankPower", 800);
+            Scribe_Values.Look(ref largeTankPower, "largeTankPower", 1600);
+            Scribe_Values.Look(ref foodPrinterIdlePower, "foodPrinterIdlePower", 30);
+            Scribe_Values.Look(ref foodPrinterPower, "foodPrinterPower", 300);
+            Scribe_Values.Look(ref animalFeederIdlePower, "animalFeederIdlePower", 20);
+            Scribe_Values.Look(ref animalFeederPower, "animalFeederPower", 150);
+            Scribe_Values.Look(ref bedsideFeederIdlePower, "bedsideFeederIdlePower", 20);
+            Scribe_Values.Look(ref bedsideFeederPower, "bedsideFeederPower", 200);
             Scribe_Values.Look(ref bedsideFeederTonerCost, "bedsideFeederTonerCost", 3.0f);
             Scribe_Values.Look(ref randomMealSelection, "randomMealSelection", true);
             Scribe_Values.Look(ref debugLoggingEnabled, "debugLoggingEnabled", false);
@@ -117,8 +129,12 @@ namespace FoodPrinterSystem
             smallTankPower = Mathf.Clamp(smallTankPower, 0, 10000);
             mediumTankPower = Mathf.Clamp(mediumTankPower, 0, 10000);
             largeTankPower = Mathf.Clamp(largeTankPower, 0, 10000);
+            foodPrinterIdlePower = Mathf.Clamp(foodPrinterIdlePower, 0, 10000);
             foodPrinterPower = Mathf.Clamp(foodPrinterPower, 0, 10000);
+            animalFeederIdlePower = Mathf.Clamp(animalFeederIdlePower, 0, 10000);
             animalFeederPower = Mathf.Clamp(animalFeederPower, 0, 10000);
+            bedsideFeederIdlePower = Mathf.Clamp(bedsideFeederIdlePower, 0, 10000);
+            bedsideFeederPower = Mathf.Clamp(bedsideFeederPower, 0, 10000);
             bedsideFeederTonerCost = Mathf.Clamp(bedsideFeederTonerCost, 0.1f, 50f);
         }
     }
@@ -136,8 +152,12 @@ namespace FoodPrinterSystem
         private string smallTankPowerBuffer;
         private string mediumTankPowerBuffer;
         private string largeTankPowerBuffer;
+        private string foodPrinterIdlePowerBuffer;
         private string foodPrinterPowerBuffer;
+        private string animalFeederIdlePowerBuffer;
         private string animalFeederPowerBuffer;
+        private string bedsideFeederIdlePowerBuffer;
+        private string bedsideFeederPowerBuffer;
         private bool showDebugSettings;
         private int lastSettingsDrawFrame = -1;
         private static int settingsRevision = 1;
@@ -173,7 +193,7 @@ namespace FoodPrinterSystem
 
             lastSettingsDrawFrame = Time.frameCount;
 
-            Rect viewRect = new Rect(0f, 0f, inRect.width - 16f, 960f);
+            Rect viewRect = new Rect(0f, 0f, inRect.width - 16f, 1160f);
             Widgets.BeginScrollView(inRect, ref settingsScrollPosition, viewRect);
 
             Listing_Standard listing = new Listing_Standard();
@@ -203,8 +223,12 @@ namespace FoodPrinterSystem
             Settings.smallTankPower = DrawIntField(listing, "FPS_SettingsSmallTankPower".Translate().ToString(), "FPS_SettingsSmallTankPowerDesc".Translate().ToString(), Settings.smallTankPower, ref smallTankPowerBuffer, 0, 10000);
             Settings.mediumTankPower = DrawIntField(listing, "FPS_SettingsMediumTankPower".Translate().ToString(), "FPS_SettingsMediumTankPowerDesc".Translate().ToString(), Settings.mediumTankPower, ref mediumTankPowerBuffer, 0, 10000);
             Settings.largeTankPower = DrawIntField(listing, "FPS_SettingsLargeTankPower".Translate().ToString(), "FPS_SettingsLargeTankPowerDesc".Translate().ToString(), Settings.largeTankPower, ref largeTankPowerBuffer, 0, 10000);
+            Settings.foodPrinterIdlePower = DrawIntField(listing, "FPS_SettingsPrinterIdlePower".Translate().ToString(), "FPS_SettingsPrinterIdlePowerDesc".Translate().ToString(), Settings.foodPrinterIdlePower, ref foodPrinterIdlePowerBuffer, 0, 10000);
             Settings.foodPrinterPower = DrawIntField(listing, "FPS_SettingsPrinterPower".Translate().ToString(), "FPS_SettingsPrinterPowerDesc".Translate().ToString(), Settings.foodPrinterPower, ref foodPrinterPowerBuffer, 0, 10000);
+            Settings.animalFeederIdlePower = DrawIntField(listing, "FPS_SettingsFeederIdlePower".Translate().ToString(), "FPS_SettingsFeederIdlePowerDesc".Translate().ToString(), Settings.animalFeederIdlePower, ref animalFeederIdlePowerBuffer, 0, 10000);
             Settings.animalFeederPower = DrawIntField(listing, "FPS_SettingsFeederPower".Translate().ToString(), "FPS_SettingsFeederPowerDesc".Translate().ToString(), Settings.animalFeederPower, ref animalFeederPowerBuffer, 0, 10000);
+            Settings.bedsideFeederIdlePower = DrawIntField(listing, "FPS_SettingsBedsideFeederIdlePower".Translate().ToString(), "FPS_SettingsBedsideFeederIdlePowerDesc".Translate().ToString(), Settings.bedsideFeederIdlePower, ref bedsideFeederIdlePowerBuffer, 0, 10000);
+            Settings.bedsideFeederPower = DrawIntField(listing, "FPS_SettingsBedsideFeederPower".Translate().ToString(), "FPS_SettingsBedsideFeederPowerDesc".Translate().ToString(), Settings.bedsideFeederPower, ref bedsideFeederPowerBuffer, 0, 10000);
 
             listing.GapLine();
             listing.Label("FPS_SettingsSectionPrinter".Translate());
@@ -262,6 +286,12 @@ namespace FoodPrinterSystem
                     if (feeder != null)
                     {
                         feeder.ApplyPowerSetting();
+                    }
+
+                    Building_BedsideFeeder bedsideFeeder = thing as Building_BedsideFeeder;
+                    if (bedsideFeeder != null)
+                    {
+                        bedsideFeeder.ApplyPowerSetting();
                     }
 
                     CompFoodPrinter printer = thing.TryGetComp<CompFoodPrinter>();
@@ -327,8 +357,12 @@ namespace FoodPrinterSystem
             smallTankPowerBuffer = null;
             mediumTankPowerBuffer = null;
             largeTankPowerBuffer = null;
+            foodPrinterIdlePowerBuffer = null;
             foodPrinterPowerBuffer = null;
+            animalFeederIdlePowerBuffer = null;
             animalFeederPowerBuffer = null;
+            bedsideFeederIdlePowerBuffer = null;
+            bedsideFeederPowerBuffer = null;
         }
 
         private static int DrawIntSlider(Listing_Standard listing, string label, string tooltip, int value, int min, int max)

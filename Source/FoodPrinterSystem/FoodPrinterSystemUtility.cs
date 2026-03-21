@@ -150,10 +150,6 @@ namespace FoodPrinterSystem
                     return CurrentSettings.mediumTankPower;
                 case "FPS_TonerTankLarge":
                     return CurrentSettings.largeTankPower;
-                case "FPS_FoodPrinter":
-                    return CurrentSettings.foodPrinterPower;
-                case "FPS_AnimalFeeder":
-                    return CurrentSettings.animalFeederPower;
                 default:
                     return 0f;
             }
@@ -167,6 +163,36 @@ namespace FoodPrinterSystem
         public static float GetDisintegratorActivePowerDraw()
         {
             return CurrentSettings.disintegratorActivePower;
+        }
+
+        public static float GetFoodPrinterIdlePowerDraw()
+        {
+            return CurrentSettings.foodPrinterIdlePower;
+        }
+
+        public static float GetFoodPrinterActivePowerDraw()
+        {
+            return CurrentSettings.foodPrinterPower;
+        }
+
+        public static float GetAnimalFeederIdlePowerDraw()
+        {
+            return CurrentSettings.animalFeederIdlePower;
+        }
+
+        public static float GetAnimalFeederActivePowerDraw()
+        {
+            return CurrentSettings.animalFeederPower;
+        }
+
+        public static float GetBedsideFeederIdlePowerDraw()
+        {
+            return CurrentSettings.bedsideFeederIdlePower;
+        }
+
+        public static float GetBedsideFeederActivePowerDraw()
+        {
+            return CurrentSettings.bedsideFeederPower;
         }
 
         public static int GetAnimalFeederOutputLimit()

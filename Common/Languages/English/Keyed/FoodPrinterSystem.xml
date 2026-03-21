@@ -62,10 +62,18 @@
   <FPS_SettingsMediumTankPowerDesc>Power draw of a medium toner tank while it is operating.</FPS_SettingsMediumTankPowerDesc>
   <FPS_SettingsLargeTankPower>Large tank power (W)</FPS_SettingsLargeTankPower>
   <FPS_SettingsLargeTankPowerDesc>Power draw of a large toner tank while it is operating.</FPS_SettingsLargeTankPowerDesc>
-  <FPS_SettingsPrinterPower>Food printer power (W)</FPS_SettingsPrinterPower>
-  <FPS_SettingsPrinterPowerDesc>Power draw of a food printer while it is powered.</FPS_SettingsPrinterPowerDesc>
-  <FPS_SettingsFeederPower>Animal feeder power (W)</FPS_SettingsFeederPower>
-  <FPS_SettingsFeederPowerDesc>Power draw of an animal feeder while it is powered.</FPS_SettingsFeederPowerDesc>
+  <FPS_SettingsPrinterIdlePower>Food printer idle power (W)</FPS_SettingsPrinterIdlePower>
+  <FPS_SettingsPrinterIdlePowerDesc>Power draw of a food printer while it is powered but not actively printing a meal.</FPS_SettingsPrinterIdlePowerDesc>
+  <FPS_SettingsPrinterPower>Food printer active power (W)</FPS_SettingsPrinterPower>
+  <FPS_SettingsPrinterPowerDesc>Power draw of a food printer while it is actively printing a meal.</FPS_SettingsPrinterPowerDesc>
+  <FPS_SettingsFeederIdlePower>Animal feeder idle power (W)</FPS_SettingsFeederIdlePower>
+  <FPS_SettingsFeederIdlePowerDesc>Power draw of an animal feeder while it is powered but not currently producing kibble.</FPS_SettingsFeederIdlePowerDesc>
+  <FPS_SettingsFeederPower>Animal feeder active power (W)</FPS_SettingsFeederPower>
+  <FPS_SettingsFeederPowerDesc>Power draw of an animal feeder while it is actively producing kibble.</FPS_SettingsFeederPowerDesc>
+  <FPS_SettingsBedsideFeederIdlePower>Nutrient feeder idle power (W)</FPS_SettingsBedsideFeederIdlePower>
+  <FPS_SettingsBedsideFeederIdlePowerDesc>Power draw of a Nutrient feeder while it is powered but not actively feeding anyone.</FPS_SettingsBedsideFeederIdlePowerDesc>
+  <FPS_SettingsBedsideFeederPower>Nutrient feeder active power (W)</FPS_SettingsBedsideFeederPower>
+  <FPS_SettingsBedsideFeederPowerDesc>Power draw of a Nutrient feeder while it is actively feeding a linked bed occupant.</FPS_SettingsBedsideFeederPowerDesc>
   <FPS_SettingsBedsideFeederCost>Nutrient feeder toner cost per meal</FPS_SettingsBedsideFeederCost>
   <FPS_SettingsBedsideFeederCostDesc>How much toner the Nutrient feeder consumes each time it serves one meal.</FPS_SettingsBedsideFeederCostDesc>
   <FPS_SettingsRandomization>Enable random meal selection</FPS_SettingsRandomization>

@@ -62,10 +62,18 @@
   <FPS_SettingsMediumTankPowerDesc>중형 토너 저장고가 작동 중일 때의 전력 소모입니다.</FPS_SettingsMediumTankPowerDesc>
   <FPS_SettingsLargeTankPower>대형 저장고 전력 (W)</FPS_SettingsLargeTankPower>
   <FPS_SettingsLargeTankPowerDesc>대형 토너 저장고가 작동 중일 때의 전력 소모입니다.</FPS_SettingsLargeTankPowerDesc>
-  <FPS_SettingsPrinterPower>식사 출력기 전력 (W)</FPS_SettingsPrinterPower>
-  <FPS_SettingsPrinterPowerDesc>식사 출력기가 전원이 켜진 상태일 때의 전력 소모입니다.</FPS_SettingsPrinterPowerDesc>
-  <FPS_SettingsFeederPower>동물 급여기 전력 (W)</FPS_SettingsFeederPower>
-  <FPS_SettingsFeederPowerDesc>동물 급여기가 전원이 켜진 상태일 때의 전력 소모입니다.</FPS_SettingsFeederPowerDesc>
+  <FPS_SettingsPrinterIdlePower>식사 출력기 유휴 전력 (W)</FPS_SettingsPrinterIdlePower>
+  <FPS_SettingsPrinterIdlePowerDesc>전원이 켜져 있지만 식사를 출력 중이 아닐 때 식사 출력기의 전력 소모입니다.</FPS_SettingsPrinterIdlePowerDesc>
+  <FPS_SettingsPrinterPower>식사 출력기 활성 전력 (W)</FPS_SettingsPrinterPower>
+  <FPS_SettingsPrinterPowerDesc>식사 출력기가 식사를 실제로 출력하는 동안의 전력 소모입니다.</FPS_SettingsPrinterPowerDesc>
+  <FPS_SettingsFeederIdlePower>동물 급여기 유휴 전력 (W)</FPS_SettingsFeederIdlePower>
+  <FPS_SettingsFeederIdlePowerDesc>전원이 켜져 있지만 현재 사료를 생산 중이 아닐 때 동물 급여기의 전력 소모입니다.</FPS_SettingsFeederIdlePowerDesc>
+  <FPS_SettingsFeederPower>동물 급여기 활성 전력 (W)</FPS_SettingsFeederPower>
+  <FPS_SettingsFeederPowerDesc>동물 급여기가 사료를 실제로 생산하는 동안의 전력 소모입니다.</FPS_SettingsFeederPowerDesc>
+  <FPS_SettingsBedsideFeederIdlePower>영양 공급기 유휴 전력 (W)</FPS_SettingsBedsideFeederIdlePower>
+  <FPS_SettingsBedsideFeederIdlePowerDesc>전원이 켜져 있지만 현재 아무도 먹이고 있지 않을 때 영양 공급기의 전력 소모입니다.</FPS_SettingsBedsideFeederIdlePowerDesc>
+  <FPS_SettingsBedsideFeederPower>영양 공급기 활성 전력 (W)</FPS_SettingsBedsideFeederPower>
+  <FPS_SettingsBedsideFeederPowerDesc>영양 공급기가 연결된 침대 사용자를 실제로 먹이는 동안의 전력 소모입니다.</FPS_SettingsBedsideFeederPowerDesc>
   <FPS_SettingsBedsideFeederCost>영양 공급기 식사당 토너 비용</FPS_SettingsBedsideFeederCost>
   <FPS_SettingsBedsideFeederCostDesc>영양 공급기가 식사 1회를 제공할 때마다 소비하는 토너 양입니다.</FPS_SettingsBedsideFeederCostDesc>
   <FPS_SettingsRandomization>무작위 식사 선택 사용</FPS_SettingsRandomization>
