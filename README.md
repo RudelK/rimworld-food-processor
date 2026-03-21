@@ -1,6 +1,6 @@
 # Food Process
 
-Food Process is a RimWorld 1.6 mod that adds a centralized food-processing network.
+Food Process is a RimWorld 1.6 mod that adds a centralized toner-based food-processing network.
 
 Raw food and meals can be broken down into liquid toner, stored in connected tanks, and then printed back out as meals or animal feed through a shared pipe network. Ingredient provenance is preserved through the toner network, so printed food can still reflect meat, vegetable, and human-meat origin for downstream food-type checks.
 
@@ -11,7 +11,7 @@ Raw food and meals can be broken down into liquid toner, stored in connected tan
 - Toner Tanks preserve ingredient provenance and show a visible fill overlay based on stored toner
 - Food Printer that produces researched meal tiers from stored toner without nutrient paste hoppers
 - Animal Feeder that turns toner into kibble
-- Nutrient feeder that directly feeds humanlike bed occupants from the toner network
+- Nutrient feeder that automatically feeds linked humanlike bed occupants from the toner network
 - Toner pipes and underground toner pipes for network routing
 - Pipe-specific build and deconstruct tools
 - Dedicated `Food Processing` research tab for the full progression
@@ -49,9 +49,9 @@ Other notable unlock gates:
 ## How It Works
 
 1. Place a `Food Disintegrator` next to stored or loose ingestible food.
-2. Connect it to `Toner Tanks`, `Food Printers`, `Animal Feeders`, and `Nutrient Feeders` with toner pipes.
+2. Connect it to `Toner Tanks`, `Food Printers`, `Animal Feeders`, and `Nutrient feeders` with toner pipes.
 3. Disintegrated food adds toner and preserves its final ingestible ingredient defs in connected tanks.
-4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically, or use a `Nutrient Feeder` for adjacent beds.
+4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically, or use a `Nutrient feeder` for adjacent beds.
 5. Humanlike pawns evaluate printers against the connected network's current ingredient profile before selecting them as a food source.
 6. The printer can automatically include valid modded meal defs from loaded mods, as long as they are real printable meal items and match an unlocked meal tier.
 
