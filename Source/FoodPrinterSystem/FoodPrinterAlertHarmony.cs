@@ -79,7 +79,7 @@ namespace FoodPrinterSystem
             List<Thing> culprits = new List<Thing>();
             AddDisconnectedConsumers(culprits, map, FoodPrinterSystemDefOf.FPS_FoodPrinter);
             AddDisconnectedConsumers(culprits, map, FoodPrinterSystemDefOf.FPS_AnimalFeeder);
-            AddDisconnectedConsumers(culprits, map, FoodPrinterSystemDefOf.FPS_BedsideFeeder);
+            AddDisconnectedConsumers(culprits, map, FoodPrinterSystemDefOf.FPS_NutrientFeeder);
 
             cachedReportsByMapId[map.uniqueID] = new CachedMapReport
             {

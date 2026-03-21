@@ -185,14 +185,14 @@ namespace FoodPrinterSystem
             return CurrentSettings.animalFeederPower;
         }
 
-        public static float GetBedsideFeederIdlePowerDraw()
+        public static float GetNutrientFeederIdlePowerDraw()
         {
-            return CurrentSettings.bedsideFeederIdlePower;
+            return CurrentSettings.nutrientFeederIdlePower;
         }
 
-        public static float GetBedsideFeederActivePowerDraw()
+        public static float GetNutrientFeederActivePowerDraw()
         {
-            return CurrentSettings.bedsideFeederPower;
+            return CurrentSettings.nutrientFeederPower;
         }
 
         public static int GetAnimalFeederOutputLimit()

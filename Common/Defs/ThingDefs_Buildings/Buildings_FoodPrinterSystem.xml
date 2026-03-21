@@ -490,10 +490,10 @@
   </ThingDef>
 
   <ThingDef ParentName="BuildingBase">
-    <defName>FPS_BedsideFeeder</defName>
+    <defName>FPS_NutrientFeeder</defName>
     <label>Nutrient feeder</label>
     <description>Automatically feeds the occupant of a linked bed using nutrition from the connected toner network. Must be placed exactly at the head of a bed.</description>
-    <thingClass>FoodPrinterSystem.Building_BedsideFeeder</thingClass>
+    <thingClass>FoodPrinterSystem.Building_NutrientFeeder</thingClass>
     <tickerType>Rare</tickerType>
     <graphicData>
       <texPath>Things/Building/foodsystem/bedfeeder/bedfeeder</texPath>
@@ -549,7 +549,7 @@
     <uiOrder>2152</uiOrder>
     <constructEffect>ConstructMetal</constructEffect>
     <placeWorkers>
-      <li>FoodSystemPipe.PlaceWorker_BedsideFeeder</li>
+      <li>FoodSystemPipe.PlaceWorker_NutrientFeeder</li>
     </placeWorkers>
     <researchPrerequisites>
       <li>FPS_AdvancedFoodProcessing</li>

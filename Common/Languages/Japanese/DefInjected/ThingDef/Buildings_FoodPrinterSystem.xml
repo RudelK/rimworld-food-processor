@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
   <FPS_Pipe.label>トナーパイプ</FPS_Pipe.label>
   <FPS_Pipe.description>フードシステム設備の間で液体トナーを送ります。流量ではなく接続性が重要です。</FPS_Pipe.description>
@@ -16,6 +16,6 @@
   <FPS_FoodPrinter.description>接続されたトナータンクから直接、印刷された食事を供給します。研究済みで許可された最上位の食事カテゴリを自動選択することも、手動カテゴリに固定することもできます。</FPS_FoodPrinter.description>
   <FPS_AnimalFeeder.label>動物給餌器</FPS_AnimalFeeder.label>
   <FPS_AnimalFeeder.description>接続されたトナーネットワークからキブルを直接印刷し、250ティックごとに自身の保管場所へ補充します。</FPS_AnimalFeeder.description>
-  <FPS_BedsideFeeder.label>栄養フィーダー</FPS_BedsideFeeder.label>
-  <FPS_BedsideFeeder.description>接続されたトナーネットワークの栄養を使って、接続されたベッドの入居者に自動で食事を与えます。必ずベッドの頭側に正確に設置する必要があります。</FPS_BedsideFeeder.description>
+  <FPS_NutrientFeeder.label>栄養フィーダー</FPS_NutrientFeeder.label>
+  <FPS_NutrientFeeder.description>接続されたトナーネットワークの栄養を使って、接続されたベッドの入居者に自動で食事を与えます。必ずベッドの頭側に正確に設置する必要があります。</FPS_NutrientFeeder.description>
 </LanguageData>

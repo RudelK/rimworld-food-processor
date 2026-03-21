@@ -23,9 +23,9 @@ namespace FoodPrinterSystem
         public int foodPrinterPower = 300;
         public int animalFeederIdlePower = 20;
         public int animalFeederPower = 150;
-        public int bedsideFeederIdlePower = 20;
-        public int bedsideFeederPower = 200;
-        public float bedsideFeederTonerCost = 3.0f;
+        public int nutrientFeederIdlePower = 20;
+        public int nutrientFeederPower = 200;
+        public float nutrientFeederTonerCost = 3.0f;
         public bool randomMealSelection = true;
         public bool debugLoggingEnabled = false;
         public bool hardCheckFoodType = true;
@@ -49,9 +49,9 @@ namespace FoodPrinterSystem
             foodPrinterPower = 300;
             animalFeederIdlePower = 20;
             animalFeederPower = 150;
-            bedsideFeederIdlePower = 20;
-            bedsideFeederPower = 200;
-            bedsideFeederTonerCost = 3.0f;
+            nutrientFeederIdlePower = 20;
+            nutrientFeederPower = 200;
+            nutrientFeederTonerCost = 3.0f;
             randomMealSelection = true;
             debugLoggingEnabled = false;
             hardCheckFoodType = true;
@@ -96,9 +96,9 @@ namespace FoodPrinterSystem
             Scribe_Values.Look(ref foodPrinterPower, "foodPrinterPower", 300);
             Scribe_Values.Look(ref animalFeederIdlePower, "animalFeederIdlePower", 20);
             Scribe_Values.Look(ref animalFeederPower, "animalFeederPower", 150);
-            Scribe_Values.Look(ref bedsideFeederIdlePower, "bedsideFeederIdlePower", 20);
-            Scribe_Values.Look(ref bedsideFeederPower, "bedsideFeederPower", 200);
-            Scribe_Values.Look(ref bedsideFeederTonerCost, "bedsideFeederTonerCost", 3.0f);
+            Scribe_Values.Look(ref nutrientFeederIdlePower, "nutrientFeederIdlePower", 20);
+            Scribe_Values.Look(ref nutrientFeederPower, "nutrientFeederPower", 200);
+            Scribe_Values.Look(ref nutrientFeederTonerCost, "nutrientFeederTonerCost", 3.0f);
             Scribe_Values.Look(ref randomMealSelection, "randomMealSelection", true);
             Scribe_Values.Look(ref debugLoggingEnabled, "debugLoggingEnabled", false);
             Scribe_Values.Look(ref hardCheckFoodType, "hardCheckFoodType", true);
@@ -133,9 +133,9 @@ namespace FoodPrinterSystem
             foodPrinterPower = Mathf.Clamp(foodPrinterPower, 0, 10000);
             animalFeederIdlePower = Mathf.Clamp(animalFeederIdlePower, 0, 10000);
             animalFeederPower = Mathf.Clamp(animalFeederPower, 0, 10000);
-            bedsideFeederIdlePower = Mathf.Clamp(bedsideFeederIdlePower, 0, 10000);
-            bedsideFeederPower = Mathf.Clamp(bedsideFeederPower, 0, 10000);
-            bedsideFeederTonerCost = Mathf.Clamp(bedsideFeederTonerCost, 0.1f, 50f);
+            nutrientFeederIdlePower = Mathf.Clamp(nutrientFeederIdlePower, 0, 10000);
+            nutrientFeederPower = Mathf.Clamp(nutrientFeederPower, 0, 10000);
+            nutrientFeederTonerCost = Mathf.Clamp(nutrientFeederTonerCost, 0.1f, 50f);
         }
     }
 
@@ -156,8 +156,8 @@ namespace FoodPrinterSystem
         private string foodPrinterPowerBuffer;
         private string animalFeederIdlePowerBuffer;
         private string animalFeederPowerBuffer;
-        private string bedsideFeederIdlePowerBuffer;
-        private string bedsideFeederPowerBuffer;
+        private string nutrientFeederIdlePowerBuffer;
+        private string nutrientFeederPowerBuffer;
         private bool showDebugSettings;
         private int lastSettingsDrawFrame = -1;
         private static int settingsRevision = 1;
@@ -208,7 +208,7 @@ namespace FoodPrinterSystem
             listing.GapLine();
             listing.Label("FPS_SettingsSectionFeeder".Translate());
             Settings.feederOutputLimit = DrawIntField(listing, "FPS_SettingsFeederOutput".Translate().ToString(), "FPS_SettingsFeederOutputDesc".Translate().ToString(), Settings.feederOutputLimit, ref feederOutputLimitBuffer, 0, 10000);
-            Settings.bedsideFeederTonerCost = DrawFloatSlider(listing, "FPS_SettingsBedsideFeederCost".Translate().ToString(), "FPS_SettingsBedsideFeederCostDesc".Translate().ToString(), Settings.bedsideFeederTonerCost, 0.1f, 20f);
+            Settings.nutrientFeederTonerCost = DrawFloatSlider(listing, "FPS_SettingsNutrientFeederCost".Translate().ToString(), "FPS_SettingsNutrientFeederCostDesc".Translate().ToString(), Settings.nutrientFeederTonerCost, 0.1f, 20f);
 
             listing.GapLine();
             listing.Label("FPS_SettingsSectionStorage".Translate());
@@ -227,8 +227,8 @@ namespace FoodPrinterSystem
             Settings.foodPrinterPower = DrawIntField(listing, "FPS_SettingsPrinterPower".Translate().ToString(), "FPS_SettingsPrinterPowerDesc".Translate().ToString(), Settings.foodPrinterPower, ref foodPrinterPowerBuffer, 0, 10000);
             Settings.animalFeederIdlePower = DrawIntField(listing, "FPS_SettingsFeederIdlePower".Translate().ToString(), "FPS_SettingsFeederIdlePowerDesc".Translate().ToString(), Settings.animalFeederIdlePower, ref animalFeederIdlePowerBuffer, 0, 10000);
             Settings.animalFeederPower = DrawIntField(listing, "FPS_SettingsFeederPower".Translate().ToString(), "FPS_SettingsFeederPowerDesc".Translate().ToString(), Settings.animalFeederPower, ref animalFeederPowerBuffer, 0, 10000);
-            Settings.bedsideFeederIdlePower = DrawIntField(listing, "FPS_SettingsBedsideFeederIdlePower".Translate().ToString(), "FPS_SettingsBedsideFeederIdlePowerDesc".Translate().ToString(), Settings.bedsideFeederIdlePower, ref bedsideFeederIdlePowerBuffer, 0, 10000);
-            Settings.bedsideFeederPower = DrawIntField(listing, "FPS_SettingsBedsideFeederPower".Translate().ToString(), "FPS_SettingsBedsideFeederPowerDesc".Translate().ToString(), Settings.bedsideFeederPower, ref bedsideFeederPowerBuffer, 0, 10000);
+            Settings.nutrientFeederIdlePower = DrawIntField(listing, "FPS_SettingsNutrientFeederIdlePower".Translate().ToString(), "FPS_SettingsNutrientFeederIdlePowerDesc".Translate().ToString(), Settings.nutrientFeederIdlePower, ref nutrientFeederIdlePowerBuffer, 0, 10000);
+            Settings.nutrientFeederPower = DrawIntField(listing, "FPS_SettingsNutrientFeederPower".Translate().ToString(), "FPS_SettingsNutrientFeederPowerDesc".Translate().ToString(), Settings.nutrientFeederPower, ref nutrientFeederPowerBuffer, 0, 10000);
 
             listing.GapLine();
             listing.Label("FPS_SettingsSectionPrinter".Translate());
@@ -288,10 +288,10 @@ namespace FoodPrinterSystem
                         feeder.ApplyPowerSetting();
                     }
 
-                    Building_BedsideFeeder bedsideFeeder = thing as Building_BedsideFeeder;
-                    if (bedsideFeeder != null)
+                    Building_NutrientFeeder nutrientFeeder = thing as Building_NutrientFeeder;
+                    if (nutrientFeeder != null)
                     {
-                        bedsideFeeder.ApplyPowerSetting();
+                        nutrientFeeder.ApplyPowerSetting();
                     }
 
                     CompFoodPrinter printer = thing.TryGetComp<CompFoodPrinter>();
@@ -361,8 +361,8 @@ namespace FoodPrinterSystem
             foodPrinterPowerBuffer = null;
             animalFeederIdlePowerBuffer = null;
             animalFeederPowerBuffer = null;
-            bedsideFeederIdlePowerBuffer = null;
-            bedsideFeederPowerBuffer = null;
+            nutrientFeederIdlePowerBuffer = null;
+            nutrientFeederPowerBuffer = null;
         }
 
         private static int DrawIntSlider(Listing_Standard listing, string label, string tooltip, int value, int min, int max)

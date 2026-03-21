@@ -70,12 +70,12 @@
   <FPS_SettingsFeederIdlePowerDesc>動物給餌器が通電中だが現在キブルを生産していないときの消費電力です。</FPS_SettingsFeederIdlePowerDesc>
   <FPS_SettingsFeederPower>動物給餌器稼働電力 (W)</FPS_SettingsFeederPower>
   <FPS_SettingsFeederPowerDesc>動物給餌器がキブルを実際に生産している間の消費電力です。</FPS_SettingsFeederPowerDesc>
-  <FPS_SettingsBedsideFeederIdlePower>栄養フィーダー待機電力 (W)</FPS_SettingsBedsideFeederIdlePower>
-  <FPS_SettingsBedsideFeederIdlePowerDesc>栄養フィーダーが通電中だが現在は誰にも給餌していないときの消費電力です。</FPS_SettingsBedsideFeederIdlePowerDesc>
-  <FPS_SettingsBedsideFeederPower>栄養フィーダー稼働電力 (W)</FPS_SettingsBedsideFeederPower>
-  <FPS_SettingsBedsideFeederPowerDesc>栄養フィーダーが接続されたベッドの入居者に実際に給餌している間の消費電力です。</FPS_SettingsBedsideFeederPowerDesc>
-  <FPS_SettingsBedsideFeederCost>栄養フィーダーの1食あたりトナー消費</FPS_SettingsBedsideFeederCost>
-  <FPS_SettingsBedsideFeederCostDesc>栄養フィーダーが1食分を提供するたびに消費するトナー量です。</FPS_SettingsBedsideFeederCostDesc>
+  <FPS_SettingsNutrientFeederIdlePower>栄養フィーダー待機電力 (W)</FPS_SettingsNutrientFeederIdlePower>
+  <FPS_SettingsNutrientFeederIdlePowerDesc>栄養フィーダーが通電中だが現在は誰にも給餌していないときの消費電力です。</FPS_SettingsNutrientFeederIdlePowerDesc>
+  <FPS_SettingsNutrientFeederPower>栄養フィーダー稼働電力 (W)</FPS_SettingsNutrientFeederPower>
+  <FPS_SettingsNutrientFeederPowerDesc>栄養フィーダーが接続されたベッドの入居者に実際に給餌している間の消費電力です。</FPS_SettingsNutrientFeederPowerDesc>
+  <FPS_SettingsNutrientFeederCost>栄養フィーダーの1食あたりトナー消費</FPS_SettingsNutrientFeederCost>
+  <FPS_SettingsNutrientFeederCostDesc>栄養フィーダーが1食分を提供するたびに消費するトナー量です。</FPS_SettingsNutrientFeederCostDesc>
   <FPS_SettingsRandomization>ランダム食事選択を有効化</FPS_SettingsRandomization>
   <FPS_SettingsRandomizationDesc>プリンターが常に同じ出力を使うのではなく、現在有効な食事バリアントからランダムに選ぶようにします。</FPS_SettingsRandomizationDesc>
   <FPS_SettingsDebugLog>デバッグログを有効化</FPS_SettingsDebugLog>

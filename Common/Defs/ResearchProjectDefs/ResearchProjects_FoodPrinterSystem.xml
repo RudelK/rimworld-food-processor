@@ -36,7 +36,7 @@
     <defName>FPS_AdvancedFoodProcessing</defName>
     <tab>FPS_FoodProcessingTab</tab>
     <label>Advanced Food Processing</label>
-    <description>Develop advanced toner-network control, bedside feeding, and larger food-processing infrastructure.</description>
+    <description>Develop advanced toner-network control, nutrient feeding, and larger food-processing infrastructure.</description>
     <baseCost>1500</baseCost>
     <techLevel>Industrial</techLevel>
     <researchViewX>2.00</researchViewX>

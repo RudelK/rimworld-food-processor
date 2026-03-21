@@ -8,6 +8,7 @@ Raw food and meals can be broken down into liquid toner, stored in connected tan
 
 - INGR Disintegrator that converts adjacent food into toner
 - Small, medium, and large Toner Tanks for shared network storage
+- Toner Tanks preserve ingredient provenance and show a visible fill overlay based on stored toner
 - Food Printer that produces researched meal tiers from stored toner without nutrient paste hoppers
 - Animal Feeder that turns toner into kibble
 - Nutrient feeder that directly feeds humanlike bed occupants from the toner network
@@ -43,28 +44,29 @@ Toner tank unlocks are:
 
 Other notable unlock gates:
 
-- `Bedside feeder` -> requires `Advanced Food Processing`
+- `Nutrient feeder` -> requires `Advanced Food Processing`
 
 ## How It Works
 
 1. Place a `Food Disintegrator` next to stored or loose ingestible food.
-2. Connect it to `Toner Tanks`, `Food Printers`, `Animal Feeders`, and `Nutrient feeders` with toner pipes.
+2. Connect it to `Toner Tanks`, `Food Printers`, `Animal Feeders`, and `Nutrient Feeders` with toner pipes.
 3. Disintegrated food adds toner and preserves its final ingestible ingredient defs in connected tanks.
-4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically, or use a `Nutrient feeder` / bedside feeder for adjacent beds.
-5. Pawns evaluate printers against the connected network's current ingredient profile before selecting them as a food source.
-6. The printer can automatically include valid modded meal defs from loaded mods, as long as they are real meal ingestibles and match an unlocked meal tier.
+4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically, or use a `Nutrient Feeder` for adjacent beds.
+5. Humanlike pawns evaluate printers against the connected network's current ingredient profile before selecting them as a food source.
+6. The printer can automatically include valid modded meal defs from loaded mods, as long as they are real printable meal items and match an unlocked meal tier.
 
 ## Power And Network Notes
 
 - Functional buildings act as toner-network nodes.
 - Functional buildings also transmit power, so they can bridge adjacent powered tiles like conduit-capable buildings.
 - Toner tanks spoil their stored contents after extended power loss.
+- Toner tank fill visuals update from the shared network state and are rendered directly on the tank body.
 - Toner storage contributes to RimWorld's low-food accounting through the colony nutrition counter.
 - Food printers use the toner network as their real input source and no longer rely on nutrient paste hoppers.
 - Food printers respect research locks for meal tiers and current connected toner availability.
 - Printer food-type prediction is based on stored ingredient provenance in connected toner tanks.
 - Printer random selection excludes meal defs directly forbidden by the current pawn food policy.
-- Printer meal discovery excludes non-meal ingestibles such as insect jelly even if their preferability is high.
+- Printer meal discovery excludes non-printable meal-like ingestibles such as insect jelly, pemmican, and survival meals.
 - Toner-consuming buildings show a persistent `Need to connect toner tank` warning when they are not connected to a toner network with at least one tank.
 - `Deconstruct pipes` only targets placed toner pipes and ignores walls, machines, and other non-pipe buildings that merely share pipe visuals.
 
@@ -73,7 +75,9 @@ Other notable unlock gates:
 - Vegetarian restrictions are treated as hard blocks for incompatible printers.
 - Meat and human-meat preferences can be used for printer ranking, and can optionally become hard blocks through the mod settings.
 - If Ideology is disabled, or ideology resolution is unavailable for a pawn, printer policy falls back to neutral instead of blocking use.
+- Only humanlike pawns with a food need are valid printer users; animals continue to use normal food search.
 - Printer category defaults follow current research state, so unavailable tiers are not shown as enabled before they are unlocked.
+- Search-time and print-time random meal selection stay aligned for the same pawn/printer/policy state.
 - Printer mask color follows the room used at the printer interaction cell, and updates when a linked bed switches between colonist and prisoner use.
 
 ## Mod Settings

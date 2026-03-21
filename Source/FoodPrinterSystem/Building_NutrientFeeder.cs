@@ -6,7 +6,7 @@ using FoodSystemPipe;
 
 namespace FoodPrinterSystem
 {
-    public class Building_BedsideFeeder : Building
+    public class Building_NutrientFeeder : Building
     {
         private const int BedSearchRetryTicks = GenTicks.TickRareInterval * 4;
         private Building_Bed linkedBed;
@@ -91,7 +91,7 @@ namespace FoodPrinterSystem
             if (pawn.needs.food.CurLevelPercentage > 0.3f) return;
 
             // Consume toner cost defined in settings (default 3.0)
-            float tonerCost = FoodPrinterSystemMod.Settings.bedsideFeederTonerCost;
+            float tonerCost = FoodPrinterSystemMod.Settings.nutrientFeederTonerCost;
             
             // 0.9 nutrition is equivalent to one Nutrient Paste meal
             float nutritionToFeed = 0.9f;
@@ -114,8 +114,8 @@ namespace FoodPrinterSystem
             if (powerComp != null)
             {
                 powerComp.PowerOutput = activeTicksRemaining > 0
-                    ? -FoodPrinterSystemUtility.GetBedsideFeederActivePowerDraw()
-                    : -FoodPrinterSystemUtility.GetBedsideFeederIdlePowerDraw();
+                    ? -FoodPrinterSystemUtility.GetNutrientFeederActivePowerDraw()
+                    : -FoodPrinterSystemUtility.GetNutrientFeederIdlePowerDraw();
             }
         }
 
@@ -200,7 +200,7 @@ namespace FoodSystemPipe
 {
     using FoodPrinterSystem;
 
-    public class PlaceWorker_BedsideFeeder : PlaceWorker_EmbeddedPipePreview
+    public class PlaceWorker_NutrientFeeder : PlaceWorker_EmbeddedPipePreview
     {
         public override AcceptanceReport AllowsPlacing(BuildableDef checkingDef, IntVec3 loc, Rot4 rot, Map map, Thing thingToIgnore = null, Thing thing = null)
         {
@@ -216,7 +216,7 @@ namespace FoodSystemPipe
                 List<Thing> thingList = adj.GetThingList(map);
                 for (int j = 0; j < thingList.Count; j++)
                 {
-                    if (thingList[j] is Building_Bed b && Building_BedsideFeeder.IsAtBedHead(b, loc))
+                    if (thingList[j] is Building_Bed b && Building_NutrientFeeder.IsAtBedHead(b, loc))
                     {
                         bed = b;
                         break;

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
   <FPS_Pipe.label>墨浆管道</FPS_Pipe.label>
   <FPS_Pipe.description>在食物系统建筑之间输送液态墨浆。关键在于是否连通，而不是流速。</FPS_Pipe.description>
@@ -16,6 +16,6 @@
   <FPS_FoodPrinter.description>直接从已连接的墨浆储罐中输出打印食物。它可以自动选择已研究且允许的最高餐食类别，也可以锁定为手动类别。</FPS_FoodPrinter.description>
   <FPS_AnimalFeeder.label>动物喂食器</FPS_AnimalFeeder.label>
   <FPS_AnimalFeeder.description>直接从已连接的墨浆管网打印饲料，并每 250 tick 补充到自身的饲料存储中。</FPS_AnimalFeeder.description>
-  <FPS_BedsideFeeder.label>营养喂食器</FPS_BedsideFeeder.label>
-  <FPS_BedsideFeeder.description>使用已连接墨浆管网中的营养自动喂食已连接床位的占用者。必须准确放置在床头位置。</FPS_BedsideFeeder.description>
+  <FPS_NutrientFeeder.label>营养喂食器</FPS_NutrientFeeder.label>
+  <FPS_NutrientFeeder.description>使用已连接墨浆管网中的营养自动喂食已连接床位的占用者。必须准确放置在床头位置。</FPS_NutrientFeeder.description>
 </LanguageData>

@@ -70,12 +70,12 @@
   <FPS_SettingsFeederIdlePowerDesc>전원이 켜져 있지만 현재 사료를 생산 중이 아닐 때 동물 급여기의 전력 소모입니다.</FPS_SettingsFeederIdlePowerDesc>
   <FPS_SettingsFeederPower>동물 급여기 활성 전력 (W)</FPS_SettingsFeederPower>
   <FPS_SettingsFeederPowerDesc>동물 급여기가 사료를 실제로 생산하는 동안의 전력 소모입니다.</FPS_SettingsFeederPowerDesc>
-  <FPS_SettingsBedsideFeederIdlePower>영양 공급기 유휴 전력 (W)</FPS_SettingsBedsideFeederIdlePower>
-  <FPS_SettingsBedsideFeederIdlePowerDesc>전원이 켜져 있지만 현재 아무도 먹이고 있지 않을 때 영양 공급기의 전력 소모입니다.</FPS_SettingsBedsideFeederIdlePowerDesc>
-  <FPS_SettingsBedsideFeederPower>영양 공급기 활성 전력 (W)</FPS_SettingsBedsideFeederPower>
-  <FPS_SettingsBedsideFeederPowerDesc>영양 공급기가 연결된 침대 사용자를 실제로 먹이는 동안의 전력 소모입니다.</FPS_SettingsBedsideFeederPowerDesc>
-  <FPS_SettingsBedsideFeederCost>영양 공급기 식사당 토너 비용</FPS_SettingsBedsideFeederCost>
-  <FPS_SettingsBedsideFeederCostDesc>영양 공급기가 식사 1회를 제공할 때마다 소비하는 토너 양입니다.</FPS_SettingsBedsideFeederCostDesc>
+  <FPS_SettingsNutrientFeederIdlePower>영양 공급기 유휴 전력 (W)</FPS_SettingsNutrientFeederIdlePower>
+  <FPS_SettingsNutrientFeederIdlePowerDesc>전원이 켜져 있지만 현재 아무도 먹이고 있지 않을 때 영양 공급기의 전력 소모입니다.</FPS_SettingsNutrientFeederIdlePowerDesc>
+  <FPS_SettingsNutrientFeederPower>영양 공급기 활성 전력 (W)</FPS_SettingsNutrientFeederPower>
+  <FPS_SettingsNutrientFeederPowerDesc>영양 공급기가 연결된 침대 사용자를 실제로 먹이는 동안의 전력 소모입니다.</FPS_SettingsNutrientFeederPowerDesc>
+  <FPS_SettingsNutrientFeederCost>영양 공급기 식사당 토너 비용</FPS_SettingsNutrientFeederCost>
+  <FPS_SettingsNutrientFeederCostDesc>영양 공급기가 식사 1회를 제공할 때마다 소비하는 토너 양입니다.</FPS_SettingsNutrientFeederCostDesc>
   <FPS_SettingsRandomization>무작위 식사 선택 사용</FPS_SettingsRandomization>
   <FPS_SettingsRandomizationDesc>출력기가 항상 같은 결과를 내는 대신 현재 유효한 식사 변종 중에서 무작위로 선택하도록 합니다.</FPS_SettingsRandomizationDesc>
   <FPS_SettingsDebugLog>디버그 로그 활성화</FPS_SettingsDebugLog>

@@ -13,7 +13,7 @@ namespace FoodPrinterSystem
 
         public static ThingDef FPS_FoodPrinter;
         public static ThingDef FPS_AnimalFeeder;
-        public static ThingDef FPS_BedsideFeeder;
+        public static ThingDef FPS_NutrientFeeder;
         public static DesignationCategoryDef FPS_FoodProcessingCategory;
 
         public static ResearchProjectDef FPS_FoodProcessing;

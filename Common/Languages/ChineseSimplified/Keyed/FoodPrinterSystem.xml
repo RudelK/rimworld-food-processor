@@ -70,12 +70,12 @@
   <FPS_SettingsFeederIdlePowerDesc>动物喂食器通电但当前未生产饲料时的耗电量。</FPS_SettingsFeederIdlePowerDesc>
   <FPS_SettingsFeederPower>动物喂食器工作功耗 (W)</FPS_SettingsFeederPower>
   <FPS_SettingsFeederPowerDesc>动物喂食器实际生产饲料时的耗电量。</FPS_SettingsFeederPowerDesc>
-  <FPS_SettingsBedsideFeederIdlePower>营养喂食器空闲功耗 (W)</FPS_SettingsBedsideFeederIdlePower>
-  <FPS_SettingsBedsideFeederIdlePowerDesc>营养喂食器通电但当前未喂食任何人时的耗电量。</FPS_SettingsBedsideFeederIdlePowerDesc>
-  <FPS_SettingsBedsideFeederPower>营养喂食器工作功耗 (W)</FPS_SettingsBedsideFeederPower>
-  <FPS_SettingsBedsideFeederPowerDesc>营养喂食器正在为已连接床位的占用者供餐时的耗电量。</FPS_SettingsBedsideFeederPowerDesc>
-  <FPS_SettingsBedsideFeederCost>营养喂食器每餐墨浆消耗</FPS_SettingsBedsideFeederCost>
-  <FPS_SettingsBedsideFeederCostDesc>营养喂食器每提供一次进食时消耗的墨浆量。</FPS_SettingsBedsideFeederCostDesc>
+  <FPS_SettingsNutrientFeederIdlePower>营养喂食器空闲功耗 (W)</FPS_SettingsNutrientFeederIdlePower>
+  <FPS_SettingsNutrientFeederIdlePowerDesc>营养喂食器通电但当前未喂食任何人时的耗电量。</FPS_SettingsNutrientFeederIdlePowerDesc>
+  <FPS_SettingsNutrientFeederPower>营养喂食器工作功耗 (W)</FPS_SettingsNutrientFeederPower>
+  <FPS_SettingsNutrientFeederPowerDesc>营养喂食器正在为已连接床位的占用者供餐时的耗电量。</FPS_SettingsNutrientFeederPowerDesc>
+  <FPS_SettingsNutrientFeederCost>营养喂食器每餐墨浆消耗</FPS_SettingsNutrientFeederCost>
+  <FPS_SettingsNutrientFeederCostDesc>营养喂食器每提供一次进食时消耗的墨浆量。</FPS_SettingsNutrientFeederCostDesc>
   <FPS_SettingsRandomization>启用随机餐食选择</FPS_SettingsRandomization>
   <FPS_SettingsRandomizationDesc>允许打印机从当前有效的餐食变种中随机选择，而不是始终输出同一种结果。</FPS_SettingsRandomizationDesc>
   <FPS_SettingsDebugLog>启用调试日志</FPS_SettingsDebugLog>
