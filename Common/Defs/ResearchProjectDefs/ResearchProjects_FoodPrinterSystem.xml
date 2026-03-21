@@ -2,10 +2,13 @@
 <Defs>
   <ResearchProjectDef>
     <defName>FPS_FoodProcessing</defName>
+    <tab>FPS_FoodProcessingTab</tab>
     <label>Food Process</label>
     <description>Develop industrial food disintegration, liquid toner storage, nutrient paste synthesis, and printed food distribution systems.</description>
     <baseCost>1000</baseCost>
     <techLevel>Industrial</techLevel>
+    <researchViewX>0.00</researchViewX>
+    <researchViewY>0.00</researchViewY>
     <prerequisites>
       <li>Electricity</li>
       <li>NutrientPaste</li>
@@ -15,10 +18,13 @@
 
   <ResearchProjectDef>
     <defName>FPS_SimpleMealPrinting</defName>
+    <tab>FPS_FoodProcessingTab</tab>
     <label>Simple Meal Printing</label>
     <description>Teach food printers to shape stored toner into stable simple meals.</description>
     <baseCost>1200</baseCost>
     <techLevel>Industrial</techLevel>
+    <researchViewX>1.00</researchViewX>
+    <researchViewY>0.00</researchViewY>
     <prerequisites>
       <li>FPS_FoodProcessing</li>
       <li>Electricity</li>
@@ -28,10 +34,13 @@
 
   <ResearchProjectDef>
     <defName>FPS_FineMealPrinting</defName>
+    <tab>FPS_FoodProcessingTab</tab>
     <label>Fine Meal Printing</label>
     <description>Upgrade food printers to synthesize refined fine meals, including standard, vegetarian, and carnivore variants.</description>
     <baseCost>1500</baseCost>
     <techLevel>Industrial</techLevel>
+    <researchViewX>2.00</researchViewX>
+    <researchViewY>0.00</researchViewY>
     <prerequisites>
       <li>FPS_SimpleMealPrinting</li>
       <li>MicroelectronicsBasics</li>
@@ -41,10 +50,13 @@
 
   <ResearchProjectDef>
     <defName>FPS_LavishMealPrinting</defName>
+    <tab>FPS_FoodProcessingTab</tab>
     <label>Lavish Meal Printing</label>
     <description>Upgrade food printers to synthesize lavish meals and their specialized variants for the finest printed dining.</description>
     <baseCost>2400</baseCost>
     <techLevel>Industrial</techLevel>
+    <researchViewX>3.00</researchViewX>
+    <researchViewY>0.00</researchViewY>
     <prerequisites>
       <li>FPS_FineMealPrinting</li>
       <li>MultiAnalyzer</li>
