@@ -265,8 +265,7 @@
     <uiOrder>2146</uiOrder>
     <designatorDropdown>FPS_TonerTank</designatorDropdown>
     <researchPrerequisites Inherit="False">
-      <li>FPS_FoodProcessing</li>
-      <li>Machining</li>
+      <li>FPS_AdvancedFoodProcessing</li>
     </researchPrerequisites>
   </ThingDef>
 
@@ -311,8 +310,7 @@
     <uiOrder>2147</uiOrder>
     <designatorDropdown>FPS_TonerTank</designatorDropdown>
     <researchPrerequisites Inherit="False">
-      <li>FPS_FoodProcessing</li>
-      <li>MicroelectronicsBasics</li>
+      <li>FPS_ExpandedTonerStorage</li>
     </researchPrerequisites>
   </ThingDef>
 
@@ -554,7 +552,7 @@
       <li>FoodSystemPipe.PlaceWorker_BedsideFeeder</li>
     </placeWorkers>
     <researchPrerequisites>
-      <li>FPS_FoodProcessing</li>
+      <li>FPS_AdvancedFoodProcessing</li>
     </researchPrerequisites>
   </ThingDef>
 </Defs>

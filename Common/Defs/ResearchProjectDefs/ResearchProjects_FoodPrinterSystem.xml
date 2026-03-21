@@ -3,7 +3,7 @@
   <ResearchProjectDef>
     <defName>FPS_FoodProcessing</defName>
     <tab>FPS_FoodProcessingTab</tab>
-    <label>Food Process</label>
+    <label>Food Processing</label>
     <description>Develop industrial food disintegration, liquid toner storage, nutrient paste synthesis, and printed food distribution systems.</description>
     <baseCost>1000</baseCost>
     <techLevel>Industrial</techLevel>
@@ -33,17 +33,32 @@
   </ResearchProjectDef>
 
   <ResearchProjectDef>
+    <defName>FPS_AdvancedFoodProcessing</defName>
+    <tab>FPS_FoodProcessingTab</tab>
+    <label>Advanced Food Processing</label>
+    <description>Develop advanced toner-network control, bedside feeding, and larger food-processing infrastructure.</description>
+    <baseCost>1500</baseCost>
+    <techLevel>Industrial</techLevel>
+    <researchViewX>2.00</researchViewX>
+    <researchViewY>0.00</researchViewY>
+    <prerequisites>
+      <li>FPS_FoodProcessing</li>
+      <li>MicroelectronicsBasics</li>
+    </prerequisites>
+    <requiredResearchBuilding>HiTechResearchBench</requiredResearchBuilding>
+  </ResearchProjectDef>
+
+  <ResearchProjectDef>
     <defName>FPS_FineMealPrinting</defName>
     <tab>FPS_FoodProcessingTab</tab>
     <label>Fine Meal Printing</label>
     <description>Upgrade food printers to synthesize refined fine meals, including standard, vegetarian, and carnivore variants.</description>
     <baseCost>1500</baseCost>
     <techLevel>Industrial</techLevel>
-    <researchViewX>2.00</researchViewX>
+    <researchViewX>3.00</researchViewX>
     <researchViewY>0.00</researchViewY>
     <prerequisites>
-      <li>FPS_SimpleMealPrinting</li>
-      <li>MicroelectronicsBasics</li>
+      <li>FPS_AdvancedFoodProcessing</li>
     </prerequisites>
     <requiredResearchBuilding>HiTechResearchBench</requiredResearchBuilding>
   </ResearchProjectDef>
@@ -54,11 +69,27 @@
     <label>Lavish Meal Printing</label>
     <description>Upgrade food printers to synthesize lavish meals and their specialized variants for the finest printed dining.</description>
     <baseCost>2400</baseCost>
-    <techLevel>Industrial</techLevel>
-    <researchViewX>3.00</researchViewX>
+    <techLevel>Spacer</techLevel>
+    <researchViewX>4.00</researchViewX>
     <researchViewY>0.00</researchViewY>
     <prerequisites>
       <li>FPS_FineMealPrinting</li>
+      <li>MultiAnalyzer</li>
+    </prerequisites>
+    <requiredResearchBuilding>HiTechResearchBench</requiredResearchBuilding>
+  </ResearchProjectDef>
+
+  <ResearchProjectDef>
+    <defName>FPS_ExpandedTonerStorage</defName>
+    <tab>FPS_FoodProcessingTab</tab>
+    <label>Expanded Toner Storage</label>
+    <description>Develop reinforced, high-capacity toner storage for large-scale food-processing networks.</description>
+    <baseCost>1200</baseCost>
+    <techLevel>Spacer</techLevel>
+    <researchViewX>3.00</researchViewX>
+    <researchViewY>1.00</researchViewY>
+    <prerequisites>
+      <li>FPS_AdvancedFoodProcessing</li>
       <li>MultiAnalyzer</li>
     </prerequisites>
     <requiredResearchBuilding>HiTechResearchBench</requiredResearchBuilding>

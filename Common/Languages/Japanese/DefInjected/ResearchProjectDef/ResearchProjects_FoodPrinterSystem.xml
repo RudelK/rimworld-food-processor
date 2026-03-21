@@ -1,11 +1,15 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
   <FPS_FoodProcessing.label>フード加工</FPS_FoodProcessing.label>
   <FPS_FoodProcessing.description>工業的な食料分解、液体トナー貯蔵、栄養ペースト合成、印刷食配給システムを開発します。</FPS_FoodProcessing.description>
   <FPS_SimpleMealPrinting.label>簡易食事の印刷</FPS_SimpleMealPrinting.label>
   <FPS_SimpleMealPrinting.description>フードプリンターに、保存されたトナーを安定した簡易食事へ成形する技術を教えます。</FPS_SimpleMealPrinting.description>
+  <FPS_AdvancedFoodProcessing.label>高度フード加工</FPS_AdvancedFoodProcessing.label>
+  <FPS_AdvancedFoodProcessing.description>高度なトナーネットワーク制御、ベッドサイド給餌、より大型のフード加工設備を開発します。</FPS_AdvancedFoodProcessing.description>
   <FPS_FineMealPrinting.label>上等な食事の印刷</FPS_FineMealPrinting.label>
   <FPS_FineMealPrinting.description>フードプリンターを改良し、標準・菜食・肉食バリアントを含む上等な食事を合成できるようにします。</FPS_FineMealPrinting.description>
   <FPS_LavishMealPrinting.label>豪華な食事の印刷</FPS_LavishMealPrinting.label>
   <FPS_LavishMealPrinting.description>フードプリンターを改良し、最高級の印刷食のための豪華な食事と特殊バリアントを合成できるようにします。</FPS_LavishMealPrinting.description>
+  <FPS_ExpandedTonerStorage.label>拡張トナー貯蔵</FPS_ExpandedTonerStorage.label>
+  <FPS_ExpandedTonerStorage.description>大規模なフード加工ネットワーク向けに、強化された大容量トナー貯蔵設備を開発します。</FPS_ExpandedTonerStorage.description>
 </LanguageData>
