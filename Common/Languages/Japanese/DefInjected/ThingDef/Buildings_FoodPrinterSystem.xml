@@ -13,7 +13,7 @@
   <FPS_TonerTankLarge.label>大型トナータンク</FPS_TonerTankLarge.label>
   <FPS_TonerTankLarge.description>フードプリンターシステム用の液体トナーを保存します。80,000ティック通電していないと、保存されたトナーはすべて腐敗します。</FPS_TonerTankLarge.description>
   <FPS_FoodPrinter.label>フードプリンター</FPS_FoodPrinter.label>
-  <FPS_FoodPrinter.description>接続されたトナータンクから直接、印刷された食事を供給します。研究済みで許可された最上位の食事カテゴリを自動選択することも、手動カテゴリに固定することもできます。</FPS_FoodPrinter.description>
+  <FPS_FoodPrinter.description>接続されたトナータンクから直接、印刷された食事を供給します。研究済みで許可された最上位の食事カテゴリを自動選択することも、手動カテゴリに固定することもできます。人数が多い場合、通常の食料を探しに行くことがあります。</FPS_FoodPrinter.description>
   <FPS_AnimalFeeder.label>動物給餌器</FPS_AnimalFeeder.label>
   <FPS_AnimalFeeder.description>接続されたトナーネットワークからキブルを直接印刷し、250ティックごとに自身の保管場所へ補充します。</FPS_AnimalFeeder.description>
   <FPS_NutrientFeeder.label>栄養フィーダー</FPS_NutrientFeeder.label>

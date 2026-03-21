@@ -76,6 +76,7 @@ Other notable unlock gates:
 - Meat and human-meat preferences can be used for printer ranking, and can optionally become hard blocks through the mod settings.
 - If Ideology is disabled, or ideology resolution is unavailable for a pawn, printer policy falls back to neutral instead of blocking use.
 - Only humanlike pawns with a food need are valid printer users; animals continue to use normal food search.
+- In larger groups, pawns may still choose regular food sources instead of a food printer.
 - Printer category defaults follow current research state, so unavailable tiers are not shown as enabled before they are unlocked.
 - Search-time and print-time random meal selection stay aligned for the same pawn/printer/policy state.
 - Printer mask color follows the room used at the printer interaction cell, and updates when a linked bed switches between colonist and prisoner use.

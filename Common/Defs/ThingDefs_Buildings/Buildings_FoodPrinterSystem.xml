@@ -317,7 +317,7 @@
   <ThingDef ParentName="BuildingBase">
     <defName>FPS_FoodPrinter</defName>
     <label>Food printer</label>
-    <description>Dispenses printed food directly from connected toner tanks. It can auto-select the highest researched allowed food category or be locked to a manual category.</description>
+    <description>Dispenses printed food directly from connected toner tanks. It can auto-select the highest researched allowed food category or be locked to a manual category. With many pawns, they may look for regular food instead.</description>
     <thingClass>FoodPrinterSystem.Building_FoodPrinter</thingClass>
     <tickerType>Normal</tickerType>
     <graphicData>
