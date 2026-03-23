@@ -5,7 +5,7 @@
   <FPS_HiddenPipe.label>地下トナーパイプ</FPS_HiddenPipe.label>
   <FPS_HiddenPipe.description>壁や機械の下にトナーを通すための隠し地下配管です。</FPS_HiddenPipe.description>
   <FPS_FoodDisintegrator.label>食材分解機</FPS_FoodDisintegrator.label>
-  <FPS_FoodDisintegrator.description>隣接する食料アイテムを分解し、その栄養を接続されたトナーネットワークへ移します。250ティックごとに1個処理します。</FPS_FoodDisintegrator.description>
+  <FPS_FoodDisintegrator.description>隣接する生の食料アイテムを分解し、その栄養を接続されたトナーネットワークへ移します。250ティックごとに1個処理します。</FPS_FoodDisintegrator.description>
   <FPS_TonerTankSmall.label>小型トナータンク</FPS_TonerTankSmall.label>
   <FPS_TonerTankSmall.description>フードプリンターシステム用の液体トナーを保存します。80,000ティック通電していないと、保存されたトナーはすべて腐敗します。</FPS_TonerTankSmall.description>
   <FPS_TonerTankMedium.label>中型トナータンク</FPS_TonerTankMedium.label>

@@ -2,11 +2,11 @@
 
 Food Process is a RimWorld 1.6 mod that adds a centralized toner-based food-processing network.
 
-Raw food and meals can be broken down into liquid toner, stored in connected tanks, and then printed back out as meals or animal feed through a shared pipe network. Ingredient provenance is preserved through the toner network, so printed food can still reflect meat, vegetable, and human-meat origin for downstream food-type checks.
+Raw food can be broken down into liquid toner, stored in connected tanks, and then printed back out as meals or animal feed through a shared pipe network. Ingredient provenance is preserved through the toner network, so printed food can still reflect meat, vegetable, and human-meat origin for downstream food-type checks.
 
 ## Features
 
-- INGR Disintegrator that converts adjacent food into toner
+- INGR Disintegrator that converts adjacent raw food into toner
 - Small, medium, and large Toner Tanks for shared network storage
 - Toner Tanks preserve ingredient provenance and show a visible fill overlay based on stored toner
 - Food Printer that produces researched meal tiers from stored toner without nutrient paste hoppers
@@ -48,7 +48,7 @@ Other notable unlock gates:
 
 ## How It Works
 
-1. Place an `INGR Disintegrator` next to stored or loose ingestible food.
+1. Place an `INGR Disintegrator` next to stored or loose raw food.
 2. Connect it to `Toner Tanks`, `Food Printers`, `Animal Feeders`, and `Nutrient feeders` with toner pipes.
 3. Disintegrated food adds toner and preserves its final ingestible ingredient defs in connected tanks.
 4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically, or use a `Nutrient feeder` for adjacent beds.

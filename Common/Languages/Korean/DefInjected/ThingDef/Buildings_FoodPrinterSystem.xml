@@ -5,7 +5,7 @@
   <FPS_HiddenPipe.label>지하 토너 파이프</FPS_HiddenPipe.label>
   <FPS_HiddenPipe.description>벽과 기계 아래로 토너를 연결하기 위한 숨겨진 지하 배관입니다.</FPS_HiddenPipe.description>
   <FPS_FoodDisintegrator.label>재료 분해기</FPS_FoodDisintegrator.label>
-  <FPS_FoodDisintegrator.description>인접한 음식 아이템을 분해해 그 영양분을 연결된 토너 네트워크로 옮깁니다. 250틱마다 아이템 1개를 처리합니다.</FPS_FoodDisintegrator.description>
+  <FPS_FoodDisintegrator.description>인접한 생식 아이템을 분해해 그 영양분을 연결된 토너 네트워크로 옮깁니다. 250틱마다 아이템 1개를 처리합니다.</FPS_FoodDisintegrator.description>
   <FPS_TonerTankSmall.label>소형 토너 저장고</FPS_TonerTankSmall.label>
   <FPS_TonerTankSmall.description>식사 출력기 시스템용 액체 토너를 저장합니다. 전원이 32시간 동안 꺼져 있으면 저장된 토너가 모두 상합니다.</FPS_TonerTankSmall.description>
   <FPS_TonerTankMedium.label>중형 토너 저장고</FPS_TonerTankMedium.label>

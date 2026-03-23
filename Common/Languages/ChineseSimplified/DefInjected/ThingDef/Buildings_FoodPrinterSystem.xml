@@ -5,7 +5,7 @@
   <FPS_HiddenPipe.label>地下墨浆管道</FPS_HiddenPipe.label>
   <FPS_HiddenPipe.description>用于在墙体和机器下方铺设墨浆线路的隐藏地下管道。</FPS_HiddenPipe.description>
   <FPS_FoodDisintegrator.label>食材分解机</FPS_FoodDisintegrator.label>
-  <FPS_FoodDisintegrator.description>分解相邻的食物物品，并将其营养转移到已连接的墨浆管网中。每 250 tick 处理 1 个物品。</FPS_FoodDisintegrator.description>
+  <FPS_FoodDisintegrator.description>分解相邻的生食物品，并将其营养转移到已连接的墨浆管网中。每 250 tick 处理 1 个物品。</FPS_FoodDisintegrator.description>
   <FPS_TonerTankSmall.label>小型墨浆储罐</FPS_TonerTankSmall.label>
   <FPS_TonerTankSmall.description>为食物打印系统储存液态墨浆。若断电持续 80,000 tick，已储存的墨浆将全部变质。</FPS_TonerTankSmall.description>
   <FPS_TonerTankMedium.label>中型墨浆储罐</FPS_TonerTankMedium.label>

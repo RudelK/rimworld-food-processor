@@ -210,8 +210,21 @@ namespace FoodPrinterSystem
             return thing != null
                 && thing.def.category == ThingCategory.Item
                 && thing.def.IsNutritionGivingIngestible
+                && IsRawFoodPreferability(thing.def)
                 && GetStoredTonerValue(thing) > 0
                 && !(thing is Corpse);
+        }
+
+        private static bool IsRawFoodPreferability(ThingDef thingDef)
+        {
+            if (thingDef == null || thingDef.ingestible == null)
+            {
+                return false;
+            }
+
+            FoodPreferability preferability = thingDef.ingestible.preferability;
+            return preferability == FoodPreferability.RawBad
+                || preferability == FoodPreferability.RawTasty;
         }
 
         public static string FormatToner(int amount)
