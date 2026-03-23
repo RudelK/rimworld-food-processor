@@ -586,6 +586,13 @@ namespace FoodPrinterSystem
                 return false;
             }
 
+            if (!TonerPipeNetManager.TryDrawToner(printer, tonerCost))
+            {
+                ReleasePrinterReservation(printer, reservationPawn);
+                LogProcessingEvent("printer_start_failed", printer, reservationPawn, eaterPawn, mealDef, tonerCost, "toner_draw_failed", categorySelection);
+                return false;
+            }
+
             currentProcessingPawn = reservationPawn;
             processingMealDefName = mealDef.defName;
             processingTonerCost = tonerCost;
@@ -632,7 +639,7 @@ namespace FoodPrinterSystem
             ThingDef mealDef = ProcessingMealDef;
             int tonerCost = processingTonerCost;
             Thing meal = mealDef == null ? null : ThingMaker.MakeThing(mealDef);
-            if (meal == null || tonerCost <= 0 || !TonerNetworkUtility.TryConsumeToner(printer, tonerCost))
+            if (meal == null || tonerCost <= 0)
             {
                 ReleasePrinterReservation(printer, reservationPawn);
                 ClearProcessingState();
@@ -643,9 +650,7 @@ namespace FoodPrinterSystem
 
                 string failureReason = meal == null
                     ? "meal_creation_failed"
-                    : tonerCost <= 0
-                        ? "invalid_toner_cost"
-                        : "consume_toner_failed";
+                    : "invalid_toner_cost";
                 LogProcessingEvent("printer_complete_failed", printer, reservationPawn, eaterPawn, mealDef, tonerCost, failureReason);
                 return null;
             }
@@ -691,6 +696,12 @@ namespace FoodPrinterSystem
             if (!IsProcessing)
             {
                 return;
+            }
+
+            int tonerCost = processingTonerCost;
+            if (tonerCost > 0 && printer != null)
+            {
+                TonerPipeNetManager.TryAddToner(printer, tonerCost);
             }
 
             LogProcessingEvent("printer_processing_cancelled", printer, pawn, pawn, ProcessingMealDef, processingTonerCost, "cancelled");

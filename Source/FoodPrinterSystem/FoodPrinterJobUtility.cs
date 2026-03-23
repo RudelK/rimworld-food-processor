@@ -104,6 +104,17 @@ namespace FoodPrinterSystem
                 return false;
             }
 
+            if (!TonerPipeNetManager.HasConnectedTonerNet(printer))
+            {
+                return false;
+            }
+
+            int tonerCost = FoodPrinterSystemUtility.GetPrintCost(availableMealDef);
+            if (tonerCost <= 0 || !TonerPipeNetManager.CanDraw(printer, tonerCost))
+            {
+                return false;
+            }
+
             if (!IsPrinterFactionValid(printer, getter, eater))
             {
                 return false;
