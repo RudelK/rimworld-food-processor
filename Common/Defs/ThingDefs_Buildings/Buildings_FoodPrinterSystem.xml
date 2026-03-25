@@ -142,6 +142,7 @@
       <li Class="FoodPrinterSystem.CompProperties_TonerNode"/>
     </comps>
     <size>(2,2)</size>
+	<rotatable>false</rotatable>
     <costList>
       <Steel>110</Steel>
       <ComponentIndustrial>2</ComponentIndustrial>
@@ -168,6 +169,7 @@
       </buildingTags>
       <destroySound>BuildingDestroyed_Metal_Small</destroySound>
     </building>
+	<rotatable>false</rotatable>
     <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
     <designationCategory>FPS_FoodProcessingCategory</designationCategory>
     <constructEffect>ConstructMetal</constructEffect>
