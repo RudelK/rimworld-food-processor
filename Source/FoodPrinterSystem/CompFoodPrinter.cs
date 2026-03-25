@@ -110,7 +110,6 @@ namespace FoodPrinterSystem
         private List<string> legacyEnabledCategoryIds;
         private List<string> legacyAllowedMealDefNames;
         private string processingMealDefName;
-        private int processingTicksRemaining;
         private int processingTonerCost;
         private Pawn currentProcessingPawn;
         private string cachedManualMealDefName;
@@ -163,12 +162,7 @@ namespace FoodPrinterSystem
 
         public bool HasActiveProcessing
         {
-            get { return IsProcessing && processingTicksRemaining > 0; }
-        }
-
-        public bool HasCompletedProcessing
-        {
-            get { return IsProcessing && processingTicksRemaining <= 0; }
+            get { return IsProcessing; }
         }
 
         public bool IsPrinting
@@ -189,20 +183,7 @@ namespace FoodPrinterSystem
 
         public float ProcessingProgress
         {
-            get
-            {
-                if (!IsProcessing)
-                {
-                    return 0f;
-                }
-
-                if (HasCompletedProcessing)
-                {
-                    return 1f;
-                }
-
-                return 1f - processingTicksRemaining / (float)FoodPrinterSystemUtility.PrintingDelayTicks;
-            }
+            get { return 0f; }
         }
 
         public override void PostPostMake()
@@ -234,7 +215,8 @@ namespace FoodPrinterSystem
             Scribe_Values.Look(ref manualMealDefName, "manualMealDefName");
             Scribe_Collections.Look(ref disabledCategoryIds, "disabledCategoryIds", LookMode.Value);
             Scribe_Values.Look(ref processingMealDefName, "processingMealDefName");
-            Scribe_Values.Look(ref processingTicksRemaining, "processingTicksRemaining", 0);
+            int legacyProcessingTicks = 0;
+            Scribe_Values.Look(ref legacyProcessingTicks, "processingTicksRemaining", 0);
             Scribe_Values.Look(ref processingTonerCost, "processingTonerCost", 0);
             Scribe_References.Look(ref currentProcessingPawn, "currentProcessingPawn");
             if (Scribe.mode == LoadSaveMode.LoadingVars)
@@ -251,9 +233,17 @@ namespace FoodPrinterSystem
                 MigrateLegacyAllowedMeals();
                 EnsureManualMealSelection();
                 legacyAllowedMealDefNames = null;
-                if (processingTicksRemaining < 0)
+                if (IsProcessing)
                 {
-                    processingTicksRemaining = 0;
+                    ThingDef activeMeal = ProcessingMealDef;
+                    if (activeMeal == null || !IsMealResearched(activeMeal) || currentProcessingPawn == null || currentProcessingPawn.Destroyed)
+                    {
+                        if (processingTonerCost > 0 && parent != null && parent.Map != null)
+                        {
+                            TonerPipeNetManager.TryAddToner(parent, processingTonerCost);
+                        }
+                        ClearProcessingState();
+                    }
                 }
             }
         }
@@ -521,11 +511,6 @@ namespace FoodPrinterSystem
                 return null;
             }
 
-            if (HasCompletedProcessing)
-            {
-                return ProcessingMealDef;
-            }
-
             CategorySelectionContext resolvedSelection = categorySelection
                 ?? (eater == null ? ResolveCategorySelection(printer) : ResolveCategorySelection(printer, policy, eater));
             return eater == null
@@ -596,22 +581,10 @@ namespace FoodPrinterSystem
             currentProcessingPawn = reservationPawn;
             processingMealDefName = mealDef.defName;
             processingTonerCost = tonerCost;
-            processingTicksRemaining = FoodPrinterSystemUtility.PrintingDelayTicks;
             ClearPendingMealSelection();
             ApplyPowerSetting();
             LogProcessingEvent("printer_start_succeeded", printer, reservationPawn, eaterPawn, mealDef, tonerCost, "started", categorySelection);
             return true;
-        }
-
-        public void UpdateProcessingTicksRemaining(int ticksRemaining)
-        {
-            if (!IsProcessing)
-            {
-                return;
-            }
-
-            processingTicksRemaining = Mathf.Clamp(ticksRemaining, 0, FoodPrinterSystemUtility.PrintingDelayTicks);
-            ApplyPowerSetting();
         }
 
         public Thing CompleteProcessing(Building printer, Pawn pawn)
@@ -621,7 +594,7 @@ namespace FoodPrinterSystem
 
         public Thing CompleteProcessing(Building printer, Pawn reservationPawn, Pawn eaterPawn)
         {
-            if (!HasCompletedProcessing)
+            if (!IsPrinting)
             {
                 LogProcessingEvent("printer_complete_failed", printer, reservationPawn, eaterPawn, ProcessingMealDef, processingTonerCost, "processing_not_complete");
                 return null;
@@ -1641,7 +1614,6 @@ namespace FoodPrinterSystem
         private void ClearProcessingState()
         {
             processingMealDefName = null;
-            processingTicksRemaining = 0;
             processingTonerCost = 0;
             currentProcessingPawn = null;
             ClearPendingMealSelection();

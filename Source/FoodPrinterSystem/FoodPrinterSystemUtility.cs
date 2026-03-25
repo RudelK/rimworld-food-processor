@@ -15,7 +15,6 @@ namespace FoodPrinterSystem
     {
         public const float NutritionPerUnit = 0.05f;
         private const int TicksPerHour = 2500;
-        public const int PrintingDelayTicks = 250;
         private static readonly FoodPrinterSystemSettings DefaultSettings = new FoodPrinterSystemSettings();
 
         private static FoodPrinterSystemSettings CurrentSettings

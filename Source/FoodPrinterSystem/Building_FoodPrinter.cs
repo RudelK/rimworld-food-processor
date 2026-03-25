@@ -152,7 +152,7 @@ namespace FoodPrinterSystem
         public override Thing TryDispenseFood()
         {
             CompFoodPrinter comp = FoodPrinterComp;
-            if (comp == null || !comp.HasCompletedProcessing)
+            if (comp == null || !comp.IsPrinting)
             {
                 return null;
             }
