@@ -30,7 +30,7 @@ namespace FoodPrinterSystem.Examples
                 return;
             }
 
-            if (TonerNetworkUtility.TryConsumeToner(this, TonerCostPerCycle))
+            if (TonerPipeNetManager.TryDrawToner(this, TonerCostPerCycle))
             {
                 successfulCycles++;
             }
@@ -39,7 +39,7 @@ namespace FoodPrinterSystem.Examples
         public override string GetInspectString()
         {
             string text = base.GetInspectString();
-            TonerNetworkSummary summary = TonerNetworkUtility.GetSummary(this);
+            TonerNetworkSummary summary = TonerPipeNetManager.GetSummary(this);
             if (summary.HasNetwork)
             {
                 if (!text.NullOrEmpty())

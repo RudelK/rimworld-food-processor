@@ -31,25 +31,25 @@ namespace FoodPrinterSystem.Examples
                 return;
             }
 
-            if (!TonerNetworkUtility.TryAddToner(this, TonerAddedPerCycle))
+            if (!TonerPipeNetManager.TryAddToner(this, TonerAddedPerCycle))
             {
                 return;
             }
 
+            successfulCycles++;
+
             // Producers that care about downstream food-type logic should
             // contribute final ingestible ingredient defs here.
-            TonerNetworkUtility.DistributeIngredients(this, new List<ThingDef>
+            TonerPipeNetManager.DistributeIngredients(this, new List<ThingDef>
             {
                 ThingDefOf.RawPotatoes
             });
-
-            successfulCycles++;
         }
 
         public override string GetInspectString()
         {
             string text = base.GetInspectString();
-            TonerNetworkSummary summary = TonerNetworkUtility.GetSummary(this);
+            TonerNetworkSummary summary = TonerPipeNetManager.GetSummary(this);
             if (summary.HasNetwork)
             {
                 if (!text.NullOrEmpty())

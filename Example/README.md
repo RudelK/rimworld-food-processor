@@ -16,10 +16,10 @@ The current supported pattern in this codebase is:
 
 1. Add `FoodPrinterSystem.CompProperties_TonerNode` to your building def so the building joins the toner pipe network through `CompTonerNode : CompPipe`.
 2. Add `FoodSystemPipe.PlaceWorker_EmbeddedPipePreview` if the building should show pipe-aware ghost overlays and duplicate-pipe placement validation.
-3. Use `TonerNetworkUtility.GetSummary(...)` for inspect/status text.
-4. Use `TonerNetworkUtility.TryConsumeToner(...)` for consumers.
-5. Use `TonerNetworkUtility.TryAddToner(...)` for producers.
-6. Use `TonerNetworkUtility.DistributeIngredients(...)` when a producer should contribute ingredient provenance.
+3. Use `TonerPipeNetManager.GetSummary(...)` for inspect/status text.
+4. Use `TonerPipeNetManager.TryDrawToner(...)` for consumers.
+5. Use `TonerPipeNetManager.TryAddToner(...)` for producers.
+6. Use `TonerPipeNetManager.DistributeIngredients(...)` when a producer should contribute ingredient provenance.
 
 `Building_EmbeddedPipeMachine` exists in the source, but the shipped buildings currently use `CompProperties_TonerNode` directly. These examples intentionally teach that same pattern.
 
