@@ -202,7 +202,7 @@ namespace FoodPrinterSystem
             PrinterFoodCharacteristics characteristics = new PrinterFoodCharacteristics(
                 predictedFoodTypes,
                 predictedIngredientDefs,
-                DetermineFoodKind(hasMeat, hasNonMeat),
+                FoodPrinterSystemUtility.DetermineFoodKind(hasMeat, hasNonMeat),
                 containsVegetarianForbiddenIngredients,
                 containsHumanMeatIngredient);
             CachedCharacteristicsByPrinterId[printer.thingIDNumber] = new CachedPrinterFoodCharacteristics
@@ -313,17 +313,6 @@ namespace FoodPrinterSystem
             return IsPrinterAllowedForPawn(policy, pawn, printer);
         }
 
-        public static bool CanPawnConsumePrinterMeal(Pawn pawn, Building_FoodPrinter printer)
-        {
-            PawnPrinterFoodPolicy policy = ResolvePawnFoodPolicy(pawn);
-            return IsPrinterAllowedForPawn(policy, pawn, printer);
-        }
-
-        public static bool CanPawnUsePrinter(Pawn pawn, Building_FoodPrinter printer)
-        {
-            return IsPrinterAllowedForPawn(pawn, printer);
-        }
-
         public static float GetPrinterPreferenceScore(Pawn pawn, Building_FoodPrinter printer)
         {
             PawnPrinterFoodPolicy policy = ResolvePawnFoodPolicy(pawn);
@@ -375,11 +364,6 @@ namespace FoodPrinterSystem
             bool hasConsumableMeal = printerComp.HasConsumableMealForPawn(printer, policy, pawn);
             LogPrinterAllowance(pawn, printer, policy, hasConsumableMeal, hasConsumableMeal ? "consumable_meal_available" : "printer_has_no_valid_meal");
             return hasConsumableMeal;
-        }
-
-        public static bool CanPawnConsumePrinterMeal(PawnPrinterFoodPolicy policy, Pawn pawn, Building_FoodPrinter printer)
-        {
-            return IsPrinterAllowedForPawn(policy, pawn, printer);
         }
 
         public static bool IsMealAllowedForPawn(Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef)
@@ -700,7 +684,23 @@ namespace FoodPrinterSystem
             }
 
             string uniqueId = policy.GetUniqueLoadID();
-            return uniqueId.NullOrEmpty() ? policy.label.GetHashCode() : uniqueId.GetHashCode();
+            if (!uniqueId.NullOrEmpty())
+            {
+                return StableStringHash(uniqueId);
+            }
+
+            return policy.label.NullOrEmpty() ? 0 : StableStringHash(policy.label);
+        }
+
+        private static int StableStringHash(string s)
+        {
+            int hash = 23;
+            for (int i = 0; i < s.Length; i++)
+            {
+                hash = hash * 31 + s[i];
+            }
+
+            return hash;
         }
 
         internal static int GetPolicyStateHash(PawnPrinterFoodPolicy policy)
@@ -890,26 +890,6 @@ namespace FoodPrinterSystem
             return previewMeal;
         }
 
-        private static FoodKind DetermineFoodKind(bool hasMeat, bool hasNonMeat)
-        {
-            if (hasMeat && hasNonMeat)
-            {
-                return FoodKind.Any;
-            }
-
-            if (hasMeat)
-            {
-                return FoodKind.Meat;
-            }
-
-            if (hasNonMeat)
-            {
-                return FoodKind.NonMeat;
-            }
-
-            return FoodKind.Any;
-        }
-
         private static bool PawnHasCannibalTrait(Pawn pawn)
         {
             if (pawn == null || pawn.story == null || pawn.story.traits == null)
@@ -978,7 +958,6 @@ namespace FoodPrinterSystem
                 return;
             }
 
-            PrinterFoodCharacteristics characteristics = printer == null ? null : GetPredictedFoodCharacteristics(printer);
             FoodPolicy currentPolicy = pawn == null || pawn.foodRestriction == null ? null : pawn.foodRestriction.CurrentFoodPolicy;
             Log.Message("[FPS] Printer meal allow check for " + GetPawnDebugLabel(pawn)
                 + " -> " + GetPrinterDebugLabel(printer)
@@ -991,7 +970,7 @@ namespace FoodPrinterSystem
                 + ", foodPolicy=" + GetFoodPolicyDebugLabel(currentPolicy)
                 + ", policy=" + (policy == null ? "null" : policy.ToDebugString())
                 + ", hardCheckFoodType=" + IsHardFoodTypeCheckEnabled()
-                + ", foodTypes=" + (characteristics == null ? FoodTypeFlags.None.ToString() : characteristics.PredictedFoodTypes.ToString()));
+                + ", foodTypes=" + (printer == null ? FoodTypeFlags.None.ToString() : GetPredictedFoodCharacteristics(printer).PredictedFoodTypes.ToString()));
         }
 
         private static void LogMealPreviewEvaluation(Pawn pawn, Building_FoodPrinter printer, ThingDef mealDef, Thing previewMeal, PrinterFoodCharacteristics characteristics, bool? allowed, string stage)

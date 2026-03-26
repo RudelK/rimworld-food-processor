@@ -14,6 +14,7 @@ namespace FoodPrinterSystem
     {
         private static readonly AccessTools.FieldRef<Designator_Place, Rot4> DesignatorPlacePlacingRot = AccessTools.FieldRefAccess<Designator_Place, Rot4>("placingRot");
         private const int PrinterOnlyFallbackBlockDurationTicks = 150;
+        private const int FallbackCachePruneIntervalTicks = 600;
 
         private sealed class PrinterOnlyFallbackBlockState
         {
@@ -22,6 +23,7 @@ namespace FoodPrinterSystem
         }
 
         private static readonly Dictionary<int, PrinterOnlyFallbackBlockState> PrinterOnlyFallbackBlockByPawnId = new Dictionary<int, PrinterOnlyFallbackBlockState>();
+        private static int lastFallbackCachePruneTick;
         private static bool bestFoodSourceOnMap;
         private static Pawn currentFoodGetter;
         private static Pawn currentFoodEater;
@@ -238,7 +240,7 @@ namespace FoodPrinterSystem
                     }
 
                     PawnPrinterFoodPolicy eaterPolicy = FoodPrinterPawnUtility.ResolvePawnFoodPolicy(eaterPawn);
-                    if (!FoodPrinterPawnUtility.CanPawnConsumePrinterMeal(eaterPolicy, eaterPawn, currentPrinter))
+                    if (!FoodPrinterPawnUtility.IsPrinterAllowedForPawn(eaterPolicy, eaterPawn, currentPrinter))
                     {
                         LogPrinterJobEvent("printer_toil_init_failed", actor, eaterPawn, currentPrinter, "policy_blocked");
                         if (!TrySwitchToAlternativePrinter(actor, printerInd, currentPrinter))
@@ -510,9 +512,16 @@ namespace FoodPrinterSystem
                 return;
             }
 
+            int currentTick = GetCurrentTick();
+            if (currentTick - lastFallbackCachePruneTick >= FallbackCachePruneIntervalTicks)
+            {
+                PrunePrinterOnlyFallbackBlocks();
+                lastFallbackCachePruneTick = currentTick;
+            }
+
             PrinterOnlyFallbackBlockByPawnId[pawn.thingIDNumber] = new PrinterOnlyFallbackBlockState
             {
-                ExpiresAtTick = GetCurrentTick() + PrinterOnlyFallbackBlockDurationTicks,
+                ExpiresAtTick = currentTick + PrinterOnlyFallbackBlockDurationTicks,
                 SourcePrinterId = printer == null ? -1 : printer.thingIDNumber
             };
             LogPrinterOnlyFallbackArmed(pawn, printer, reason);
@@ -528,6 +537,31 @@ namespace FoodPrinterSystem
             if (PrinterOnlyFallbackBlockByPawnId.Remove(pawn.thingIDNumber))
             {
                 LogPrinterOnlyFallbackCleared(pawn, printer, reason);
+            }
+        }
+
+        private static void PrunePrinterOnlyFallbackBlocks()
+        {
+            int currentTick = GetCurrentTick();
+            List<int> keysToRemove = null;
+            foreach (KeyValuePair<int, PrinterOnlyFallbackBlockState> pair in PrinterOnlyFallbackBlockByPawnId)
+            {
+                if (pair.Value == null || pair.Value.ExpiresAtTick <= currentTick)
+                {
+                    if (keysToRemove == null)
+                    {
+                        keysToRemove = new List<int>();
+                    }
+                    keysToRemove.Add(pair.Key);
+                }
+            }
+
+            if (keysToRemove != null)
+            {
+                for (int i = 0; i < keysToRemove.Count; i++)
+                {
+                    PrinterOnlyFallbackBlockByPawnId.Remove(keysToRemove[i]);
+                }
             }
         }
 

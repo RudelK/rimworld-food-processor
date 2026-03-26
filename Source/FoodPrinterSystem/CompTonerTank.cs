@@ -275,7 +275,7 @@ namespace FoodPrinterSystem
                 + "\n"
                 + "FPS_TonerCapacity".Translate(FoodPrinterSystemUtility.FormatToner(Capacity));
 
-            TonerNetworkSummary summary = TonerNetworkUtility.GetSummary(parent);
+            TonerNetworkSummary summary = TonerPipeNetManager.GetSummary(parent);
             if (summary.HasNetwork)
             {
                 text += "\n" + FoodPrinterSystemUtility.FormatSummary(summary);
@@ -369,7 +369,7 @@ namespace FoodPrinterSystem
             // without forcing a full pipe topology rebuild.
             if (parent != null && parent.MapHeld != null)
             {
-                TonerNetworkUtility.NotifyIngredientStateChanged(parent.MapHeld);
+                TonerPipeNetManager.NotifyIngredientStateChanged(parent.MapHeld);
             }
         }
 
@@ -401,7 +401,7 @@ namespace FoodPrinterSystem
 
             if (notifyStorageRevision)
             {
-                TonerNetworkUtility.NotifyStorageStateChanged(parent.MapHeld);
+                TonerPipeNetManager.NotifyStorageStateChanged(parent.MapHeld);
             }
             MarkTankMeshDirty();
         }
@@ -446,29 +446,9 @@ namespace FoodPrinterSystem
             }
 
             cachedIngredientFoodTypes = foodTypes;
-            cachedIngredientFoodKind = DetermineFoodKind(hasMeat, hasNonMeat);
+            cachedIngredientFoodKind = FoodPrinterSystemUtility.DetermineFoodKind(hasMeat, hasNonMeat);
             cachedContainsHumanMeatIngredient = containsHumanMeat;
             cachedContainsVegetarianForbiddenIngredient = containsVegetarianForbidden;
-        }
-
-        private static FoodKind DetermineFoodKind(bool hasMeat, bool hasNonMeat)
-        {
-            if (hasMeat && hasNonMeat)
-            {
-                return FoodKind.Any;
-            }
-
-            if (hasMeat)
-            {
-                return FoodKind.Meat;
-            }
-
-            if (hasNonMeat)
-            {
-                return FoodKind.NonMeat;
-            }
-
-            return FoodKind.Any;
         }
 
         private void PrintTankFillOverlay(SectionLayer layer)

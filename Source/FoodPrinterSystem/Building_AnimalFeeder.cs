@@ -63,7 +63,7 @@ namespace FoodPrinterSystem
             int batchSize = Mathf.Min(remainingCapacity, FixedBatchSize);
             int tonerCostPerKibble = FoodPrinterSystemUtility.GetPrintCost(ThingDefOf.Kibble);
             int tonerCost = tonerCostPerKibble * batchSize;
-            if (tonerCost <= 0 || !TonerNetworkUtility.TryConsumeToner(this, tonerCost))
+            if (tonerCost <= 0 || !TonerPipeNetManager.TryDrawToner(this, tonerCost))
             {
                 return;
             }
@@ -73,7 +73,7 @@ namespace FoodPrinterSystem
 
             if (!TryStoreKibble(kibble))
             {
-                TonerNetworkUtility.TryAddToner(this, tonerCost);
+                TonerPipeNetManager.TryAddToner(this, tonerCost);
                 if (!kibble.Destroyed)
                 {
                     kibble.Destroy(DestroyMode.Vanish);
@@ -81,13 +81,16 @@ namespace FoodPrinterSystem
 
                 cachedStoredKibble = -1;
             }
-            else if (cachedStoredKibble >= 0)
+            else
             {
-                cachedStoredKibble += batchSize;
-            }
+                if (cachedStoredKibble >= 0)
+                {
+                    cachedStoredKibble += batchSize;
+                }
 
-            activeTicksRemaining = GenTicks.TickRareInterval;
-            ApplyPowerSetting();
+                activeTicksRemaining = GenTicks.TickRareInterval;
+                ApplyPowerSetting();
+            }
         }
 
         public void ApplyPowerSetting()
@@ -108,7 +111,7 @@ namespace FoodPrinterSystem
         public override string GetInspectString()
         {
             string text = base.GetInspectString();
-            TonerNetworkSummary summary = TonerNetworkUtility.GetSummary(this);
+            TonerNetworkSummary summary = TonerPipeNetManager.GetSummary(this);
             if (!text.NullOrEmpty())
             {
                 text += "\n";

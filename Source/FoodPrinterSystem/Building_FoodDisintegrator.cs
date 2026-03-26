@@ -48,7 +48,7 @@ namespace FoodPrinterSystem
             }
 
             int tonerValue = FoodPrinterSystemUtility.GetStoredTonerValue(food);
-            if (tonerValue <= 0 || !TonerNetworkUtility.TryAddToner(this, tonerValue))
+            if (tonerValue <= 0 || !TonerPipeNetManager.TryAddToner(this, tonerValue))
             {
                 return;
             }
@@ -56,7 +56,7 @@ namespace FoodPrinterSystem
             ConsumeOne(food);
 
             List<ThingDef> ingredients = ExtractIngredientProvenanceDefs(food);
-            TonerNetworkUtility.DistributeIngredients(this, ingredients);
+            TonerPipeNetManager.DistributeIngredients(this, ingredients);
             activeTicksRemaining = GenTicks.TickRareInterval;
             ApplyPowerSetting();
         }
@@ -69,7 +69,7 @@ namespace FoodPrinterSystem
         public override string GetInspectString()
         {
             string text = base.GetInspectString();
-            TonerNetworkSummary summary = TonerNetworkUtility.GetSummary(this);
+            TonerNetworkSummary summary = TonerPipeNetManager.GetSummary(this);
             if (summary.Capacity <= 0)
             {
                 if (!text.NullOrEmpty())

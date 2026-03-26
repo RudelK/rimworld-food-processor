@@ -160,11 +160,6 @@ namespace FoodPrinterSystem
             return comp.CompleteProcessing(this, comp.CurrentProcessingPawn);
         }
 
-        public bool CanPawnPrint(Pawn eater)
-        {
-            return FoodPrinterPawnUtility.IsPrinterAllowedForPawn(eater, this);
-        }
-
         internal void NotifyMaskStateChanged()
         {
             MarkGraphicDirty();

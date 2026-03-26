@@ -601,7 +601,7 @@ namespace FoodPrinterSystem
             }
 
             Building_FoodPrinter foodPrinter = printer as Building_FoodPrinter;
-            if (foodPrinter != null && eaterPawn != null && !FoodPrinterPawnUtility.CanPawnConsumePrinterMeal(eaterPawn, foodPrinter))
+            if (foodPrinter != null && eaterPawn != null && !FoodPrinterPawnUtility.IsPrinterAllowedForPawn(eaterPawn, foodPrinter))
             {
                 ReleasePrinterReservation(printer, reservationPawn);
                 ClearProcessingState();
@@ -632,7 +632,7 @@ namespace FoodPrinterSystem
             {
                 System.Collections.Generic.List<ThingDef> ingredients = foodPrinter != null
                     ? FoodPrinterPawnUtility.GetPredictedFoodCharacteristics(foodPrinter).PredictedIngredientDefs
-                    : TonerNetworkUtility.GetAllIngredients(printer);
+                    : TonerPipeNetManager.GetAllIngredients(printer);
                 if (ingredients != null && ingredients.Count > 0)
                 {
                     CompIngredients compIng = meal.TryGetComp<CompIngredients>();
@@ -1109,7 +1109,7 @@ namespace FoodPrinterSystem
             }
 
             List<ThingDef> meals = GetConfiguredMealsForCategory(category);
-            TonerNetworkSummary summary = TonerNetworkUtility.GetSummary(printer);
+            TonerNetworkSummary summary = TonerPipeNetManager.GetSummary(printer);
             List<ThingDef> affordable = new List<ThingDef>(meals.Count);
             for (int i = 0; i < meals.Count; i++)
             {

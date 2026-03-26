@@ -246,5 +246,25 @@ namespace FoodPrinterSystem
         {
             return map == null ? null : map.GetComponent<MapComponent_TonerNetwork>();
         }
+
+        public static FoodKind DetermineFoodKind(bool hasMeat, bool hasNonMeat)
+        {
+            if (hasMeat && hasNonMeat)
+            {
+                return FoodKind.Any;
+            }
+
+            if (hasMeat)
+            {
+                return FoodKind.Meat;
+            }
+
+            if (hasNonMeat)
+            {
+                return FoodKind.NonMeat;
+            }
+
+            return FoodKind.Any;
+        }
     }
 }

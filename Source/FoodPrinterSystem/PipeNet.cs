@@ -451,7 +451,7 @@ namespace FoodPrinterSystem
 
             if (storageChanged)
             {
-                TonerNetworkUtility.NotifyStorageStateChanged(map);
+                TonerPipeNetManager.NotifyStorageStateChanged(map);
             }
 
             if (dirtyCells == null || map.mapDrawer == null)

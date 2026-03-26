@@ -94,47 +94,4 @@ namespace FoodPrinterSystem
             return revision == int.MaxValue ? 1 : revision + 1;
         }
     }
-
-    public static class TonerNetworkUtility
-    {
-        public static TonerNetworkSummary GetSummary(Thing node)
-        {
-            return TonerPipeNetManager.GetSummary(node);
-        }
-
-        public static bool TryAddToner(Thing node, int amount)
-        {
-            return TonerPipeNetManager.TryAddToner(node, amount);
-        }
-
-        public static bool TryConsumeToner(Thing node, int amount)
-        {
-            return TonerPipeNetManager.TryDrawToner(node, amount);
-        }
-
-        public static void DistributeIngredients(Thing node, System.Collections.Generic.List<ThingDef> ingredients)
-        {
-            TonerPipeNetManager.DistributeIngredients(node, ingredients);
-        }
-
-        public static System.Collections.Generic.List<ThingDef> GetAllIngredients(Thing node)
-        {
-            return TonerPipeNetManager.GetAllIngredients(node);
-        }
-
-        public static void NotifyIngredientStateChanged(Map map)
-        {
-            TonerPipeNetManager.NotifyIngredientStateChanged(map);
-        }
-
-        public static void NotifyStorageStateChanged(Map map)
-        {
-            TonerPipeNetManager.NotifyStorageStateChanged(map);
-        }
-
-        public static void NotifyContentsChanged(Map map)
-        {
-            TonerPipeNetManager.NotifyContentsChanged(map);
-        }
-    }
 }

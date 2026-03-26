@@ -10,7 +10,6 @@ namespace FoodPrinterSystem
         private readonly List<CompPipe> registeredPipes = new List<CompPipe>();
         private readonly List<CompPipeUser> registeredUsers = new List<CompPipeUser>();
         private readonly List<PipeNet> pipeNets = new List<PipeNet>();
-        private readonly object syncRoot = new object();
 
         protected CompPipe[] pipeGrid;
         private bool dirty = true;
@@ -25,11 +24,8 @@ namespace FoodPrinterSystem
         {
             get
             {
-                lock (syncRoot)
-                {
-                    EnsureBuiltLocked();
-                    return networkRevision;
-                }
+                EnsureBuilt();
+                return networkRevision;
             }
         }
 
@@ -54,40 +50,28 @@ namespace FoodPrinterSystem
         public override void MapComponentTick()
         {
             base.MapComponentTick();
-            lock (syncRoot)
+            EnsureBuilt();
+            for (int i = 0; i < pipeNets.Count; i++)
             {
-                EnsureBuiltLocked();
-                for (int i = 0; i < pipeNets.Count; i++)
-                {
-                    pipeNets[i].NetTick();
-                }
+                pipeNets[i].NetTick();
             }
         }
 
         public PipeNet GetNetAt(IntVec3 pos)
         {
-            lock (syncRoot)
-            {
-                EnsureBuiltLocked();
-                return GetPipeAtLocked(pos)?.PipeNet;
-            }
+            EnsureBuilt();
+            return GetPipeAt(pos)?.PipeNet;
         }
 
         public PipeNet GetNetForThing(Thing thing)
         {
-            lock (syncRoot)
-            {
-                return GetNetForThingLocked(thing);
-            }
+            return GetNetForThingInternal(thing);
         }
 
         public CompPipe GetPipeAt(IntVec3 pos)
         {
-            lock (syncRoot)
-            {
-                EnsureBuiltLocked();
-                return GetPipeAtLocked(pos);
-            }
+            EnsureBuilt();
+            return GetPipeAtInternal(pos);
         }
 
         public void Notify_PipeSpawned(CompPipe pipe)
@@ -97,11 +81,8 @@ namespace FoodPrinterSystem
                 return;
             }
 
-            lock (syncRoot)
-            {
-                RegisterPipeLocked(pipe);
-                dirty = true;
-            }
+            RegisterPipe(pipe);
+            dirty = true;
         }
 
         public void Notify_PipeDespawned(CompPipe pipe)
@@ -111,80 +92,59 @@ namespace FoodPrinterSystem
                 return;
             }
 
-            lock (syncRoot)
-            {
-                UnregisterPipeLocked(pipe);
-                pipe.PipeNet = null;
-                dirty = true;
-            }
+            UnregisterPipe(pipe);
+            pipe.PipeNet = null;
+            dirty = true;
         }
 
         public void MarkDirty()
         {
-            lock (syncRoot)
-            {
-                dirty = true;
-            }
+            dirty = true;
         }
 
         public bool HasConnectedNet(Thing node)
         {
-            lock (syncRoot)
-            {
-                return GetNetForThingLocked(node) != null;
-            }
+            return GetNetForThingInternal(node) != null;
         }
 
         public TonerPipeNet GetConnectedTonerNet(Thing node)
         {
-            lock (syncRoot)
-            {
-                return GetNetForThingLocked(node) == null ? null : new TonerPipeNet((MapComponent_TonerNetwork)this, node);
-            }
+            return GetNetForThingInternal(node) == null ? null : new TonerPipeNet((MapComponent_TonerNetwork)this, node);
         }
 
         public TonerNetworkSummary GetSummary(Thing node)
         {
-            lock (syncRoot)
-            {
-                PipeNet net = GetNetForThingLocked(node);
-                return net == null ? default(TonerNetworkSummary) : net.GetSummary();
-            }
+            PipeNet net = GetNetForThingInternal(node);
+            return net == null ? default(TonerNetworkSummary) : net.GetSummary();
         }
 
         public bool HasConnectedStorage(Thing node)
         {
-            lock (syncRoot)
-            {
-                PipeNet net = GetNetForThingLocked(node);
-                return net != null && net.HasConnectedStorage;
-            }
+            PipeNet net = GetNetForThingInternal(node);
+            return net != null && net.HasConnectedStorage;
         }
 
         public List<Thing> GetConnectedNodes(Thing node)
         {
-            lock (syncRoot)
+            PipeNet net = GetNetForThingInternal(node);
+            List<Thing> result = new List<Thing>();
+            if (net == null)
             {
-                PipeNet net = GetNetForThingLocked(node);
-                List<Thing> result = new List<Thing>();
-                if (net == null)
-                {
-                    return result;
-                }
-
-                HashSet<int> seenThings = new HashSet<int>();
-                List<CompPipe> pipes = net.Pipes;
-                for (int i = 0; i < pipes.Count; i++)
-                {
-                    CompPipe pipe = pipes[i];
-                    if (pipe != null && pipe.parent != null && seenThings.Add(pipe.parent.thingIDNumber))
-                    {
-                        result.Add(pipe.parent);
-                    }
-                }
-
                 return result;
             }
+
+            HashSet<int> seenThings = new HashSet<int>();
+            List<CompPipe> pipes = net.Pipes;
+            for (int i = 0; i < pipes.Count; i++)
+            {
+                CompPipe pipe = pipes[i];
+                if (pipe != null && pipe.parent != null && seenThings.Add(pipe.parent.thingIDNumber))
+                {
+                    result.Add(pipe.parent);
+                }
+            }
+
+            return result;
         }
 
         public bool CanDraw(Thing node, int amount)
@@ -194,11 +154,8 @@ namespace FoodPrinterSystem
 
         public bool CanDraw(Thing node, float amount)
         {
-            lock (syncRoot)
-            {
-                PipeNet net = GetNetForThingLocked(node);
-                return net != null && net.CanDraw(amount);
-            }
+            PipeNet net = GetNetForThingInternal(node);
+            return net != null && net.CanDraw(amount);
         }
 
         public bool Draw(Thing node, int amount)
@@ -218,17 +175,14 @@ namespace FoodPrinterSystem
 
         public bool TryDrawToner(Thing node, float amount)
         {
-            lock (syncRoot)
+            PipeNet net = GetNetForThingInternal(node);
+            bool success = net != null && net.TryDraw(amount);
+            if (success)
             {
-                PipeNet net = GetNetForThingLocked(node);
-                bool success = net != null && net.TryDraw(amount);
-                if (success)
-                {
-                    NotifyStorageStateChangedLocked();
-                }
-
-                return success;
+                NotifyStorageStateChangedInternal();
             }
+
+            return success;
         }
 
         public bool TryAddToner(Thing node, int amount)
@@ -238,27 +192,24 @@ namespace FoodPrinterSystem
 
         public bool TryAddToner(Thing node, float amount)
         {
-            lock (syncRoot)
+            PipeNet net = GetNetForThingInternal(node);
+            bool success = net != null && net.TryAdd(amount);
+            if (success)
             {
-                PipeNet net = GetNetForThingLocked(node);
-                bool success = net != null && net.TryAdd(amount);
-                if (success)
-                {
-                    NotifyStorageStateChangedLocked();
-                }
-
-                return success;
+                NotifyStorageStateChangedInternal();
             }
+
+            return success;
         }
 
-        private PipeNet GetNetForThingLocked(Thing thing)
+        private PipeNet GetNetForThingInternal(Thing thing)
         {
             if (thing == null || !thing.Spawned || thing.Map != map)
             {
                 return null;
             }
 
-            EnsureBuiltLocked();
+            EnsureBuilt();
 
             CompPipe directPipe = thing.TryGetComp<CompPipe>();
             if (directPipe != null)
@@ -269,7 +220,7 @@ namespace FoodPrinterSystem
             CellRect occupiedRect = GenAdj.OccupiedRect(thing.Position, thing.Rotation, thing.def.size);
             foreach (IntVec3 cell in occupiedRect)
             {
-                CompPipe pipe = GetPipeAtLocked(cell);
+                CompPipe pipe = GetPipeAtInternal(cell);
                 if (pipe != null)
                 {
                     return pipe.PipeNet;
@@ -279,18 +230,18 @@ namespace FoodPrinterSystem
             return null;
         }
 
-        private void EnsureBuiltLocked()
+        private void EnsureBuilt()
         {
             if (!dirty)
             {
                 return;
             }
 
-            RebuildNetsLocked();
+            RebuildNets();
             dirty = false;
         }
 
-        private void RebuildNetsLocked()
+        private void RebuildNets()
         {
             EnsureGrid();
             Array.Clear(pipeGrid, 0, pipeGrid.Length);
@@ -361,7 +312,7 @@ namespace FoodPrinterSystem
                     net.AddPipe(current);
 
                     HashSet<int> yielded = new HashSet<int>();
-                    foreach (CompPipe neighbor in EnumerateNeighborPipesLocked(current, yielded))
+                    foreach (CompPipe neighbor in EnumerateNeighborPipes(current, yielded))
                     {
                         if (neighbor != null && visited.Add(neighbor.parent.thingIDNumber))
                         {
@@ -381,17 +332,17 @@ namespace FoodPrinterSystem
                     continue;
                 }
 
-                PipeNet net = FindNetForUserLocked(user);
+                PipeNet net = FindNetForUser(user);
                 if (net != null)
                 {
                     net.AddUser(user);
                 }
             }
 
-            BumpNetworkRevisionLocked();
+            BumpNetworkRevision();
         }
 
-        private IEnumerable<CompPipe> EnumerateNeighborPipesLocked(CompPipe pipe, HashSet<int> yielded)
+        private IEnumerable<CompPipe> EnumerateNeighborPipes(CompPipe pipe, HashSet<int> yielded)
         {
             foreach (IntVec3 cell in pipe.NetworkCells)
             {
@@ -418,7 +369,7 @@ namespace FoodPrinterSystem
                         continue;
                     }
 
-                    CompPipe neighbor = GetPipeAtLocked(adjacent);
+                    CompPipe neighbor = GetPipeAtInternal(adjacent);
                     if (neighbor != null && neighbor != pipe && yielded.Add(neighbor.parent.thingIDNumber))
                     {
                         yield return neighbor;
@@ -427,7 +378,7 @@ namespace FoodPrinterSystem
             }
         }
 
-        private PipeNet FindNetForUserLocked(CompPipeUser user)
+        private PipeNet FindNetForUser(CompPipeUser user)
         {
             foreach (IntVec3 cell in user.NetworkCells)
             {
@@ -436,7 +387,7 @@ namespace FoodPrinterSystem
                     continue;
                 }
 
-                CompPipe pipe = GetPipeAtLocked(cell);
+                CompPipe pipe = GetPipeAtInternal(cell);
                 if (pipe != null && pipe.PipeNet != null)
                 {
                     return pipe.PipeNet;
@@ -446,7 +397,7 @@ namespace FoodPrinterSystem
             return null;
         }
 
-        private CompPipe GetPipeAtLocked(IntVec3 pos)
+        private CompPipe GetPipeAtInternal(IntVec3 pos)
         {
             if (pipeGrid == null || !pos.InBounds(map))
             {
@@ -464,7 +415,7 @@ namespace FoodPrinterSystem
             }
         }
 
-        private void RegisterPipeLocked(CompPipe pipe)
+        private void RegisterPipe(CompPipe pipe)
         {
             if (!registeredPipes.Contains(pipe))
             {
@@ -478,7 +429,7 @@ namespace FoodPrinterSystem
             }
         }
 
-        private void UnregisterPipeLocked(CompPipe pipe)
+        private void UnregisterPipe(CompPipe pipe)
         {
             registeredPipes.Remove(pipe);
 
@@ -499,7 +450,7 @@ namespace FoodPrinterSystem
             return user != null && user.parent != null && user.parent.Spawned && user.parent.Map == map;
         }
 
-        private void BumpNetworkRevisionLocked()
+        private void BumpNetworkRevision()
         {
             if (networkRevision == int.MaxValue)
             {
@@ -528,7 +479,7 @@ namespace FoodPrinterSystem
             return current;
         }
 
-        private void NotifyStorageStateChangedLocked()
+        private void NotifyStorageStateChangedInternal()
         {
             MapComponent_TonerNetwork tonerNetwork = this as MapComponent_TonerNetwork;
             if (tonerNetwork != null)

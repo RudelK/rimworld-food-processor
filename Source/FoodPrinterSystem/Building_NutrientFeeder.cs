@@ -90,15 +90,10 @@ namespace FoodPrinterSystem
         {
             if (pawn.needs.food.CurLevelPercentage > 0.3f) return;
 
-            // Consume toner cost defined in settings (default 3.0)
-            float tonerCost = FoodPrinterSystemMod.Settings.nutrientFeederTonerCost;
-            
-            // 0.9 nutrition is equivalent to one Nutrient Paste meal
-            float nutritionToFeed = 0.9f;
-
-            if (TonerNetworkUtility.TryConsumeToner(this, (int)tonerCost))
+            if (TonerPipeNetManager.TryDrawToner(this, FoodPrinterSystemUtility.NormalizeTonerAmount(FoodPrinterSystemMod.Settings.nutrientFeederTonerCost)))
             {
-                pawn.needs.food.CurLevel = Mathf.Min(pawn.needs.food.MaxLevel, pawn.needs.food.CurLevel + nutritionToFeed);
+                // 0.9 nutrition is equivalent to one Nutrient Paste meal
+                pawn.needs.food.CurLevel = Mathf.Min(pawn.needs.food.MaxLevel, pawn.needs.food.CurLevel + 0.9f);
                 activeTicksRemaining = GenTicks.TickRareInterval;
                 ApplyPowerSetting();
             }
@@ -188,7 +183,7 @@ namespace FoodPrinterSystem
                 text += "FPS_NoLinkedBed".Translate() + "\n";
             }
 
-            TonerNetworkSummary summary = TonerNetworkUtility.GetSummary(this);
+            TonerNetworkSummary summary = TonerPipeNetManager.GetSummary(this);
             text += FoodPrinterSystemUtility.FormatSummary(summary);
 
             return text.TrimEndNewlines();

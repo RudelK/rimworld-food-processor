@@ -177,11 +177,6 @@ namespace FoodPrinterSystem
             InvalidateAlertCache();
         }
 
-        public static void NotifyPrinterRegistryChanged()
-        {
-            NotifyConsumerRegistryChanged();
-        }
-
         [HarmonyPatch(typeof(ResourceCounter), "get_TotalHumanEdibleNutrition")]
         public static class Patch_ResourceCounter_TotalHumanEdibleNutrition
         {
