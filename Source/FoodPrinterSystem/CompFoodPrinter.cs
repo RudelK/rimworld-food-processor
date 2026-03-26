@@ -1305,7 +1305,14 @@ namespace FoodPrinterSystem
                 && mealDef.IsNutritionGivingIngestible
                 && FoodPrinterSystemUtility.GetPrintCost(mealDef) > 0
                 && mealDef.ingestible != null
+                && !IsExcludedPrinterMeal(mealDef)
                 && (mealDef.defName == "MealNutrientPaste" || (IsPrinterMealFoodType(mealDef) && IsPrintableMealItem(mealDef)));
+        }
+
+        private static bool IsExcludedPrinterMeal(ThingDef mealDef)
+        {
+            return mealDef != null
+                && string.Equals(mealDef.defName, "MealSurvivalPack", StringComparison.Ordinal);
         }
 
         private static bool IsPrinterMealFoodType(ThingDef mealDef)
