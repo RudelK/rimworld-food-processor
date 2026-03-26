@@ -22,7 +22,11 @@ namespace FoodPrinterSystem
     public class CompFoodPrinter : ThingComp
     {
         private static readonly Dictionary<FoodPreferability, List<ThingDef>> DiscoveredMealsByCategory = new Dictionary<FoodPreferability, List<ThingDef>>();
+        private static readonly List<ThingDef> ExternalModMeals = new List<ThingDef>();
+        private static readonly HashSet<string> ExternalModMealDefNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private static readonly HashSet<string> PrinterDefaultMealDefNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private static bool discoveredMealsInitialized;
+        private static bool printerDefaultMealsInitialized;
 
         private sealed class CachedAffordableMeals
         {
@@ -721,6 +725,13 @@ namespace FoodPrinterSystem
             }
         }
 
+        public void NotifySettingsChanged()
+        {
+            InvalidateMealCaches();
+            EnsureManualMealSelection();
+            ApplyPowerSetting();
+        }
+
         private static bool IsResearchFinished(ResearchProjectDef research)
         {
             return research != null && research.IsFinished;
@@ -1079,7 +1090,10 @@ namespace FoodPrinterSystem
             for (int i = 0; i < discoveredMeals.Count; i++)
             {
                 ThingDef discoveredMeal = discoveredMeals[i];
-                if (IsValidMealDef(discoveredMeal) && GetCategoryForMealDef(discoveredMeal) == category)
+                if (IsValidMealDef(discoveredMeal)
+                    && GetCategoryForMealDef(discoveredMeal) == category
+                    && ShouldIncludeExternalModMealsInConfiguredList()
+                    && IsExternalModMealEnabledInSettings(discoveredMeal))
                 {
                     AddMealIfMissing(meals, discoveredMeal);
                 }
@@ -1320,6 +1334,88 @@ namespace FoodPrinterSystem
             return false;
         }
 
+        public static List<ThingDef> GetExternalModMealsForSettings()
+        {
+            EnsureDiscoveredMealsInitialized();
+            return ExternalModMeals;
+        }
+
+        public static HashSet<string> GetAvailableExternalModMealDefNames()
+        {
+            EnsureDiscoveredMealsInitialized();
+            return ExternalModMealDefNames;
+        }
+
+        private static bool IsExternalModMealEnabledInSettings(ThingDef mealDef)
+        {
+            return !IsExternalModMeal(mealDef)
+                || FoodPrinterSystemMod.Settings == null
+                || FoodPrinterSystemMod.Settings.IsExternalModMealEnabled(mealDef);
+        }
+
+        private static bool ShouldIncludeExternalModMealsInConfiguredList()
+        {
+            return FoodPrinterSystemMod.Settings == null || FoodPrinterSystemMod.Settings.randomMealSelection;
+        }
+
+        private static bool IsExternalModMeal(ThingDef mealDef)
+        {
+            return IsValidMealDef(mealDef)
+                && GetCategoryForMealDef(mealDef) != null
+                && GetCategoryForMealDef(mealDef) != FoodPreferability.MealAwful
+                && mealDef.modContentPack != null
+                && !mealDef.modContentPack.IsCoreMod
+                && !IsPrinterDefaultMealDef(mealDef);
+        }
+
+        private static bool IsPrinterDefaultMealDef(ThingDef mealDef)
+        {
+            if (mealDef == null || mealDef.defName.NullOrEmpty())
+            {
+                return false;
+            }
+
+            EnsurePrinterDefaultMealDefsInitialized();
+            return PrinterDefaultMealDefNames.Contains(mealDef.defName);
+        }
+
+        private static void EnsurePrinterDefaultMealDefsInitialized()
+        {
+            if (printerDefaultMealsInitialized)
+            {
+                return;
+            }
+
+            printerDefaultMealsInitialized = true;
+            PrinterDefaultMealDefNames.Clear();
+            List<ThingDef> allDefs = DefDatabase<ThingDef>.AllDefsListForReading;
+            for (int i = 0; i < allDefs.Count; i++)
+            {
+                ThingDef def = allDefs[i];
+                if (def == null || def.comps == null)
+                {
+                    continue;
+                }
+
+                for (int compIndex = 0; compIndex < def.comps.Count; compIndex++)
+                {
+                    if (!(def.comps[compIndex] is CompProperties_FoodPrinter compProps) || compProps.defaultMealDefs == null)
+                    {
+                        continue;
+                    }
+
+                    for (int mealIndex = 0; mealIndex < compProps.defaultMealDefs.Count; mealIndex++)
+                    {
+                        string mealDefName = compProps.defaultMealDefs[mealIndex];
+                        if (!mealDefName.NullOrEmpty())
+                        {
+                            PrinterDefaultMealDefNames.Add(mealDefName);
+                        }
+                    }
+                }
+            }
+        }
+
         private static List<ThingDef> GetDiscoveredMealsForCategory(FoodPreferability category)
         {
             EnsureDiscoveredMealsInitialized();
@@ -1337,6 +1433,8 @@ namespace FoodPrinterSystem
 
             discoveredMealsInitialized = true;
             DiscoveredMealsByCategory.Clear();
+            ExternalModMeals.Clear();
+            ExternalModMealDefNames.Clear();
             DiscoveredMealsByCategory[FoodPreferability.MealAwful] = new List<ThingDef>();
             DiscoveredMealsByCategory[FoodPreferability.MealSimple] = new List<ThingDef>();
             DiscoveredMealsByCategory[FoodPreferability.MealFine] = new List<ThingDef>();
@@ -1358,12 +1456,19 @@ namespace FoodPrinterSystem
                 }
 
                 AddMealIfMissing(DiscoveredMealsByCategory[category.Value], mealDef);
+                if (IsExternalModMeal(mealDef))
+                {
+                    AddMealIfMissing(ExternalModMeals, mealDef);
+                    ExternalModMealDefNames.Add(mealDef.defName);
+                }
             }
 
             foreach (KeyValuePair<FoodPreferability, List<ThingDef>> pair in DiscoveredMealsByCategory)
             {
                 pair.Value.Sort(CompareMealDefsForDisplay);
             }
+
+            ExternalModMeals.Sort(CompareMealDefsForDisplay);
         }
 
         private static int CompareMealDefsForDisplay(ThingDef left, ThingDef right)

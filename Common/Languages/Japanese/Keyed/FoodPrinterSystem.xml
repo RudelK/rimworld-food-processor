@@ -77,7 +77,22 @@
   <FPS_SettingsNutrientFeederCost>栄養フィーダーの1食あたりトナー消費</FPS_SettingsNutrientFeederCost>
   <FPS_SettingsNutrientFeederCostDesc>栄養フィーダーが1食分を提供するたびに消費するトナー量です。</FPS_SettingsNutrientFeederCostDesc>
   <FPS_SettingsRandomization>ランダム食事選択を有効化</FPS_SettingsRandomization>
-  <FPS_SettingsRandomizationDesc>プリンターが常に同じ出力を使うのではなく、現在有効な食事バリアントからランダムに選ぶようにします。</FPS_SettingsRandomizationDesc>
+  <FPS_SettingsRandomizationDesc>プリンターが常に同じ出力を使うのではなく、現在有効な食事バリアントからランダムに選ぶようにします。無効にすると、他MOD追加の食事は出現しません。</FPS_SettingsRandomizationDesc>
+  <FPS_SettingsModMealSelectionButton>外部MOD食事を選択</FPS_SettingsModMealSelectionButton>
+  <FPS_SettingsModMealSelectionButtonDesc>他のMODが追加した印刷可能な食事のうち、フードプリンター候補に含めるものを選択します。</FPS_SettingsModMealSelectionButtonDesc>
+  <FPS_SettingsModMealSelectionTitle>外部MOD食事の選択</FPS_SettingsModMealSelectionTitle>
+  <FPS_SettingsModMealSelectionSummary>現在有効な他MODが追加した印刷可能な食事を {0} 件表示しています。</FPS_SettingsModMealSelectionSummary>
+  <FPS_SettingsModMealSelectionEnableAll>表示項目をすべて有効化</FPS_SettingsModMealSelectionEnableAll>
+  <FPS_SettingsModMealSelectionDisableAll>表示項目をすべて無効化</FPS_SettingsModMealSelectionDisableAll>
+  <FPS_SettingsModMealSelectionSearch>検索</FPS_SettingsModMealSelectionSearch>
+  <FPS_SettingsModMealSelectionColumnImage>画像</FPS_SettingsModMealSelectionColumnImage>
+  <FPS_SettingsModMealSelectionColumnLabel>食事名</FPS_SettingsModMealSelectionColumnLabel>
+  <FPS_SettingsModMealSelectionColumnDefName>Def名</FPS_SettingsModMealSelectionColumnDefName>
+  <FPS_SettingsModMealSelectionColumnMod>MOD</FPS_SettingsModMealSelectionColumnMod>
+  <FPS_SettingsModMealSelectionColumnMealType>食事種別</FPS_SettingsModMealSelectionColumnMealType>
+  <FPS_SettingsModMealSelectionColumnEnabled>選択</FPS_SettingsModMealSelectionColumnEnabled>
+  <FPS_SettingsModMealSelectionEnabled>有効</FPS_SettingsModMealSelectionEnabled>
+  <FPS_SettingsModMealSelectionDisabled>無効</FPS_SettingsModMealSelectionDisabled>
   <FPS_SettingsDebugLog>デバッグログを有効化</FPS_SettingsDebugLog>
   <FPS_SettingsDebugLogDesc>RimWorld の開発者モードがオフでも、Food Printer のデバッグメッセージをログに出力します。</FPS_SettingsDebugLogDesc>
   <FPS_SettingsHardCheckFoodType>食品タイプ嗜好の厳格チェック</FPS_SettingsHardCheckFoodType>

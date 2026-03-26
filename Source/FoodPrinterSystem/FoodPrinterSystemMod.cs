@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+using HarmonyLib;
+using System.Collections.Generic;
 using UnityEngine;
 using Verse;
 
@@ -29,6 +30,7 @@ namespace FoodPrinterSystem
         public bool randomMealSelection = true;
         public bool debugLoggingEnabled = false;
         public bool hardCheckFoodType = true;
+        public List<string> disabledModMealDefNames = new List<string>();
 
         public void ResetToDefaults()
         {
@@ -55,6 +57,14 @@ namespace FoodPrinterSystem
             randomMealSelection = true;
             debugLoggingEnabled = false;
             hardCheckFoodType = true;
+            if (disabledModMealDefNames == null)
+            {
+                disabledModMealDefNames = new List<string>();
+            }
+            else
+            {
+                disabledModMealDefNames.Clear();
+            }
             Sanitize();
         }
 
@@ -102,6 +112,7 @@ namespace FoodPrinterSystem
             Scribe_Values.Look(ref randomMealSelection, "randomMealSelection", true);
             Scribe_Values.Look(ref debugLoggingEnabled, "debugLoggingEnabled", false);
             Scribe_Values.Look(ref hardCheckFoodType, "hardCheckFoodType", true);
+            Scribe_Collections.Look(ref disabledModMealDefNames, "disabledModMealDefNames", LookMode.Value);
 
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
@@ -136,6 +147,80 @@ namespace FoodPrinterSystem
             nutrientFeederIdlePower = Mathf.Clamp(nutrientFeederIdlePower, 0, 10000);
             nutrientFeederPower = Mathf.Clamp(nutrientFeederPower, 0, 10000);
             nutrientFeederTonerCost = Mathf.Clamp(nutrientFeederTonerCost, 0.1f, 50f);
+            if (disabledModMealDefNames == null)
+            {
+                disabledModMealDefNames = new List<string>();
+                return;
+            }
+
+            HashSet<string> seen = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
+            for (int i = disabledModMealDefNames.Count - 1; i >= 0; i--)
+            {
+                string defName = disabledModMealDefNames[i];
+                if (defName.NullOrEmpty() || !seen.Add(defName))
+                {
+                    disabledModMealDefNames.RemoveAt(i);
+                }
+            }
+        }
+
+        public bool IsExternalModMealEnabled(ThingDef mealDef)
+        {
+            if (mealDef == null || mealDef.defName.NullOrEmpty())
+            {
+                return false;
+            }
+
+            return disabledModMealDefNames == null
+                || !disabledModMealDefNames.Contains(mealDef.defName);
+        }
+
+        public void SetExternalModMealEnabled(ThingDef mealDef, bool enabled)
+        {
+            if (mealDef == null || mealDef.defName.NullOrEmpty())
+            {
+                return;
+            }
+
+            if (disabledModMealDefNames == null)
+            {
+                disabledModMealDefNames = new List<string>();
+            }
+
+            for (int i = disabledModMealDefNames.Count - 1; i >= 0; i--)
+            {
+                if (string.Equals(disabledModMealDefNames[i], mealDef.defName, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    if (enabled)
+                    {
+                        disabledModMealDefNames.RemoveAt(i);
+                    }
+
+                    return;
+                }
+            }
+
+            if (!enabled)
+            {
+                disabledModMealDefNames.Add(mealDef.defName);
+            }
+        }
+
+        public void PruneMissingExternalModMealDefs()
+        {
+            if (disabledModMealDefNames == null || disabledModMealDefNames.Count == 0)
+            {
+                return;
+            }
+
+            HashSet<string> availableMealDefNames = CompFoodPrinter.GetAvailableExternalModMealDefNames();
+            for (int i = disabledModMealDefNames.Count - 1; i >= 0; i--)
+            {
+                if (!availableMealDefNames.Contains(disabledModMealDefNames[i]))
+                {
+                    disabledModMealDefNames.RemoveAt(i);
+                }
+            }
         }
     }
 
@@ -189,6 +274,7 @@ namespace FoodPrinterSystem
             {
                 // Reset foldout state whenever the settings window is opened again.
                 showDebugSettings = false;
+                Settings.PruneMissingExternalModMealDefs();
             }
 
             lastSettingsDrawFrame = Time.frameCount;
@@ -236,6 +322,7 @@ namespace FoodPrinterSystem
                 "FPS_SettingsRandomization".Translate().ToString(),
                 ref Settings.randomMealSelection,
                 "FPS_SettingsRandomizationDesc".Translate().ToString());
+            DrawModMealSelectionButton(listing);
 
             listing.GapLine();
             DrawDebugSection(listing);
@@ -263,6 +350,7 @@ namespace FoodPrinterSystem
             }
 
             Settings.Sanitize();
+            Settings.PruneMissingExternalModMealDefs();
             BumpSettingsRevision();
             if (Current.Game == null || Find.Maps == null)
             {
@@ -297,7 +385,7 @@ namespace FoodPrinterSystem
                     CompFoodPrinter printer = thing.TryGetComp<CompFoodPrinter>();
                     if (printer != null)
                     {
-                        printer.ApplyPowerSetting();
+                        printer.NotifySettingsChanged();
                     }
 
                     CompTonerTank tank = thing.TryGetComp<CompTonerTank>();
@@ -331,6 +419,18 @@ namespace FoodPrinterSystem
                 "FPS_SettingsHardCheckFoodType".Translate().ToString(),
                 ref Settings.hardCheckFoodType,
                 "FPS_SettingsHardCheckFoodTypeDesc".Translate().ToString());
+        }
+
+        private void DrawModMealSelectionButton(Listing_Standard listing)
+        {
+            Rect rect = listing.GetRect(34f);
+            string label = "FPS_SettingsModMealSelectionButton".Translate();
+            string tooltip = "FPS_SettingsModMealSelectionButtonDesc".Translate();
+            AddTooltip(rect, tooltip);
+            if (Widgets.ButtonText(rect, label))
+            {
+                Find.WindowStack.Add(new Dialog_ModMealSelection(Settings));
+            }
         }
 
         private void DrawResetButton(Listing_Standard listing)

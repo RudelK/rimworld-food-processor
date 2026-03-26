@@ -107,6 +107,7 @@
     <Compile Include="PipeVisualMapComponent.cs" />
     <Compile Include="SectionLayer_Pipes.cs" />
     <Compile Include="PlaceWorker_EmbeddedPipePreview.cs" />
+    <Compile Include="Dialog_ModMealSelection.cs" />
     <Compile Include="Dialog_FoodPrinterSettings.cs" />
     <Compile Include="FoodPrinterAlertHarmony.cs" />
     <Compile Include="FoodPrinterHarmony.cs" />
