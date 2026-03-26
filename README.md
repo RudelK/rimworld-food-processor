@@ -17,6 +17,7 @@ Raw food can be broken down into liquid toner, stored in connected tanks, and th
 - Dedicated `Food Processing` research tab for the full progression
 - Grouped toner tank build menu with size-based research progression
 - In-game mod settings for power use, print costs, tank capacity, and related balance values
+- Mod-settings popup to review external mod meal defs and enable or disable them per meal
 - Harmony-based integration with RimWorld food-search logic and ingest jobs
 - Pawn-aware printer filtering based on connected ingredient provenance
 - Dynamic discovery of valid modded meal defs for simple, fine, and lavish meal tiers
@@ -53,7 +54,7 @@ Other notable unlock gates:
 3. Disintegrated food adds toner and preserves its final ingestible ingredient defs in connected tanks.
 4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically, or use a `Nutrient feeder` for adjacent beds.
 5. Humanlike pawns evaluate printers against the connected network's current ingredient profile before selecting them as a food source.
-6. The printer can automatically include valid modded meal defs from loaded mods, as long as they are real printable meal items and match an unlocked meal tier.
+6. The printer can automatically include valid external mod meal defs from loaded mods, as long as they are real printable meal items, match an unlocked meal tier, and remain enabled in the mod settings meal-selection popup.
 
 ## Power And Network Notes
 
@@ -67,6 +68,8 @@ Other notable unlock gates:
 - Printer food-type prediction is based on stored ingredient provenance in connected toner tanks.
 - Printer random selection excludes meal defs directly forbidden by the current pawn food policy.
 - Printer meal discovery excludes non-printable meal-like ingestibles such as insect jelly, pemmican, and survival meals.
+- External mod meal discovery only includes real printable meal defs from non-core mods and excludes this mod's built-in default meals.
+- If `Enable random meal selection` is turned off, external mod meal defs are intentionally hidden from printer output lists.
 - Toner-consuming buildings show a persistent `Need to connect toner tank` warning when they are not connected to a toner network with at least one tank.
 - `Deconstruct pipes` only targets placed toner pipes and ignores walls, machines, and other non-pipe buildings that merely share pipe visuals.
 
@@ -85,6 +88,8 @@ Other notable unlock gates:
 
 - All settings include hover tooltips in the mod settings window.
 - Main settings cover toner costs, feeder output, tank capacities, and power draw values.
+- `Printer Options` now includes an external-mod meal picker with search, meal type display, and per-def enable/disable toggles.
+- Disabled external meal defs are stored by def name, so removed mods are pruned safely and newly added mods default to enabled.
 - A `Reset to defaults` button restores the mod's settings to their default values.
 - The `Debug` section is folded by default and currently contains:
   - `Debug log`
