@@ -67,9 +67,9 @@
   <FPS_SettingsPrinterPower>フードプリンター稼働電力 (W)</FPS_SettingsPrinterPower>
   <FPS_SettingsPrinterPowerDesc>フードプリンターが食事を実際に印刷している間の消費電力です。</FPS_SettingsPrinterPowerDesc>
   <FPS_SettingsFeederIdlePower>動物給餌器待機電力 (W)</FPS_SettingsFeederIdlePower>
-  <FPS_SettingsFeederIdlePowerDesc>動物給餌器が通電中だが現在キブルを生産していないときの消費電力です。</FPS_SettingsFeederIdlePowerDesc>
+  <FPS_SettingsFeederIdlePowerDesc>動物給餌器が通電中だが現在飼料を生産していないときの消費電力です。</FPS_SettingsFeederIdlePowerDesc>
   <FPS_SettingsFeederPower>動物給餌器稼働電力 (W)</FPS_SettingsFeederPower>
-  <FPS_SettingsFeederPowerDesc>動物給餌器がキブルを実際に生産している間の消費電力です。</FPS_SettingsFeederPowerDesc>
+  <FPS_SettingsFeederPowerDesc>動物給餌器が飼料を実際に生産している間の消費電力です。</FPS_SettingsFeederPowerDesc>
   <FPS_SettingsNutrientFeederIdlePower>栄養フィーダー待機電力 (W)</FPS_SettingsNutrientFeederIdlePower>
   <FPS_SettingsNutrientFeederIdlePowerDesc>栄養フィーダーが通電中だが現在は誰にも給餌していないときの消費電力です。</FPS_SettingsNutrientFeederIdlePowerDesc>
   <FPS_SettingsNutrientFeederPower>栄養フィーダー稼働電力 (W)</FPS_SettingsNutrientFeederPower>
@@ -106,6 +106,9 @@
   <FPS_NoOccupant>使用者なし</FPS_NoOccupant>
   <FPS_NoLinkedBed>接続されたベッドなし</FPS_NoLinkedBed>
   <FPS_MustPlaceAtBedHead>ベッドの頭側に設置する必要があります。</FPS_MustPlaceAtBedHead>
+  <FPS_AnimalFeederToggleLabel>自動飼料生産</FPS_AnimalFeederToggleLabel>
+  <FPS_AnimalFeederToggleDesc>この動物給餌器の自動飼料生産をオンまたはオフにします。</FPS_AnimalFeederToggleDesc>
+  <FPS_AnimalFeederPaused>飼料生産: オフ</FPS_AnimalFeederPaused>
   <FPS_SettingsResetToDefaults>デフォルトに戻す</FPS_SettingsResetToDefaults>
   <FPS_SettingsResetToDefaultsDesc>Food Process mod の設定をすべて初期値に戻します。</FPS_SettingsResetToDefaultsDesc>
   <FPS_PrinterNeedsTankAlert>トナータンクを接続する必要があります</FPS_PrinterNeedsTankAlert>

@@ -10,7 +10,7 @@ Raw food can be broken down into liquid toner, stored in connected tanks, and th
 - Small, medium, and large Toner Tanks for shared network storage
 - Toner Tanks preserve ingredient provenance and show a visible fill overlay based on stored toner
 - Food Printer that produces researched meal tiers from stored toner without nutrient paste hoppers
-- Animal Feeder that turns toner into kibble
+- Animal Feeder that turns toner into kibble, with a per-building on/off toggle for automatic production
 - Nutrient feeder that automatically feeds linked humanlike bed occupants from the toner network
 - Toner pipes and underground toner pipes for network routing
 - Pipe-specific build and deconstruct tools
@@ -52,7 +52,7 @@ Other notable unlock gates:
 1. Place an `INGR Disintegrator` next to stored or loose raw food.
 2. Connect it to `Toner Tanks`, `Food Printers`, `Animal Feeders`, and `Nutrient feeders` with toner pipes.
 3. Disintegrated food adds toner and preserves its final ingestible ingredient defs in connected tanks.
-4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically, or use a `Nutrient feeder` for adjacent beds.
+4. Let colonists or prisoners use the `Food Printer`, let the `Animal Feeder` generate kibble automatically when its toggle is on, or use a `Nutrient feeder` for adjacent beds.
 5. Humanlike pawns evaluate printers against the connected network's current ingredient profile before selecting them as a food source.
 6. The printer can automatically include valid external mod meal defs from loaded mods, as long as they are real printable meal items, match an unlocked meal tier, and remain enabled in the mod settings meal-selection popup.
 
@@ -72,6 +72,7 @@ Other notable unlock gates:
 - If `Enable random meal selection` is turned off, external mod meal defs are intentionally hidden from printer output lists.
 - Toner-consuming buildings show a persistent `Need to connect toner tank` warning when they are not connected to a toner network with at least one tank.
 - `Deconstruct pipes` only targets placed toner pipes and ignores walls, machines, and other non-pipe buildings that merely share pipe visuals.
+- Animal feeders can pause local kibble production with a gizmo toggle without disconnecting from the toner network.
 
 ## Printer Food Rules
 
@@ -94,6 +95,7 @@ Other notable unlock gates:
 - The `Debug` section is folded by default and currently contains:
   - `Debug log`
   - `Hard check food type`
+- Individual animal feeders also expose a building gizmo toggle for automatic kibble production.
 
 ## Developer Examples
 

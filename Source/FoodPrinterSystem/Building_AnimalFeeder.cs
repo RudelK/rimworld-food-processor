@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -10,9 +11,16 @@ namespace FoodPrinterSystem
         private const int KibbleRecountIntervalTicks = GenTicks.TickRareInterval * 4;
 
         private CompPowerTrader powerComp;
+        private bool productionEnabled = true;
         private int activeTicksRemaining;
         private int cachedStoredKibble = -1;
         private int nextKibbleRecountTick;
+
+        public override void ExposeData()
+        {
+            base.ExposeData();
+            Scribe_Values.Look(ref productionEnabled, "productionEnabled", true);
+        }
 
         public override void SpawnSetup(Map map, bool respawningAfterLoad)
         {
@@ -48,6 +56,11 @@ namespace FoodPrinterSystem
             }
 
             if (powerComp == null || !powerComp.PowerOn)
+            {
+                return;
+            }
+
+            if (!productionEnabled)
             {
                 return;
             }
@@ -118,7 +131,38 @@ namespace FoodPrinterSystem
             }
 
             text += FoodPrinterSystemUtility.FormatSummary(summary);
+            if (!productionEnabled)
+            {
+                text += "\n" + "FPS_AnimalFeederPaused".Translate();
+            }
+
             return text;
+        }
+
+        public override IEnumerable<Gizmo> GetGizmos()
+        {
+            foreach (Gizmo gizmo in base.GetGizmos())
+            {
+                yield return gizmo;
+            }
+
+            yield return new Command_Toggle
+            {
+                defaultLabel = "FPS_AnimalFeederToggleLabel".Translate(),
+                defaultDesc = "FPS_AnimalFeederToggleDesc".Translate(),
+                icon = TexCommand.ForbidOff,
+                isActive = () => productionEnabled,
+                toggleAction = delegate
+                {
+                    productionEnabled = !productionEnabled;
+                    if (!productionEnabled && activeTicksRemaining > 0)
+                    {
+                        activeTicksRemaining = 0;
+                    }
+
+                    ApplyPowerSetting();
+                }
+            };
         }
 
         private int CountStoredKibble()

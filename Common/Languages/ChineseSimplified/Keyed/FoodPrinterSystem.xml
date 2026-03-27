@@ -106,6 +106,9 @@
   <FPS_NoOccupant>无占用者</FPS_NoOccupant>
   <FPS_NoLinkedBed>无已连接床位</FPS_NoLinkedBed>
   <FPS_MustPlaceAtBedHead>必须放置在床头位置。</FPS_MustPlaceAtBedHead>
+  <FPS_AnimalFeederToggleLabel>自动生产饲料</FPS_AnimalFeederToggleLabel>
+  <FPS_AnimalFeederToggleDesc>打开或关闭这台动物喂食器的自动饲料生产。</FPS_AnimalFeederToggleDesc>
+  <FPS_AnimalFeederPaused>饲料生产：关闭</FPS_AnimalFeederPaused>
   <FPS_SettingsResetToDefaults>恢复默认设置</FPS_SettingsResetToDefaults>
   <FPS_SettingsResetToDefaultsDesc>将 Food Process mod 的所有设置恢复为默认值。</FPS_SettingsResetToDefaultsDesc>
   <FPS_PrinterNeedsTankAlert>需要连接碳粉罐</FPS_PrinterNeedsTankAlert>

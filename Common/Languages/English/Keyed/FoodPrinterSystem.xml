@@ -106,6 +106,9 @@
   <FPS_NoOccupant>No occupant</FPS_NoOccupant>
   <FPS_NoLinkedBed>No linked bed</FPS_NoLinkedBed>
   <FPS_MustPlaceAtBedHead>Must be placed at the head of a bed.</FPS_MustPlaceAtBedHead>
+  <FPS_AnimalFeederToggleLabel>Auto kibble production</FPS_AnimalFeederToggleLabel>
+  <FPS_AnimalFeederToggleDesc>Turn automatic kibble production on or off for this animal feeder.</FPS_AnimalFeederToggleDesc>
+  <FPS_AnimalFeederPaused>Kibble production: off</FPS_AnimalFeederPaused>
   <FPS_SettingsResetToDefaults>Reset to defaults</FPS_SettingsResetToDefaults>
   <FPS_SettingsResetToDefaultsDesc>Reset all Food Process mod settings to their default values.</FPS_SettingsResetToDefaultsDesc>
   <FPS_PrinterNeedsTankAlert>Need to connect toner tank</FPS_PrinterNeedsTankAlert>
