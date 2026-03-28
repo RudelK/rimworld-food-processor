@@ -6,6 +6,8 @@ namespace FoodPrinterSystem
 {
     public class Building_FoodDisintegrator : Building
     {
+        private const int RawFoodBatchSize = 3;
+
         private CompPowerTrader powerComp;
         private int activeTicksRemaining;
         private Thing cachedAdjacentFood;
@@ -47,13 +49,19 @@ namespace FoodPrinterSystem
                 return;
             }
 
-            int tonerValue = FoodPrinterSystemUtility.GetStoredTonerValue(food);
+            int processedCount = GetProcessableBatchCount(food);
+            if (processedCount <= 0)
+            {
+                return;
+            }
+
+            int tonerValue = FoodPrinterSystemUtility.GetStoredTonerValue(food) * processedCount;
             if (tonerValue <= 0 || !TonerPipeNetManager.TryAddToner(this, tonerValue))
             {
                 return;
             }
 
-            ConsumeOne(food);
+            ConsumeBatch(food, processedCount);
 
             List<ThingDef> ingredients = ExtractIngredientProvenanceDefs(food);
             TonerPipeNetManager.DistributeIngredients(this, ingredients);
@@ -191,10 +199,27 @@ namespace FoodPrinterSystem
             return null;
         }
 
-        private static void ConsumeOne(Thing food)
+        private static int GetProcessableBatchCount(Thing food)
         {
-            Thing oneUnit = food.stackCount > 1 ? food.SplitOff(1) : food;
-            oneUnit.Destroy(DestroyMode.Vanish);
+            if (food == null || food.stackCount <= 0)
+            {
+                return 0;
+            }
+
+            return food.stackCount >= RawFoodBatchSize
+                ? RawFoodBatchSize
+                : food.stackCount;
+        }
+
+        private static void ConsumeBatch(Thing food, int count)
+        {
+            if (food == null || count <= 0)
+            {
+                return;
+            }
+
+            Thing consumed = food.stackCount > count ? food.SplitOff(count) : food;
+            consumed.Destroy(DestroyMode.Vanish);
         }
 
         private static List<ThingDef> ExtractIngredientProvenanceDefs(Thing food)

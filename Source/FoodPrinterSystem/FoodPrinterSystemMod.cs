@@ -7,10 +7,15 @@ namespace FoodPrinterSystem
 {
     public class FoodPrinterSystemSettings : ModSettings
     {
-        public int pastePrintCost = 3;
-        public int simpleMealPrintCost = 5;
-        public int fineMealPrintCost = 7;
-        public int lavishMealPrintCost = 10;
+        private const int DefaultPastePrintCost = 6;
+        private const int DefaultSimpleMealPrintCost = 10;
+        private const int DefaultFineMealPrintCost = 14;
+        private const int DefaultLavishMealPrintCost = 20;
+
+        public int pastePrintCost = DefaultPastePrintCost;
+        public int simpleMealPrintCost = DefaultSimpleMealPrintCost;
+        public int fineMealPrintCost = DefaultFineMealPrintCost;
+        public int lavishMealPrintCost = DefaultLavishMealPrintCost;
         public int feederOutputLimit = 75;
         public int smallTankCapacity = 100;
         public int mediumTankCapacity = 500;
@@ -34,10 +39,10 @@ namespace FoodPrinterSystem
 
         public void ResetToDefaults()
         {
-            pastePrintCost = 3;
-            simpleMealPrintCost = 5;
-            fineMealPrintCost = 7;
-            lavishMealPrintCost = 10;
+            pastePrintCost = DefaultPastePrintCost;
+            simpleMealPrintCost = DefaultSimpleMealPrintCost;
+            fineMealPrintCost = DefaultFineMealPrintCost;
+            lavishMealPrintCost = DefaultLavishMealPrintCost;
             feederOutputLimit = 75;
             smallTankCapacity = 100;
             mediumTankCapacity = 500;
@@ -88,10 +93,10 @@ namespace FoodPrinterSystem
             base.ExposeData();
 
             int legacyFeederBatchSize = 10;
-            Scribe_Values.Look(ref pastePrintCost, "pastePrintCost", 3);
-            Scribe_Values.Look(ref simpleMealPrintCost, "simpleMealPrintCost", 5);
-            Scribe_Values.Look(ref fineMealPrintCost, "fineMealPrintCost", 7);
-            Scribe_Values.Look(ref lavishMealPrintCost, "lavishMealPrintCost", 10);
+            Scribe_Values.Look(ref pastePrintCost, "pastePrintCost", DefaultPastePrintCost);
+            Scribe_Values.Look(ref simpleMealPrintCost, "simpleMealPrintCost", DefaultSimpleMealPrintCost);
+            Scribe_Values.Look(ref fineMealPrintCost, "fineMealPrintCost", DefaultFineMealPrintCost);
+            Scribe_Values.Look(ref lavishMealPrintCost, "lavishMealPrintCost", DefaultLavishMealPrintCost);
             Scribe_Values.Look(ref feederOutputLimit, "feederOutputLimit", 75);
             Scribe_Values.Look(ref legacyFeederBatchSize, "feederBatchSize", 10);
             Scribe_Values.Look(ref smallTankCapacity, "smallTankCapacity", 100);
@@ -526,6 +531,5 @@ namespace FoodPrinterSystem
         }
     }
 }
-
 
 

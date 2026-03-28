@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -22,6 +23,34 @@ namespace FoodPrinterSystem
             "ホッパー",
             "料斗"
         };
+
+        private static readonly string[] DispenserGizmoKeywords =
+        {
+            "nutrient paste",
+            "paste dispenser",
+            "dispenser",
+            "feedstock",
+            "hopper",
+            "호퍼",
+            "영양죽",
+            "ペースト",
+            "ディスペンサー",
+            "营养糊",
+            "营养",
+            "分配器"
+        };
+
+        private static readonly Dictionary<string, GizmoPolicy> KnownGizmoPolicies = new Dictionary<string, GizmoPolicy>(StringComparer.Ordinal)
+        {
+            { "FoodProcess|FoodPrinterSystem.CompFoodPrinter|printer_setting", GizmoPolicy.Keep }
+        };
+
+        private enum GizmoPolicy
+        {
+            Unknown,
+            Keep,
+            Hide
+        }
 
         public CompFoodPrinter FoodPrinterComp
         {
@@ -137,7 +166,7 @@ namespace FoodPrinterSystem
         {
             foreach (Gizmo gizmo in base.GetGizmos())
             {
-                if (!IsHopperBuildGizmo(gizmo))
+                if (ShouldKeepInheritedGizmo(gizmo))
                 {
                     yield return gizmo;
                 }
@@ -229,6 +258,125 @@ namespace FoodPrinterSystem
                 || ContainsHopperWarningKeyword(command.defaultDesc);
         }
 
+        private static bool ShouldKeepInheritedGizmo(Gizmo gizmo)
+        {
+            if (IsHopperBuildGizmo(gizmo))
+            {
+                return false;
+            }
+
+            string gizmoKey = BuildGizmoKey(gizmo);
+            if (!gizmoKey.NullOrEmpty() && KnownGizmoPolicies.TryGetValue(gizmoKey, out GizmoPolicy policy))
+            {
+                return policy == GizmoPolicy.Keep;
+            }
+
+            if (IsKnownExternalCommand(gizmo))
+            {
+                return false;
+            }
+
+            return !LooksLikeDispenserSpecificGizmo(gizmo);
+        }
+
+        private static string BuildGizmoKey(Gizmo gizmo)
+        {
+            Command command = gizmo as Command;
+            if (command == null)
+            {
+                return null;
+            }
+
+            MethodInfo method = GetCommandMethod(command);
+            string assemblyName = method?.DeclaringType?.Assembly?.GetName().Name ?? string.Empty;
+            string ownerTypeName = GetRootDeclaringTypeName(method);
+            string iconName = command.icon == null ? string.Empty : command.icon.name;
+            if (assemblyName.Length == 0 && ownerTypeName.Length == 0 && iconName.Length == 0)
+            {
+                return null;
+            }
+
+            return assemblyName + "|" + ownerTypeName + "|" + iconName;
+        }
+
+        private static MethodInfo GetCommandMethod(Command command)
+        {
+            Command_Action action = command as Command_Action;
+            if (action != null && action.action != null)
+            {
+                return action.action.Method;
+            }
+
+            Command_Toggle toggle = command as Command_Toggle;
+            if (toggle != null && toggle.toggleAction != null)
+            {
+                return toggle.toggleAction.Method;
+            }
+
+            return null;
+        }
+
+        private static string GetRootDeclaringTypeName(MethodInfo method)
+        {
+            Type declaringType = method?.DeclaringType;
+            while (declaringType != null && declaringType.DeclaringType != null)
+            {
+                declaringType = declaringType.DeclaringType;
+            }
+
+            return declaringType == null ? string.Empty : declaringType.FullName;
+        }
+
+        private static bool IsKnownExternalCommand(Gizmo gizmo)
+        {
+            Command command = gizmo as Command;
+            if (command == null)
+            {
+                return false;
+            }
+
+            MethodInfo method = GetCommandMethod(command);
+            string assemblyName = method?.DeclaringType?.Assembly?.GetName().Name;
+            if (assemblyName.NullOrEmpty())
+            {
+                return false;
+            }
+
+            if (string.Equals(assemblyName, "Assembly-CSharp", StringComparison.Ordinal)
+                || string.Equals(assemblyName, "FoodProcess", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool LooksLikeDispenserSpecificGizmo(Gizmo gizmo)
+        {
+            Command command = gizmo as Command;
+            if (command == null)
+            {
+                return false;
+            }
+
+            if (ContainsDispenserKeyword(command.defaultLabel)
+                || ContainsDispenserKeyword(command.defaultDesc))
+            {
+                return true;
+            }
+
+            if (ThingDefOf.Hopper != null && command.icon != null && ThingDefOf.Hopper.uiIcon != null)
+            {
+                if (ReferenceEquals(command.icon, ThingDefOf.Hopper.uiIcon)
+                    || string.Equals(command.icon.name, ThingDefOf.Hopper.uiIcon.name, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return ContainsDispenserKeyword(command.icon?.name);
+        }
+
         private static string StripHopperInspectWarnings(string text)
         {
             if (text.NullOrEmpty())
@@ -268,6 +416,24 @@ namespace FoodPrinterSystem
             for (int i = 0; i < HopperWarningKeywords.Length; i++)
             {
                 if (ContainsIgnoreCase(text, HopperWarningKeywords[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool ContainsDispenserKeyword(string text)
+        {
+            if (text.NullOrEmpty())
+            {
+                return false;
+            }
+
+            for (int i = 0; i < DispenserGizmoKeywords.Length; i++)
+            {
+                if (ContainsIgnoreCase(text, DispenserGizmoKeywords[i]))
                 {
                     return true;
                 }
