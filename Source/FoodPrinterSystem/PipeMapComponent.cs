@@ -202,6 +202,23 @@ namespace FoodPrinterSystem
             return success;
         }
 
+        public void GetActivePipes(List<CompPipe> buffer)
+        {
+            if (buffer == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < registeredPipes.Count; i++)
+            {
+                CompPipe pipe = registeredPipes[i];
+                if (IsActivePipe(pipe))
+                {
+                    buffer.Add(pipe);
+                }
+            }
+        }
+
         private PipeNet GetNetForThingInternal(Thing thing)
         {
             if (thing == null || !thing.Spawned || thing.Map != map)

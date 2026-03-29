@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FoodPrinterSystem;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -13,6 +14,7 @@ namespace FoodSystemPipe
         private string lastLoggedDesignator = string.Empty;
         private bool dirty = true;
         private int lastActiveDrawFrame = -1;
+        private int visibleStateNetworkRevision = -1;
 
         public PipeOverlayMapComponent(Map map) : base(map)
         {
@@ -60,13 +62,15 @@ namespace FoodSystemPipe
                 return null;
             }
 
-            if (!dirty && visibleState != null && currentMode == mode)
+            int currentNetworkRevision = GetCurrentNetworkRevision();
+            if (!dirty && visibleState != null && currentMode == mode && visibleStateNetworkRevision == currentNetworkRevision)
             {
                 return visibleState;
             }
 
             currentMode = mode;
             visibleState = PipeOverlaySelectionUtility.BuildMapWideState(map);
+            visibleStateNetworkRevision = visibleState == null ? currentNetworkRevision : visibleState.NetworkKey;
             dirty = false;
             PipeOverlayVisibilityUtility.DebugLog("Mode=" + mode + " (map-wide)");
             return visibleState;
@@ -87,7 +91,6 @@ namespace FoodSystemPipe
         public void Invalidate()
         {
             dirty = true;
-            visibleState = null;
         }
 
         private void ClearVisibleState(bool hiddenByVisibilityRule)
@@ -96,6 +99,7 @@ namespace FoodSystemPipe
             visibleState = null;
             currentMode = PipeOverlayVisibilityMode.Hidden;
             dirty = true;
+            visibleStateNetworkRevision = -1;
 
             if (hadState)
             {
@@ -117,6 +121,12 @@ namespace FoodSystemPipe
             lastLoggedDesignator = selectedDesignator;
             PipeOverlayVisibilityUtility.DebugLog("SelectedDesignator=" + selectedDesignator);
             PipeOverlayVisibilityUtility.DebugLog(mode == PipeOverlayVisibilityMode.Hidden ? "Hidden: no valid designator active" : "Mode=" + mode);
+        }
+
+        private int GetCurrentNetworkRevision()
+        {
+            MapComponent_TonerNetwork networkComponent = FoodPrinterSystemUtility.GetNetworkComponent(map);
+            return networkComponent == null ? 0 : networkComponent.NetworkRevision;
         }
     }
 

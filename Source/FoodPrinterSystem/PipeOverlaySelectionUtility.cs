@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using FoodPrinterSystem;
+using RimWorld;
 using Verse;
 
 namespace FoodSystemPipe
@@ -8,23 +9,41 @@ namespace FoodSystemPipe
     {
         public static PipeOverlayState BuildMapWideState(Map map)
         {
-            if (map?.listerThings?.AllThings == null)
+            if (map == null)
             {
                 return PipeOverlayState.Empty(null);
             }
 
             HashSet<IntVec3> pipeCells = new HashSet<IntVec3>();
             HashSet<IntVec3> buildingCells = new HashSet<IntVec3>();
+            HashSet<int> seenThingIds = new HashSet<int>();
             Thing overlaySourceThing = null;
 
-            List<Thing> allThings = map.listerThings.AllThings;
-            for (int i = 0; i < allThings.Count; i++)
+            CollectRegisteredPipeCells(map, pipeCells, buildingCells, seenThingIds, ref overlaySourceThing);
+            CollectDirectBuildingNodeCells(map, pipeCells, buildingCells, seenThingIds);
+
+            return CreateState(map, GetMapWideOverlayKey(map), pipeCells, buildingCells, overlaySourceThing);
+        }
+
+        private static void CollectRegisteredPipeCells(Map map, HashSet<IntVec3> pipeCells, HashSet<IntVec3> buildingCells, HashSet<int> seenThingIds, ref Thing overlaySourceThing)
+        {
+            PipeMapComponent pipeMap = map.GetComponent<PipeMapComponent>();
+            if (pipeMap == null)
             {
-                Thing thing = allThings[i];
+                return;
+            }
+
+            List<CompPipe> activePipes = new List<CompPipe>();
+            pipeMap.GetActivePipes(activePipes);
+            for (int i = 0; i < activePipes.Count; i++)
+            {
+                Thing thing = activePipes[i]?.parent;
                 if (thing == null || !thing.Spawned || thing.Map != map)
                 {
                     continue;
                 }
+
+                seenThingIds.Add(thing.thingIDNumber);
 
                 if (PipeCellQueryUtility.IsStandalonePipeThing(thing))
                 {
@@ -38,8 +57,33 @@ namespace FoodSystemPipe
                     CollectBuildingNodeCells(map, node, pipeCells, buildingCells);
                 }
             }
+        }
 
-            return CreateState(map, GetMapWideOverlayKey(map), pipeCells, buildingCells, overlaySourceThing);
+        private static void CollectDirectBuildingNodeCells(Map map, HashSet<IntVec3> pipeCells, HashSet<IntVec3> buildingCells, HashSet<int> seenThingIds)
+        {
+            List<Thing> artificialBuildings = map.listerThings?.ThingsInGroup(ThingRequestGroup.BuildingArtificial);
+            if (artificialBuildings == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < artificialBuildings.Count; i++)
+            {
+                Thing thing = artificialBuildings[i];
+                if (thing == null
+                    || !thing.Spawned
+                    || thing.Map != map
+                    || seenThingIds.Contains(thing.thingIDNumber)
+                    || thing.TryGetComp<CompPipe>() != null)
+                {
+                    continue;
+                }
+
+                if (PipeVisualNodeResolver.TryResolveNode(thing, out IEmbeddedPipeNode node))
+                {
+                    CollectBuildingNodeCells(map, node, pipeCells, buildingCells);
+                }
+            }
         }
 
         private static PipeOverlayState CreateState(Map map, int networkKey, HashSet<IntVec3> pipeCells, HashSet<IntVec3> buildingCells, Thing overlaySourceThing)

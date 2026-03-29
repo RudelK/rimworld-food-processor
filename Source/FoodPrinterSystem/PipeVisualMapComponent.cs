@@ -43,6 +43,7 @@ namespace FoodSystemPipe
     public class PipeVisualMapComponent : MapComponent
     {
         private readonly Dictionary<PipeVisualMaskCacheKey, PipeVisualMaskCacheEntry> maskCache = new Dictionary<PipeVisualMaskCacheKey, PipeVisualMaskCacheEntry>();
+        private readonly List<PipeVisualMaskCacheKey> removalBuffer = new List<PipeVisualMaskCacheKey>();
         private int visualRevision = 1;
 
         public PipeVisualMapComponent(Map map) : base(map)
@@ -84,12 +85,36 @@ namespace FoodSystemPipe
 
         public void MarkThingDirty(IntVec3 position, Rot4 rotation, ThingDef def)
         {
-            if (def == null)
+            if (def == null || map == null)
             {
                 return;
             }
 
-            InvalidateAll();
+            InvalidateCells(GenAdj.OccupiedRect(position, rotation, def.size).ExpandedBy(1));
+        }
+
+        private void InvalidateCells(CellRect dirtyRect)
+        {
+            if (maskCache.Count == 0)
+            {
+                return;
+            }
+
+            removalBuffer.Clear();
+            foreach (KeyValuePair<PipeVisualMaskCacheKey, PipeVisualMaskCacheEntry> pair in maskCache)
+            {
+                if (dirtyRect.Contains(pair.Key.Cell))
+                {
+                    removalBuffer.Add(pair.Key);
+                }
+            }
+
+            for (int i = 0; i < removalBuffer.Count; i++)
+            {
+                maskCache.Remove(removalBuffer[i]);
+            }
+
+            removalBuffer.Clear();
         }
 
         private void InvalidateAll()
