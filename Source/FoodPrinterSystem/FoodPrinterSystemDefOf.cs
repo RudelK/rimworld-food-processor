@@ -12,8 +12,12 @@ namespace FoodPrinterSystem
         }
 
         public static ThingDef FPS_FoodPrinter;
+        public static ThingDef FPS_FoodDisintegrator;
         public static ThingDef FPS_AnimalFeeder;
         public static ThingDef FPS_NutrientFeeder;
+        public static ThingDef FPS_TonerTankSmall;
+        public static ThingDef FPS_TonerTankMedium;
+        public static ThingDef FPS_TonerTankLarge;
         public static DesignationCategoryDef FPS_FoodProcessingCategory;
 
         public static ResearchProjectDef FPS_FoodProcessing;

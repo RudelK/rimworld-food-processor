@@ -1,4 +1,5 @@
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;
@@ -365,39 +366,49 @@ namespace FoodPrinterSystem
             for (int mapIndex = 0; mapIndex < Find.Maps.Count; mapIndex++)
             {
                 Map map = Find.Maps[mapIndex];
-                for (int i = 0; i < map.listerThings.AllThings.Count; i++)
+                ApplyToThingsOfDef<Building_FoodDisintegrator>(map, FoodPrinterSystemDefOf.FPS_FoodDisintegrator, disintegrator => disintegrator.ApplyPowerSetting());
+                ApplyToThingsOfDef<Building_AnimalFeeder>(map, FoodPrinterSystemDefOf.FPS_AnimalFeeder, feeder => feeder.ApplyPowerSetting());
+                ApplyToThingsOfDef<Building_NutrientFeeder>(map, FoodPrinterSystemDefOf.FPS_NutrientFeeder, nutrientFeeder => nutrientFeeder.ApplyPowerSetting());
+                ApplyToThingsOfDef<Building_FoodPrinter>(map, FoodPrinterSystemDefOf.FPS_FoodPrinter, printer => printer.TryGetComp<CompFoodPrinter>()?.NotifySettingsChanged());
+                NotifyTankSettingsChanged(map);
+            }
+        }
+
+        private static void ApplyToThingsOfDef<TThing>(Map map, ThingDef def, Action<TThing> applyAction) where TThing : Thing
+        {
+            if (map?.listerThings == null || def == null || applyAction == null)
+            {
+                return;
+            }
+
+            List<Thing> things = map.listerThings.ThingsOfDef(def);
+            if (things == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < things.Count; i++)
+            {
+                if (things[i] is TThing thing)
                 {
-                    Thing thing = map.listerThings.AllThings[i];
+                    applyAction(thing);
+                }
+            }
+        }
 
-                    Building_FoodDisintegrator disintegrator = thing as Building_FoodDisintegrator;
-                    if (disintegrator != null)
-                    {
-                        disintegrator.ApplyPowerSetting();
-                    }
+        private static void NotifyTankSettingsChanged(Map map)
+        {
+            MapComponent_TonerNetwork networkComponent = FoodPrinterSystemUtility.GetNetworkComponent(map);
+            if (networkComponent?.AllTanks == null || networkComponent.AllTanks.Count == 0)
+            {
+                return;
+            }
 
-                    Building_AnimalFeeder feeder = thing as Building_AnimalFeeder;
-                    if (feeder != null)
-                    {
-                        feeder.ApplyPowerSetting();
-                    }
-
-                    Building_NutrientFeeder nutrientFeeder = thing as Building_NutrientFeeder;
-                    if (nutrientFeeder != null)
-                    {
-                        nutrientFeeder.ApplyPowerSetting();
-                    }
-
-                    CompFoodPrinter printer = thing.TryGetComp<CompFoodPrinter>();
-                    if (printer != null)
-                    {
-                        printer.NotifySettingsChanged();
-                    }
-
-                    CompTonerTank tank = thing.TryGetComp<CompTonerTank>();
-                    if (tank != null)
-                    {
-                        tank.NotifySettingsChanged();
-                    }
+            foreach (CompTonerTank tank in networkComponent.AllTanks)
+            {
+                if (tank?.parent != null && tank.parent.Spawned && tank.parent.Map == map)
+                {
+                    tank.NotifySettingsChanged();
                 }
             }
         }
@@ -531,5 +542,3 @@ namespace FoodPrinterSystem
         }
     }
 }
-
-
