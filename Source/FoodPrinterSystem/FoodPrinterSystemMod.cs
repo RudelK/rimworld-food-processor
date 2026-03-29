@@ -232,6 +232,50 @@ namespace FoodPrinterSystem
 
     public class FoodPrinterSystemMod : Mod
     {
+        private sealed class IntSliderSetting
+        {
+            public readonly string LabelKey;
+            public readonly string TooltipKey;
+            public readonly int Min;
+            public readonly int Max;
+            public readonly Func<int> Getter;
+            public readonly Action<int> Setter;
+
+            public IntSliderSetting(string labelKey, string tooltipKey, int min, int max, Func<int> getter, Action<int> setter)
+            {
+                LabelKey = labelKey;
+                TooltipKey = tooltipKey;
+                Min = min;
+                Max = max;
+                Getter = getter;
+                Setter = setter;
+            }
+        }
+
+        private sealed class IntFieldSetting
+        {
+            public readonly string LabelKey;
+            public readonly string TooltipKey;
+            public readonly int Min;
+            public readonly int Max;
+            public readonly Func<int> Getter;
+            public readonly Action<int> Setter;
+            public readonly Func<string> BufferGetter;
+            public readonly Action<string> BufferSetter;
+
+            public IntFieldSetting(string labelKey, string tooltipKey, int min, int max, Func<int> getter, Action<int> setter, Func<string> bufferGetter, Action<string> bufferSetter)
+            {
+                LabelKey = labelKey;
+                TooltipKey = tooltipKey;
+                Min = min;
+                Max = max;
+                Getter = getter;
+                Setter = setter;
+                BufferGetter = bufferGetter;
+                BufferSetter = bufferSetter;
+            }
+        }
+
         private const string HarmonyId = "Codex.FoodPrinterSystem";
         private Vector2 settingsScrollPosition;
         private string feederOutputLimitBuffer;
@@ -252,6 +296,10 @@ namespace FoodPrinterSystem
         private bool showDebugSettings;
         private int lastSettingsDrawFrame = -1;
         private static int settingsRevision = 1;
+        private IntSliderSetting[] mealCostSliderSettings;
+        private IntFieldSetting[] feederFieldSettings;
+        private IntFieldSetting[] storageFieldSettings;
+        private IntFieldSetting[] powerFieldSettings;
 
         public static FoodPrinterSystemSettings Settings { get; private set; }
         public static int SettingsRevision
@@ -262,6 +310,7 @@ namespace FoodPrinterSystem
         public FoodPrinterSystemMod(ModContentPack content) : base(content)
         {
             Settings = GetSettings<FoodPrinterSystemSettings>();
+            InitializeSettingDefinitions();
             Settings.Sanitize();
             BumpSettingsRevision();
             new Harmony(HarmonyId).PatchAll();
@@ -292,35 +341,20 @@ namespace FoodPrinterSystem
             listing.Begin(viewRect);
 
             listing.Label("FPS_SettingsSectionConsumption".Translate());
-            Settings.pastePrintCost = DrawIntSlider(listing, "FPS_SettingsPasteCost".Translate().ToString(), "FPS_SettingsPasteCostDesc".Translate().ToString(), Settings.pastePrintCost, 1, 50);
-            Settings.simpleMealPrintCost = DrawIntSlider(listing, "FPS_SettingsSimpleCost".Translate().ToString(), "FPS_SettingsSimpleCostDesc".Translate().ToString(), Settings.simpleMealPrintCost, 1, 50);
-            Settings.fineMealPrintCost = DrawIntSlider(listing, "FPS_SettingsFineCost".Translate().ToString(), "FPS_SettingsFineCostDesc".Translate().ToString(), Settings.fineMealPrintCost, 1, 50);
-            Settings.lavishMealPrintCost = DrawIntSlider(listing, "FPS_SettingsLavishCost".Translate().ToString(), "FPS_SettingsLavishCostDesc".Translate().ToString(), Settings.lavishMealPrintCost, 1, 50);
+            DrawIntSliderSettings(listing, mealCostSliderSettings);
 
             listing.GapLine();
             listing.Label("FPS_SettingsSectionFeeder".Translate());
-            Settings.feederOutputLimit = DrawIntField(listing, "FPS_SettingsFeederOutput".Translate().ToString(), "FPS_SettingsFeederOutputDesc".Translate().ToString(), Settings.feederOutputLimit, ref feederOutputLimitBuffer, 0, 10000);
+            DrawIntFieldSettings(listing, feederFieldSettings);
             Settings.nutrientFeederTonerCost = DrawFloatSlider(listing, "FPS_SettingsNutrientFeederCost".Translate().ToString(), "FPS_SettingsNutrientFeederCostDesc".Translate().ToString(), Settings.nutrientFeederTonerCost, 0.1f, 20f);
 
             listing.GapLine();
             listing.Label("FPS_SettingsSectionStorage".Translate());
-            Settings.smallTankCapacity = DrawIntField(listing, "FPS_SettingsSmallTankCapacity".Translate().ToString(), "FPS_SettingsSmallTankCapacityDesc".Translate().ToString(), Settings.smallTankCapacity, ref smallTankCapacityBuffer, 0, 100000);
-            Settings.mediumTankCapacity = DrawIntField(listing, "FPS_SettingsMediumTankCapacity".Translate().ToString(), "FPS_SettingsMediumTankCapacityDesc".Translate().ToString(), Settings.mediumTankCapacity, ref mediumTankCapacityBuffer, 0, 100000);
-            Settings.largeTankCapacity = DrawIntField(listing, "FPS_SettingsLargeTankCapacity".Translate().ToString(), "FPS_SettingsLargeTankCapacityDesc".Translate().ToString(), Settings.largeTankCapacity, ref largeTankCapacityBuffer, 0, 100000);
+            DrawIntFieldSettings(listing, storageFieldSettings);
 
             listing.GapLine();
             listing.Label("FPS_SettingsSectionPower".Translate());
-            Settings.disintegratorIdlePower = DrawIntField(listing, "FPS_SettingsDisintegratorIdlePower".Translate().ToString(), "FPS_SettingsDisintegratorIdlePowerDesc".Translate().ToString(), Settings.disintegratorIdlePower, ref disintegratorIdlePowerBuffer, 0, 10000);
-            Settings.disintegratorActivePower = DrawIntField(listing, "FPS_SettingsDisintegratorActivePower".Translate().ToString(), "FPS_SettingsDisintegratorActivePowerDesc".Translate().ToString(), Settings.disintegratorActivePower, ref disintegratorActivePowerBuffer, 0, 10000);
-            Settings.smallTankPower = DrawIntField(listing, "FPS_SettingsSmallTankPower".Translate().ToString(), "FPS_SettingsSmallTankPowerDesc".Translate().ToString(), Settings.smallTankPower, ref smallTankPowerBuffer, 0, 10000);
-            Settings.mediumTankPower = DrawIntField(listing, "FPS_SettingsMediumTankPower".Translate().ToString(), "FPS_SettingsMediumTankPowerDesc".Translate().ToString(), Settings.mediumTankPower, ref mediumTankPowerBuffer, 0, 10000);
-            Settings.largeTankPower = DrawIntField(listing, "FPS_SettingsLargeTankPower".Translate().ToString(), "FPS_SettingsLargeTankPowerDesc".Translate().ToString(), Settings.largeTankPower, ref largeTankPowerBuffer, 0, 10000);
-            Settings.foodPrinterIdlePower = DrawIntField(listing, "FPS_SettingsPrinterIdlePower".Translate().ToString(), "FPS_SettingsPrinterIdlePowerDesc".Translate().ToString(), Settings.foodPrinterIdlePower, ref foodPrinterIdlePowerBuffer, 0, 10000);
-            Settings.foodPrinterPower = DrawIntField(listing, "FPS_SettingsPrinterPower".Translate().ToString(), "FPS_SettingsPrinterPowerDesc".Translate().ToString(), Settings.foodPrinterPower, ref foodPrinterPowerBuffer, 0, 10000);
-            Settings.animalFeederIdlePower = DrawIntField(listing, "FPS_SettingsFeederIdlePower".Translate().ToString(), "FPS_SettingsFeederIdlePowerDesc".Translate().ToString(), Settings.animalFeederIdlePower, ref animalFeederIdlePowerBuffer, 0, 10000);
-            Settings.animalFeederPower = DrawIntField(listing, "FPS_SettingsFeederPower".Translate().ToString(), "FPS_SettingsFeederPowerDesc".Translate().ToString(), Settings.animalFeederPower, ref animalFeederPowerBuffer, 0, 10000);
-            Settings.nutrientFeederIdlePower = DrawIntField(listing, "FPS_SettingsNutrientFeederIdlePower".Translate().ToString(), "FPS_SettingsNutrientFeederIdlePowerDesc".Translate().ToString(), Settings.nutrientFeederIdlePower, ref nutrientFeederIdlePowerBuffer, 0, 10000);
-            Settings.nutrientFeederPower = DrawIntField(listing, "FPS_SettingsNutrientFeederPower".Translate().ToString(), "FPS_SettingsNutrientFeederPowerDesc".Translate().ToString(), Settings.nutrientFeederPower, ref nutrientFeederPowerBuffer, 0, 10000);
+            DrawIntFieldSettings(listing, powerFieldSettings);
 
             listing.GapLine();
             listing.Label("FPS_SettingsSectionPrinter".Translate());
@@ -464,21 +498,77 @@ namespace FoodPrinterSystem
 
         private void ClearSettingBuffers()
         {
-            feederOutputLimitBuffer = null;
-            smallTankCapacityBuffer = null;
-            mediumTankCapacityBuffer = null;
-            largeTankCapacityBuffer = null;
-            disintegratorIdlePowerBuffer = null;
-            disintegratorActivePowerBuffer = null;
-            smallTankPowerBuffer = null;
-            mediumTankPowerBuffer = null;
-            largeTankPowerBuffer = null;
-            foodPrinterIdlePowerBuffer = null;
-            foodPrinterPowerBuffer = null;
-            animalFeederIdlePowerBuffer = null;
-            animalFeederPowerBuffer = null;
-            nutrientFeederIdlePowerBuffer = null;
-            nutrientFeederPowerBuffer = null;
+            ClearBuffers(feederFieldSettings);
+            ClearBuffers(storageFieldSettings);
+            ClearBuffers(powerFieldSettings);
+        }
+
+        private void InitializeSettingDefinitions()
+        {
+            mealCostSliderSettings = new[]
+            {
+                new IntSliderSetting("FPS_SettingsPasteCost", "FPS_SettingsPasteCostDesc", 1, 50, () => Settings.pastePrintCost, value => Settings.pastePrintCost = value),
+                new IntSliderSetting("FPS_SettingsSimpleCost", "FPS_SettingsSimpleCostDesc", 1, 50, () => Settings.simpleMealPrintCost, value => Settings.simpleMealPrintCost = value),
+                new IntSliderSetting("FPS_SettingsFineCost", "FPS_SettingsFineCostDesc", 1, 50, () => Settings.fineMealPrintCost, value => Settings.fineMealPrintCost = value),
+                new IntSliderSetting("FPS_SettingsLavishCost", "FPS_SettingsLavishCostDesc", 1, 50, () => Settings.lavishMealPrintCost, value => Settings.lavishMealPrintCost = value)
+            };
+
+            feederFieldSettings = new[]
+            {
+                new IntFieldSetting("FPS_SettingsFeederOutput", "FPS_SettingsFeederOutputDesc", 0, 10000, () => Settings.feederOutputLimit, value => Settings.feederOutputLimit = value, () => feederOutputLimitBuffer, value => feederOutputLimitBuffer = value)
+            };
+
+            storageFieldSettings = new[]
+            {
+                new IntFieldSetting("FPS_SettingsSmallTankCapacity", "FPS_SettingsSmallTankCapacityDesc", 0, 100000, () => Settings.smallTankCapacity, value => Settings.smallTankCapacity = value, () => smallTankCapacityBuffer, value => smallTankCapacityBuffer = value),
+                new IntFieldSetting("FPS_SettingsMediumTankCapacity", "FPS_SettingsMediumTankCapacityDesc", 0, 100000, () => Settings.mediumTankCapacity, value => Settings.mediumTankCapacity = value, () => mediumTankCapacityBuffer, value => mediumTankCapacityBuffer = value),
+                new IntFieldSetting("FPS_SettingsLargeTankCapacity", "FPS_SettingsLargeTankCapacityDesc", 0, 100000, () => Settings.largeTankCapacity, value => Settings.largeTankCapacity = value, () => largeTankCapacityBuffer, value => largeTankCapacityBuffer = value)
+            };
+
+            powerFieldSettings = new[]
+            {
+                new IntFieldSetting("FPS_SettingsDisintegratorIdlePower", "FPS_SettingsDisintegratorIdlePowerDesc", 0, 10000, () => Settings.disintegratorIdlePower, value => Settings.disintegratorIdlePower = value, () => disintegratorIdlePowerBuffer, value => disintegratorIdlePowerBuffer = value),
+                new IntFieldSetting("FPS_SettingsDisintegratorActivePower", "FPS_SettingsDisintegratorActivePowerDesc", 0, 10000, () => Settings.disintegratorActivePower, value => Settings.disintegratorActivePower = value, () => disintegratorActivePowerBuffer, value => disintegratorActivePowerBuffer = value),
+                new IntFieldSetting("FPS_SettingsSmallTankPower", "FPS_SettingsSmallTankPowerDesc", 0, 10000, () => Settings.smallTankPower, value => Settings.smallTankPower = value, () => smallTankPowerBuffer, value => smallTankPowerBuffer = value),
+                new IntFieldSetting("FPS_SettingsMediumTankPower", "FPS_SettingsMediumTankPowerDesc", 0, 10000, () => Settings.mediumTankPower, value => Settings.mediumTankPower = value, () => mediumTankPowerBuffer, value => mediumTankPowerBuffer = value),
+                new IntFieldSetting("FPS_SettingsLargeTankPower", "FPS_SettingsLargeTankPowerDesc", 0, 10000, () => Settings.largeTankPower, value => Settings.largeTankPower = value, () => largeTankPowerBuffer, value => largeTankPowerBuffer = value),
+                new IntFieldSetting("FPS_SettingsPrinterIdlePower", "FPS_SettingsPrinterIdlePowerDesc", 0, 10000, () => Settings.foodPrinterIdlePower, value => Settings.foodPrinterIdlePower = value, () => foodPrinterIdlePowerBuffer, value => foodPrinterIdlePowerBuffer = value),
+                new IntFieldSetting("FPS_SettingsPrinterPower", "FPS_SettingsPrinterPowerDesc", 0, 10000, () => Settings.foodPrinterPower, value => Settings.foodPrinterPower = value, () => foodPrinterPowerBuffer, value => foodPrinterPowerBuffer = value),
+                new IntFieldSetting("FPS_SettingsFeederIdlePower", "FPS_SettingsFeederIdlePowerDesc", 0, 10000, () => Settings.animalFeederIdlePower, value => Settings.animalFeederIdlePower = value, () => animalFeederIdlePowerBuffer, value => animalFeederIdlePowerBuffer = value),
+                new IntFieldSetting("FPS_SettingsFeederPower", "FPS_SettingsFeederPowerDesc", 0, 10000, () => Settings.animalFeederPower, value => Settings.animalFeederPower = value, () => animalFeederPowerBuffer, value => animalFeederPowerBuffer = value),
+                new IntFieldSetting("FPS_SettingsNutrientFeederIdlePower", "FPS_SettingsNutrientFeederIdlePowerDesc", 0, 10000, () => Settings.nutrientFeederIdlePower, value => Settings.nutrientFeederIdlePower = value, () => nutrientFeederIdlePowerBuffer, value => nutrientFeederIdlePowerBuffer = value),
+                new IntFieldSetting("FPS_SettingsNutrientFeederPower", "FPS_SettingsNutrientFeederPowerDesc", 0, 10000, () => Settings.nutrientFeederPower, value => Settings.nutrientFeederPower = value, () => nutrientFeederPowerBuffer, value => nutrientFeederPowerBuffer = value)
+            };
+        }
+
+        private void DrawIntSliderSettings(Listing_Standard listing, IntSliderSetting[] settings)
+        {
+            for (int i = 0; i < settings.Length; i++)
+            {
+                IntSliderSetting setting = settings[i];
+                int value = DrawIntSlider(listing, setting.LabelKey.Translate().ToString(), setting.TooltipKey.Translate().ToString(), setting.Getter(), setting.Min, setting.Max);
+                setting.Setter(value);
+            }
+        }
+
+        private void DrawIntFieldSettings(Listing_Standard listing, IntFieldSetting[] settings)
+        {
+            for (int i = 0; i < settings.Length; i++)
+            {
+                IntFieldSetting setting = settings[i];
+                string buffer = setting.BufferGetter();
+                int value = DrawIntField(listing, setting.LabelKey.Translate().ToString(), setting.TooltipKey.Translate().ToString(), setting.Getter(), ref buffer, setting.Min, setting.Max);
+                setting.BufferSetter(buffer);
+                setting.Setter(value);
+            }
+        }
+
+        private static void ClearBuffers(IntFieldSetting[] settings)
+        {
+            for (int i = 0; i < settings.Length; i++)
+            {
+                settings[i].BufferSetter(null);
+            }
         }
 
         private static int DrawIntSlider(Listing_Standard listing, string label, string tooltip, int value, int min, int max)
