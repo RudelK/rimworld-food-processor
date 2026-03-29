@@ -65,9 +65,7 @@ namespace FoodPrinterSystem
 
         private void NotifyLocalPipeVisuals(Map mapOverride = null)
         {
-            PipeRenderMapUtility.NotifyVisualNodeChanged(this, mapOverride);
-            PipeVisualMapUtility.NotifyThingChanged(this, mapOverride);
-            PipeOverlayMapUtility.NotifyThingChanged(this, mapOverride);
+            PipeVisualNotifyUtility.NotifyThingChanged(this, mapOverride);
         }
     }
 }

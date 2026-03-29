@@ -71,6 +71,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BuildingActivityUtility.cs" />
     <Compile Include="Building_AnimalFeeder.cs" />
     <Compile Include="Building_NutrientFeeder.cs" />
     <Compile Include="Building_FoodDisintegrator.cs" />

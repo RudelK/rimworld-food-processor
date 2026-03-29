@@ -148,9 +148,7 @@ namespace FoodSystemPipe
 
         private void NotifyPipeVisuals(Map mapOverride = null)
         {
-            PipeRenderMapUtility.NotifyVisualNodeChanged(parent, mapOverride);
-            PipeVisualMapUtility.NotifyThingChanged(parent, mapOverride);
-            PipeOverlayMapUtility.NotifyThingChanged(parent, mapOverride);
+            PipeVisualNotifyUtility.NotifyThingChanged(parent, mapOverride);
         }
     }
 
@@ -164,6 +162,21 @@ namespace FoodSystemPipe
         public virtual float ConsumptionRate
         {
             get { return PipeUserProps == null ? 0f : PipeUserProps.consumptionRate; }
+        }
+    }
+
+    public static class PipeVisualNotifyUtility
+    {
+        public static void NotifyThingChanged(Thing thing, Map mapOverride = null)
+        {
+            if (thing == null)
+            {
+                return;
+            }
+
+            PipeRenderMapUtility.NotifyVisualNodeChanged(thing, mapOverride);
+            PipeVisualMapUtility.NotifyThingChanged(thing, mapOverride);
+            PipeOverlayMapUtility.NotifyThingChanged(thing, mapOverride);
         }
     }
 }

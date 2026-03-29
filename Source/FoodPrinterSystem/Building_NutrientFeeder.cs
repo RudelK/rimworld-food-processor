@@ -41,17 +41,7 @@ namespace FoodPrinterSystem
         {
             base.TickRare();
 
-            bool wasActive = activeTicksRemaining > 0;
-            if (activeTicksRemaining > 0)
-            {
-                activeTicksRemaining -= GenTicks.TickRareInterval;
-                if (activeTicksRemaining < 0)
-                {
-                    activeTicksRemaining = 0;
-                }
-            }
-
-            if (wasActive != (activeTicksRemaining > 0))
+            if (BuildingActivityUtility.TickDownActiveWindow(ref activeTicksRemaining))
             {
                 ApplyPowerSetting();
             }
@@ -94,42 +84,54 @@ namespace FoodPrinterSystem
             {
                 // 0.9 nutrition is equivalent to one Nutrient Paste meal
                 pawn.needs.food.CurLevel = Mathf.Min(pawn.needs.food.MaxLevel, pawn.needs.food.CurLevel + 0.9f);
-                activeTicksRemaining = GenTicks.TickRareInterval;
+                BuildingActivityUtility.MarkActiveNow(ref activeTicksRemaining);
                 ApplyPowerSetting();
             }
         }
 
         public void ApplyPowerSetting()
         {
-            if (powerComp == null)
-            {
-                powerComp = GetComp<CompPowerTrader>();
-            }
-
-            if (powerComp != null)
-            {
-                powerComp.PowerOutput = activeTicksRemaining > 0
-                    ? -FoodPrinterSystemUtility.GetNutrientFeederActivePowerDraw()
-                    : -FoodPrinterSystemUtility.GetNutrientFeederIdlePowerDraw();
-            }
+            BuildingActivityUtility.ApplyIdleActivePower(
+                this,
+                ref powerComp,
+                activeTicksRemaining,
+                FoodPrinterSystemUtility.GetNutrientFeederIdlePowerDraw(),
+                FoodPrinterSystemUtility.GetNutrientFeederActivePowerDraw());
         }
 
         private void FindLinkedBed()
         {
-            linkedBed = null;
-            foreach (IntVec3 adj in GenAdj.CellsAdjacent8Way(this))
+            TryFindAdjacentHeadBed(Map, Position, out linkedBed);
+        }
+
+        public static bool TryFindAdjacentHeadBed(Map map, IntVec3 feederPos, out Building_Bed bed)
+        {
+            bed = null;
+            if (map == null)
             {
-                if (!adj.InBounds(Map)) continue;
-                List<Thing> thingList = adj.GetThingList(Map);
-                for (int i = 0; i < thingList.Count; i++)
+                return false;
+            }
+
+            for (int i = 0; i < 8; i++)
+            {
+                IntVec3 adjacentCell = feederPos + GenAdj.AdjacentCells[i];
+                if (!adjacentCell.InBounds(map))
                 {
-                    if (thingList[i] is Building_Bed bed && IsAtBedHead(bed, Position))
+                    continue;
+                }
+
+                List<Thing> thingList = adjacentCell.GetThingList(map);
+                for (int j = 0; j < thingList.Count; j++)
+                {
+                    if (thingList[j] is Building_Bed candidate && IsAtBedHead(candidate, feederPos))
                     {
-                        linkedBed = bed;
-                        return;
+                        bed = candidate;
+                        return true;
                     }
                 }
             }
+
+            return false;
         }
 
         public static bool IsAtBedHead(Building_Bed bed, IntVec3 feederPos)
@@ -202,25 +204,7 @@ namespace FoodSystemPipe
             AcceptanceReport baseReport = base.AllowsPlacing(checkingDef, loc, rot, map, thingToIgnore, thing);
             if (!baseReport.Accepted) return baseReport;
 
-            Building_Bed bed = null;
-            // Scan 8 cells around 'loc' to find a bed
-            for (int i = 0; i < 8; i++)
-            {
-                IntVec3 adj = loc + GenAdj.AdjacentCells[i];
-                if (!adj.InBounds(map)) continue;
-                List<Thing> thingList = adj.GetThingList(map);
-                for (int j = 0; j < thingList.Count; j++)
-                {
-                    if (thingList[j] is Building_Bed b && Building_NutrientFeeder.IsAtBedHead(b, loc))
-                    {
-                        bed = b;
-                        break;
-                    }
-                }
-                if (bed != null) break;
-            }
-
-            if (bed == null)
+            if (!Building_NutrientFeeder.TryFindAdjacentHeadBed(map, loc, out _))
             {
                 return "FPS_MustPlaceAtBedHead".Translate();
             }

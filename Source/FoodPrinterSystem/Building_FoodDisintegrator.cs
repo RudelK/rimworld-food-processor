@@ -23,17 +23,7 @@ namespace FoodPrinterSystem
         {
             base.TickRare();
 
-            bool wasActive = activeTicksRemaining > 0;
-            if (activeTicksRemaining > 0)
-            {
-                activeTicksRemaining -= GenTicks.TickRareInterval;
-                if (activeTicksRemaining < 0)
-                {
-                    activeTicksRemaining = 0;
-                }
-            }
-
-            if (wasActive != (activeTicksRemaining > 0))
+            if (BuildingActivityUtility.TickDownActiveWindow(ref activeTicksRemaining))
             {
                 ApplyPowerSetting();
             }
@@ -65,13 +55,18 @@ namespace FoodPrinterSystem
 
             List<ThingDef> ingredients = ExtractIngredientProvenanceDefs(food);
             TonerPipeNetManager.DistributeIngredients(this, ingredients);
-            activeTicksRemaining = GenTicks.TickRareInterval;
+            BuildingActivityUtility.MarkActiveNow(ref activeTicksRemaining);
             ApplyPowerSetting();
         }
 
         public void ApplyPowerSetting()
         {
-            SetPowerDraw(activeTicksRemaining > 0);
+            BuildingActivityUtility.ApplyIdleActivePower(
+                this,
+                ref powerComp,
+                activeTicksRemaining,
+                FoodPrinterSystemUtility.GetDisintegratorIdlePowerDraw(),
+                FoodPrinterSystemUtility.GetDisintegratorActivePowerDraw());
         }
 
         public override string GetInspectString()

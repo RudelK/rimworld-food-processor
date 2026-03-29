@@ -40,17 +40,7 @@ namespace FoodPrinterSystem
         {
             base.TickRare();
 
-            bool wasActive = activeTicksRemaining > 0;
-            if (activeTicksRemaining > 0)
-            {
-                activeTicksRemaining -= GenTicks.TickRareInterval;
-                if (activeTicksRemaining < 0)
-                {
-                    activeTicksRemaining = 0;
-                }
-            }
-
-            if (wasActive != (activeTicksRemaining > 0))
+            if (BuildingActivityUtility.TickDownActiveWindow(ref activeTicksRemaining))
             {
                 ApplyPowerSetting();
             }
@@ -101,24 +91,19 @@ namespace FoodPrinterSystem
                     cachedStoredKibble += batchSize;
                 }
 
-                activeTicksRemaining = GenTicks.TickRareInterval;
+                BuildingActivityUtility.MarkActiveNow(ref activeTicksRemaining);
                 ApplyPowerSetting();
             }
         }
 
         public void ApplyPowerSetting()
         {
-            if (powerComp == null)
-            {
-                powerComp = GetComp<CompPowerTrader>();
-            }
-
-            if (powerComp != null)
-            {
-                powerComp.PowerOutput = activeTicksRemaining > 0
-                    ? -FoodPrinterSystemUtility.GetAnimalFeederActivePowerDraw()
-                    : -FoodPrinterSystemUtility.GetAnimalFeederIdlePowerDraw();
-            }
+            BuildingActivityUtility.ApplyIdleActivePower(
+                this,
+                ref powerComp,
+                activeTicksRemaining,
+                FoodPrinterSystemUtility.GetAnimalFeederIdlePowerDraw(),
+                FoodPrinterSystemUtility.GetAnimalFeederActivePowerDraw());
         }
 
         public override string GetInspectString()
