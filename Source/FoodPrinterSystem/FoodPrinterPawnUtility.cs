@@ -105,11 +105,11 @@ namespace FoodPrinterSystem
         private static readonly Dictionary<int, CachedPrinterFoodCharacteristics> CachedCharacteristicsByPrinterId = new Dictionary<int, CachedPrinterFoodCharacteristics>();
         private static readonly Dictionary<int, CachedPawnPrinterFoodPolicy> CachedPolicyByPawnId = new Dictionary<int, CachedPawnPrinterFoodPolicy>();
         private static readonly Dictionary<MealAllowanceCacheKey, CachedMealAllowanceVerdict> CachedMealAllowanceByKey = new Dictionary<MealAllowanceCacheKey, CachedMealAllowanceVerdict>();
-        private const int PawnPolicyCacheDurationTicks = 30;
-        private const int PawnPolicyCachePruneIntervalTicks = 120;
+        private const int PawnPolicyCacheDurationTicks = 300;
+        private const int PawnPolicyCachePruneIntervalTicks = 300;
         private const int PawnPolicyCachePruneThreshold = 256;
-        private const int MealAllowanceCacheDurationTicks = 30;
-        private const int MealAllowanceCachePruneIntervalTicks = 120;
+        private const int MealAllowanceCacheDurationTicks = 300;
+        private const int MealAllowanceCachePruneIntervalTicks = 300;
         private const int MealAllowanceCachePruneThreshold = 256;
         private static int lastPawnPolicyCachePruneTick;
         private static int lastMealAllowanceCachePruneTick;
@@ -481,6 +481,17 @@ namespace FoodPrinterSystem
             if (TryGetHardFoodTypeBlockReason(policy, characteristics, out string hardBlockReason))
             {
                 reason = hardBlockReason;
+                if (logResult)
+                {
+                    LogMealAllowance(pawn, printer, mealDef, policy, false, reason);
+                }
+
+                return false;
+            }
+
+            if (!TryDiagnoseFoodPolicyAllowance(pawn, mealDef, out string foodPolicyReason))
+            {
+                reason = foodPolicyReason;
                 if (logResult)
                 {
                     LogMealAllowance(pawn, printer, mealDef, policy, false, reason);

@@ -10,6 +10,15 @@ namespace FoodPrinterSystem
         private const float MaxPrinterSearchDistance = 9999f;
         private const float PreferenceDistanceCreditPerPoint = 4f;
 
+        private struct PrinterCandidateScore
+        {
+            public Building_FoodPrinter Printer;
+            public ThingDef MealDef;
+            public float RawDistance;
+            public float PreferenceScore;
+            public float AdjustedDistance;
+        }
+
         public static Building_FoodPrinter FindClosestValidPrinter(Pawn getter, Pawn eater, bool allowDispenserFull, bool allowForbidden, bool allowSociallyImproper, bool ignoreReservations, Building_FoodPrinter excludedPrinter = null)
         {
             if (getter == null
@@ -30,34 +39,35 @@ namespace FoodPrinterSystem
             }
 
             PawnPrinterFoodPolicy pawnPolicy = FoodPrinterPawnUtility.ResolvePawnFoodPolicy(eater);
-            Building_FoodPrinter bestPrinter = null;
-            float bestAdjustedDistance = float.MaxValue;
-            float bestRawDistance = float.MaxValue;
-            float bestPreferenceScore = float.MinValue;
+            List<PrinterCandidateScore> candidates = new List<PrinterCandidateScore>();
 
             for (int i = 0; i < printers.Count; i++)
             {
                 Building_FoodPrinter printer = printers[i] as Building_FoodPrinter;
-                if (!IsPrinterJobCandidate(printer, getter, eater, pawnPolicy, allowDispenserFull, allowForbidden, allowSociallyImproper, ignoreReservations, excludedPrinter))
+                if (!TryBuildPrinterCandidate(printer, getter, eater, pawnPolicy, allowDispenserFull, allowForbidden, allowSociallyImproper, excludedPrinter, out PrinterCandidateScore candidate))
                 {
                     continue;
                 }
 
-                // Soft preference scoring only ranks printers that already passed the
-                // hard allow/deny filters in IsPrinterJobCandidate.
-                float rawDistance = getter.Position.DistanceTo(printer.InteractionCell);
-                float preferenceScore = FoodPrinterPawnUtility.GetPrinterPreferenceScore(pawnPolicy, eater, printer);
-                float adjustedDistance = rawDistance - (preferenceScore * PreferenceDistanceCreditPerPoint);
-                if (IsBetterPrinterCandidate(adjustedDistance, rawDistance, preferenceScore, bestAdjustedDistance, bestRawDistance, bestPreferenceScore))
+                candidates.Add(candidate);
+            }
+
+            if (candidates.Count == 0)
+            {
+                return null;
+            }
+
+            candidates.Sort(ComparePrinterCandidates);
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                PrinterCandidateScore candidate = candidates[i];
+                if (CanReachPrinterCandidate(candidate.Printer, getter, ignoreReservations))
                 {
-                    bestPrinter = printer;
-                    bestAdjustedDistance = adjustedDistance;
-                    bestRawDistance = rawDistance;
-                    bestPreferenceScore = preferenceScore;
+                    return candidate.Printer;
                 }
             }
 
-            return bestPrinter;
+            return null;
         }
 
         public static bool IsPrinterJobCandidate(Building_FoodPrinter printer, Pawn getter, Pawn eater, bool allowDispenserFull, bool allowForbidden, bool allowSociallyImproper, bool ignoreReservations, Building_FoodPrinter excludedPrinter = null)
@@ -81,6 +91,18 @@ namespace FoodPrinterSystem
 
         private static bool IsPrinterJobCandidate(Building_FoodPrinter printer, Pawn getter, Pawn eater, PawnPrinterFoodPolicy pawnPolicy, bool allowDispenserFull, bool allowForbidden, bool allowSociallyImproper, bool ignoreReservations, Building_FoodPrinter excludedPrinter = null)
         {
+            if (!TryBuildPrinterCandidate(printer, getter, eater, pawnPolicy, allowDispenserFull, allowForbidden, allowSociallyImproper, excludedPrinter, out PrinterCandidateScore candidate))
+            {
+                return false;
+            }
+
+            return CanReachPrinterCandidate(candidate.Printer, getter, ignoreReservations);
+        }
+
+        private static bool TryBuildPrinterCandidate(Building_FoodPrinter printer, Pawn getter, Pawn eater, PawnPrinterFoodPolicy pawnPolicy, bool allowDispenserFull, bool allowForbidden, bool allowSociallyImproper, Building_FoodPrinter excludedPrinter, out PrinterCandidateScore candidate)
+        {
+            candidate = default;
+
             if (printer == null
                 || printer == excludedPrinter
                 || getter == null
@@ -142,6 +164,31 @@ namespace FoodPrinterSystem
                 return false;
             }
 
+            float rawDistance = getter.Position.DistanceTo(printer.InteractionCell);
+            if (rawDistance > MaxPrinterSearchDistance)
+            {
+                return false;
+            }
+
+            float preferenceScore = FoodPrinterPawnUtility.GetPrinterPreferenceScore(pawnPolicy, eater, printer);
+            candidate = new PrinterCandidateScore
+            {
+                Printer = printer,
+                MealDef = availableMealDef,
+                RawDistance = rawDistance,
+                PreferenceScore = preferenceScore,
+                AdjustedDistance = rawDistance - (preferenceScore * PreferenceDistanceCreditPerPoint)
+            };
+            return true;
+        }
+
+        private static bool CanReachPrinterCandidate(Building_FoodPrinter printer, Pawn getter, bool ignoreReservations)
+        {
+            if (printer == null || getter == null || getter.Map == null)
+            {
+                return false;
+            }
+
             if (ignoreReservations)
             {
                 TraverseParms traverseParms = TraverseParms.For(getter, Danger.Some, TraverseMode.ByPawn, false, false, false, false);
@@ -149,6 +196,21 @@ namespace FoodPrinterSystem
             }
 
             return getter.CanReserveAndReach(printer, PathEndMode.InteractionCell, Danger.Some, 1, -1, null, false);
+        }
+
+        private static int ComparePrinterCandidates(PrinterCandidateScore left, PrinterCandidateScore right)
+        {
+            if (IsBetterPrinterCandidate(left.AdjustedDistance, left.RawDistance, left.PreferenceScore, right.AdjustedDistance, right.RawDistance, right.PreferenceScore))
+            {
+                return -1;
+            }
+
+            if (IsBetterPrinterCandidate(right.AdjustedDistance, right.RawDistance, right.PreferenceScore, left.AdjustedDistance, left.RawDistance, left.PreferenceScore))
+            {
+                return 1;
+            }
+
+            return 0;
         }
 
         private static bool IsPrinterFactionValid(Building_FoodPrinter printer, Pawn getter, Pawn eater)
