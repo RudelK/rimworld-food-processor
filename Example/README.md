@@ -23,6 +23,8 @@ The current supported pattern in this codebase is:
 
 `Building_EmbeddedPipeMachine` exists in the source, but the shipped buildings currently use `CompProperties_TonerNode` directly. These examples intentionally teach that same pattern.
 
+If you choose to subclass `Building_NutrientPasteDispenser` for vanilla food-search compatibility, do not blindly pass through `base.GetGizmos()`. Other dispenser mods may inject inherited gizmos onto your building, so you should explicitly filter or whitelist the commands you want to keep.
+
 ## Example Files
 
 `CSharp/ExampleTonerConsumer.cs`
@@ -81,3 +83,4 @@ If you copy the custom place worker example into a live mod, add a keyed string 
 - These snippets are examples, not framework APIs.
 - The examples use `ThingDefOf.RawPotatoes` for provenance because it is a final ingestible ingredient def.
 - If provenance matters for your building, do not convert ingredients into butcher source defs, race defs, or parent defs.
+- The producer example increments its success counter only after `TryAddToner(...)` succeeds, then distributes provenance, matching the current runtime order used in the main mod.
