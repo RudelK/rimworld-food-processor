@@ -18,6 +18,8 @@ namespace FoodPrinterSystem
         private bool storageStateDirty = true;
         private bool storagePresenceDirty = true;
         private bool hasConnectedStorage;
+        private int lastSyncedStoredTotal = -1;
+        private int lastSyncedCapacityTotal = -1;
 
         public List<CompPipe> Pipes
         {
@@ -86,6 +88,8 @@ namespace FoodPrinterSystem
 
             storageStateDirty = true;
             storagePresenceDirty = true;
+            lastSyncedStoredTotal = -1;
+            lastSyncedCapacityTotal = -1;
         }
 
         internal void AddUser(CompPipeUser user)
@@ -106,6 +110,8 @@ namespace FoodPrinterSystem
 
             storageStateDirty = true;
             storagePresenceDirty = true;
+            lastSyncedStoredTotal = -1;
+            lastSyncedCapacityTotal = -1;
         }
 
         public void NetTick()
@@ -227,12 +233,16 @@ namespace FoodPrinterSystem
             storageStateDirty = true;
             storagePresenceDirty = true;
             hasConnectedStorage = false;
+            lastSyncedStoredTotal = -1;
+            lastSyncedCapacityTotal = -1;
         }
 
         internal void NotifyStorageChanged()
         {
             storageStateDirty = true;
             storagePresenceDirty = true;
+            lastSyncedStoredTotal = -1;
+            lastSyncedCapacityTotal = -1;
         }
 
         private void EnsureStorageState()
@@ -276,6 +286,8 @@ namespace FoodPrinterSystem
             {
                 resourceBuffer = 0f;
                 storageStateDirty = false;
+                lastSyncedStoredTotal = 0;
+                lastSyncedCapacityTotal = 0;
                 return;
             }
 
@@ -295,6 +307,11 @@ namespace FoodPrinterSystem
             if (requiresRedistribution)
             {
                 SyncBufferToTanks();
+            }
+            else
+            {
+                lastSyncedStoredTotal = totalStored;
+                lastSyncedCapacityTotal = totalCapacity;
             }
         }
 
@@ -325,8 +342,20 @@ namespace FoodPrinterSystem
                 return;
             }
 
+            resourceBuffer = Mathf.Clamp(resourceBuffer, 0f, totalCapacity);
             int totalStored = Mathf.Clamp(Mathf.RoundToInt(resourceBuffer), 0, totalCapacity);
-            resourceBuffer = totalStored;
+            if (totalStored == lastSyncedStoredTotal && totalCapacity == lastSyncedCapacityTotal)
+            {
+                return;
+            }
+
+            CompTonerTank singleTank = GetSingleStorageTank();
+            if (singleTank != null)
+            {
+                SyncSingleTank(singleTank, totalStored, totalCapacity);
+                return;
+            }
+
             RedistributeAcrossTanks(totalStored, totalCapacity);
         }
 
@@ -347,6 +376,47 @@ namespace FoodPrinterSystem
 
             FinalizeBatchedTankRefresh(dirtyMap, dirtyCells, storageChanged);
             storageStateDirty = false;
+            lastSyncedStoredTotal = 0;
+            lastSyncedCapacityTotal = 0;
+        }
+
+        private CompTonerTank GetSingleStorageTank()
+        {
+            CompTonerTank singleTank = null;
+            for (int i = 0; i < tanks.Count; i++)
+            {
+                CompTonerTank tank = tanks[i];
+                if (tank == null || tank.parent == null || tank.Capacity <= 0)
+                {
+                    continue;
+                }
+
+                if (singleTank != null)
+                {
+                    return null;
+                }
+
+                singleTank = tank;
+            }
+
+            return singleTank;
+        }
+
+        private void SyncSingleTank(CompTonerTank tank, int totalStored, int totalCapacity)
+        {
+            Map dirtyMap = null;
+            HashSet<IntVec3> dirtyCells = null;
+            bool storageChanged = false;
+            if (tank != null && tank.StoredToner != totalStored && tank.SetStoredTonerFromNetwork(totalStored, true))
+            {
+                storageChanged = true;
+                CollectDirtyCells(tank, ref dirtyMap, ref dirtyCells);
+            }
+
+            FinalizeBatchedTankRefresh(dirtyMap, dirtyCells, storageChanged);
+            storageStateDirty = false;
+            lastSyncedStoredTotal = totalStored;
+            lastSyncedCapacityTotal = totalCapacity;
         }
 
         private void RedistributeAcrossTanks(int totalStored, int totalCapacity)
@@ -417,6 +487,8 @@ namespace FoodPrinterSystem
 
             FinalizeBatchedTankRefresh(dirtyMap, dirtyCells, storageChanged);
             storageStateDirty = false;
+            lastSyncedStoredTotal = totalStored;
+            lastSyncedCapacityTotal = totalCapacity;
         }
 
         private static void CollectDirtyCells(CompTonerTank tank, ref Map dirtyMap, ref HashSet<IntVec3> dirtyCells)
