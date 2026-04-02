@@ -66,8 +66,32 @@ Optional:
 
 Build:
 
+Windows:
+
 ```powershell
-dotnet build .\Source\FoodPrinterSystem\FoodProcess.csproj -c Release
+.\build.ps1 -Configuration Release
+```
+
+Linux:
+
+```bash
+chmod +x ./build.sh
+./build.sh --configuration Release
+```
+
+The project needs local RimWorld managed assemblies plus `0Harmony.dll`.
+
+- For this older `.NET Framework 4.7.2` style project on Linux, `mono` + `mono-msbuild` is the preferred setup.
+- `build.sh` will prefer `msbuild`/`xbuild`, and only fall back to `dotnet` when needed.
+- On Linux, `build.sh` auto-detects common Steam install and workshop paths.
+- On any platform, you can override detection with `RimWorldManagedDir` and `HarmonyReferencePath`.
+
+Example:
+
+```bash
+RimWorldManagedDir="$HOME/.steam/steam/steamapps/common/RimWorld/RimWorldLinux_Data/Managed" \
+HarmonyReferencePath="$HOME/.steam/steam/steamapps/workshop/content/294100/2009463077/Current/Assemblies/0Harmony.dll" \
+./build.sh --configuration Release
 ```
 
 ## Installation
